@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (!plates.length) return;
 
-  // 1. Prepare SVG stroke paths for dynamic blueprint line drawing
+  // Prepare SVG stroke paths for blueprint drawing animation
   const svgPaths = document.querySelectorAll('.plate-media svg path, .plate-media svg circle, .plate-media svg rect');
   svgPaths.forEach(path => {
     try {
@@ -14,14 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
         path.style.transition = 'stroke-dashoffset 1.4s cubic-bezier(0.16, 1, 0.3, 1)';
       }
     } catch (e) {
-      // Ignore simple shapes without total length
+      // Fallback for simple elements
     }
   });
 
-  // 2. Intersection Observer for Scale, Crossfade, & SVG Linework
   const observerOptions = {
     root: null,
-    rootMargin: '-15% 0px -15% 0px', // Triggers around the central focus area of screen
+    rootMargin: '-15% 0px -15% 0px',
     threshold: 0.2
   };
 
@@ -30,13 +29,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const paths = entry.target.querySelectorAll('path, circle, rect');
 
       if (entry.isIntersecting) {
-        // Active state: scale up plate + draw SVG lines
         entry.target.classList.add('is-active');
         paths.forEach(path => {
           path.style.strokeDashoffset = '0';
         });
       } else {
-        // Inactive state: dim/scale down plate + un-draw SVG lines for re-animation
         entry.target.classList.remove('is-active');
         paths.forEach(path => {
           try {
