@@ -1,6 +1,5 @@
 # Vivek Khanna, Urban Planning Portfolio
 
-A static, dependency-free portfolio site (HTML/CSS/JS) built for GitHub Pages.
 
 ## What's included
 
