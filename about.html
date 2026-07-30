@@ -3,12 +3,188 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>About, Vivek Khanna</title>
-<meta name="description" content="About Vivek Khanna, urban planning and transportation design student.">
+<title>About — Vivek Khanna, Urban &amp; Transportation Planning Portfolio</title>
+<meta name="description" content="Professional background, technical competencies, and academic credentials of Vivek Khanna.">
 <link rel="stylesheet" href="assets/css/style.css">
+<style>
+  /* Plate / Card Grid Styling with Top-Left and Bottom-Right Technical Corner Marks */
+  .about-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(24px, 4vw, 40px);
+    align-items: stretch;
+    margin-bottom: 48px;
+  }
+
+  .about-block {
+    position: relative;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 4px;
+    padding: clamp(24px, 4vw, 36px);
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* Technical Corner Lines (Top-Left and Bottom-Right) */
+  .about-block::before,
+  .about-block::after {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    pointer-events: none;
+  }
+
+  .about-block::before {
+    top: -1px;
+    left: -1px;
+    border-top: 2px solid var(--dark-green, #1E5631);
+    border-left: 2px solid var(--dark-green, #1E5631);
+  }
+
+  .about-block::after {
+    bottom: -1px;
+    right: -1px;
+    border-bottom: 2px solid var(--dark-green, #1E5631);
+    border-right: 2px solid var(--dark-green, #1E5631);
+  }
+
+  .about-block p {
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: var(--text-muted, #525866);
+    margin-bottom: 16px;
+  }
+
+  /* Extended Technical Skills List */
+  .competency-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .competency-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    font-size: 0.9rem;
+  }
+
+  .competency-item:last-child {
+    border-bottom: none;
+  }
+
+  .competency-item b {
+    font-weight: 600;
+  }
+
+  .competency-item span {
+    font-family: var(--mono, monospace);
+    font-size: 0.82rem;
+    color: var(--text-muted, #525866);
+    text-align: right;
+    margin-left: 12px;
+  }
+
+  /* Framed Timeline Container with Top-Left and Bottom-Right Corner Marks */
+  .timeline-card {
+    position: relative;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 4px;
+    padding: clamp(24px, 4vw, 40px);
+    background-color: #ffffff;
+    margin-top: 24px;
+  }
+
+  .timeline-card::before,
+  .timeline-card::after {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    pointer-events: none;
+  }
+
+  .timeline-card::before {
+    top: -1px;
+    left: -1px;
+    border-top: 2px solid var(--dark-green, #1E5631);
+    border-left: 2px solid var(--dark-green, #1E5631);
+  }
+
+  .timeline-card::after {
+    bottom: -1px;
+    right: -1px;
+    border-bottom: 2px solid var(--dark-green, #1E5631);
+    border-right: 2px solid var(--dark-green, #1E5631);
+  }
+
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .timeline-entry {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  .timeline-entry:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .timeline-meta {
+    font-family: var(--mono, monospace);
+    font-size: 0.85rem;
+    color: var(--text-muted, #525866);
+  }
+
+  .timeline-role {
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin-bottom: 4px;
+  }
+
+  .timeline-org {
+    font-size: 0.9rem;
+    color: var(--dark-green, #1E5631);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .timeline-desc {
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: var(--text-muted, #525866);
+  }
+
+  @media (max-width: 768px) {
+    .about-content {
+      grid-template-columns: 1fr;
+    }
+    .timeline-entry {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+  }
+</style>
 </head>
 <body>
 <div class="custom-cursor" aria-hidden="true"></div>
+
+<!-- Site Header / Navigation -->
 <header class="site-header">
   <nav class="nav">
     <a href="index.html" class="brand">
@@ -24,53 +200,195 @@
   </nav>
 </header>
 
-<section class="page-hero">
+<!-- Hero Section -->
+<section class="hero">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <svg class="hero-svg" viewBox="0 0 600 600" aria-hidden="true">
+    <circle cx="420" cy="260" r="150" stroke-width="1"/>
+    <circle cx="420" cy="260" r="95" stroke-width="1"/>
+    <path d="M420 110 V410 M270 260 H570" stroke-width="1"/>
+    <path d="M300 150 L540 380 M540 150 L300 380" stroke-width="0.6"/>
+  </svg>
+  <div class="hero-inner">
+    <div class="hero-top">
+      <span class="eyebrow">Profile &amp; Background</span>
+      <span class="coord">43.6532&deg; N&nbsp;&nbsp;79.3832&deg; W, Toronto, ON</span>
+    </div>
+    <h1>Bridging policy and<br><em>city building.</em></h1>
+    <div class="hero-sub">
+      <p class="hero-lede">
+        Interdisciplinary Urban Planner, BIM Specialist, and Transportation Planner 
+        combining spatial policy analysis, parametric modeling, and project delivery 
+        to design resilient, transit-oriented communities.
+      </p>
+      <div class="hero-stats">
+        <div class="stat"><b>04+</b><span>Years experience</span></div>
+        <div class="stat"><b>02</b><span>Canadian PG certificates</span></div>
+        <div class="stat"><b>4.12</b><span>Highest academic GPA</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- About Section -->
+<section class="section" id="about">
   <div class="wrap">
-    <span class="eyebrow">About</span>
-    <h1>Urban planning, from the street level up.</h1>
-    <p class="desc">A short profile. Replace or expand this with your own
-      background, program, and story.</p>
+    
+    <!-- 2 Vertical Plate Cards Container -->
+    <div class="about-content">
+      
+      <!-- Plate 1: Biography & Methodology -->
+      <div class="about-block">
+        <div>
+          <div class="section-head" style="margin-bottom: 20px;">
+            <h2>Biography &amp; Methodology</h2>
+          </div>
+          <p>
+            I am an Urban Planner, BIM Architect, and Transportation Specialist based in Scarborough, Ontario. As a Candidate Member of the Ontario Professional Planners Institute (OPPI) working toward full RPP/MCIP credentials, my practice focuses on converting complex municipal growth frameworks, zoning bylaws, and structural constraints into actionable 3D urban developments.
+          </p>
+          <p>
+            My methodology pairs sustainable transportation planning and land-use policy with technical BIM execution. Backed by postgraduate specializations from Seneca Polytechnic and Fanshawe College, I lead technical studies encompassing Major Transit Station Area (MTSA) master planning, Transit-Oriented Development (TOD), active transportation networks, and multi-trade BIM coordination.
+          </p>
+          <p>
+            From automating parametric workflows using Autodesk Revit and Dynamo to conducting rigorous Traffic Impact Assessments (TIA), I bridge the divide between high-level urban policy and precise technical project implementation.
+          </p>
+        </div>
+        <div style="margin-top: 28px; display: flex; gap: 16px;">
+          <a class="btn" href="mailto:vivekkhanna.canada@gmail.com">
+            Get in touch
+            <svg viewBox="0 0 12 12"><path d="M2 10 L10 2 M4 2 H10 V8" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+          </a>
+          <a class="btn" href="assets/docs/Vivek_Khanna_Resume.pdf" target="_blank" rel="noopener">
+            Download CV
+            <svg viewBox="0 0 12 12"><path d="M2 10 L10 2 M4 2 H10 V8" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Plate 2: Extended Technical Competencies -->
+      <div class="about-block">
+        <div>
+          <div class="section-head" style="margin-bottom: 20px;">
+            <h2>Technical Core &amp; Toolset</h2>
+          </div>
+          <ul class="competency-list">
+            <li class="competency-item">
+              <b>Urban Policy &amp; Land Use</b>
+              <span>TOD / MTSA / PPS / Provincial Plans</span>
+            </li>
+            <li class="competency-item">
+              <b>BIM &amp; Parametric Modeling</b>
+              <span>Revit / Dynamo / Rhino 3D</span>
+            </li>
+            <li class="competency-item">
+              <b>Traffic &amp; Transit Analysis</b>
+              <span>TIA / Intersection Capacity / Multimodal</span>
+            </li>
+            <li class="competency-item">
+              <b>Spatial Analysis &amp; GIS</b>
+              <span>ArcGIS Pro / QGIS / Network Analysis</span>
+            </li>
+            <li class="competency-item">
+              <b>Project Delivery &amp; Take-Offs</b>
+              <span>Bluebeam Revu / Costing / Estimating</span>
+            </li>
+            <li class="competency-item">
+              <b>Project Management &amp; Controls</b>
+              <span>MS Project / CPM Scheduling / EVM</span>
+            </li>
+            <li class="competency-item">
+              <b>Renderings &amp; Masterplanning</b>
+              <span>Lumion / Photoshop / Illustrator / SketchUp</span>
+            </li>
+          </ul>
+        </div>
+
+        <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid rgba(0, 0, 0, 0.08);">
+          <div class="dt" style="font-size: 0.82rem; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 10px;">Affiliations &amp; Credentials</div>
+          <ul style="font-size: 0.88rem; line-height: 1.65; color: var(--text-muted); list-style: square; padding-left: 18px;">
+            <li>Candidate Member, Ontario Professional Planners Institute (OPPI)</li>
+            <li>Autodesk Certified Professional — Revit Building Design</li>
+            <li>Bluebeam Revu Quantity Take-Off &amp; Quality Control</li>
+            <li>Computational Algorithmic Scripting (Dynamo / Grasshopper)</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Framed Timeline Section with Top-Left and Bottom-Right Corner Marks -->
+    <div style="margin-top: 48px;">
+      <div class="section-head">
+        <h2>Experience &amp; Academic Background</h2>
+        <p class="desc">A career spanning Canadian postgraduate specialization and international architectural practice.</p>
+      </div>
+
+      <div class="timeline-card">
+        <div class="timeline">
+          <div class="timeline-entry">
+            <div class="timeline-meta">2025 – 2026<br><small style="color: var(--dark-green);">GPA: 4.0 / 4.2</small></div>
+            <div>
+              <div class="timeline-role">Postgraduate — Sustainable Urban &amp; Transportation Planning</div>
+              <div class="timeline-org">Seneca Polytechnic, Ontario</div>
+              <p class="timeline-desc">Advanced analysis of land-use intensification, Major Transit Station Area (MTSA) policy compliance, intersection capacity modeling, and multimodal network design across the Greater Toronto Area.</p>
+            </div>
+          </div>
+
+          <div class="timeline-entry">
+            <div class="timeline-meta">2025<br><small style="color: var(--dark-green);">GPA: 4.12 / 4.2</small></div>
+            <div>
+              <div class="timeline-role">Postgraduate — Construction Project Management</div>
+              <div class="timeline-org">Fanshawe College, Ontario</div>
+              <p class="timeline-desc">Comprehensive training in project scheduling (CPM/MS Project), cost estimation, contract administration, earned value management, and multi-trade procurement controls.</p>
+            </div>
+          </div>
+
+          <div class="timeline-entry">
+            <div class="timeline-meta">2022 – 2024<br><small>Full-Time</small></div>
+            <div>
+              <div class="timeline-role">Project Architect &amp; BIM Coordinator</div>
+              <div class="timeline-org">Modulor Design Studio / APS Green Solution</div>
+              <p class="timeline-desc">Directed BIM coordination, detail modeling, and zoning compliance reviews for high-density residential developments. Managed multi-disciplinary consultant workflows and RFI resolutions.</p>
+            </div>
+          </div>
+
+          <div class="timeline-entry">
+            <div class="timeline-meta">2019<br><small>B.Arch Degree</small></div>
+            <div>
+              <div class="timeline-role">Bachelor of Architecture (B.Arch)</div>
+              <div class="timeline-org">Chitkara School of Planning &amp; Architecture</div>
+              <p class="timeline-desc">Professional architectural foundation centered on urban morphology, public realm integration, commercial master planning, and sustainable structural systems.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </section>
 
-<section class="section">
-  <div class="wrap about-grid">
-    <div class="about-copy">
-      <p>
-        I'm an urban planning and transportation design student, and most of
-        my work sits somewhere between community planning history, active
-        transportation strategy, and contextual urban design. I like moving
-        between scales. Some studies are about a single arterial crossing,
-        others trace a century of change across an entire neighbourhood, but
-        I try to keep both grounded in mapped evidence and actual municipal
-        policy instead of design gestures that just look good on a slide.
-      </p>
-      <p>
-        Recent studies include a policy alignment audit of a suburban
-        Scarborough retrofit node, a historical and cross-cultural read on
-        Forest Hill South's planning values, a Kevin Lynch based imageability
-        analysis of the Seneca Newnham campus, and a community survey driven
-        cycling network strategy for downtown Perth, Ontario.
-      </p>
-      <p>
-        I'm honestly more interested in the details people skip over. Turning
-        radii. Crossing exposure time. The gap between a city's stated Vision
-        Zero commitment and what's actually built at an intersection. Finding
-        that gap and turning it into something buildable, in stages, is what
-        I enjoy most about this work.
-      </p>
+<!-- Working Principles Section -->
+<section class="section on-dark">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Working method, in brief</h2>
+      <p class="desc">Every project and technical study follows the same four-stage process. See it in full on the Approach page.</p>
     </div>
-    <div class="about-card">
-      <div class="dt">Working knowledge</div>
-      <div class="skill-row"><span>Analysis</span>Kevin Lynch mapping, SWOT, policy scorecards</div>
-      <div class="skill-row"><span>Tools</span>GIS &amp; base mapping, Google Earth / Street View</div>
-      <div class="skill-row"><span>Data</span>Municipal census profiles, resident survey synthesis</div>
-      <div class="skill-row"><span>Focus</span>Active transportation, community planning history</div>
-      <div class="skill-row"><span>Based in</span>Toronto, Ontario</div>
+    <div class="hero-stats" style="gap:clamp(28px,6vw,64px)">
+      <div class="stat"><b>01</b><span>Read the site and its data</span></div>
+      <div class="stat"><b>02</b><span>Diagnose the conflicts</span></div>
+      <div class="stat"><b>03</b><span>Check it against policy</span></div>
+      <div class="stat"><b>04</b><span>Design and phase the fix</span></div>
+    </div>
+    <div style="margin-top:36px;">
+      <a class="btn on-dark" href="approach.html">Read the full methodology
+        <svg viewBox="0 0 12 12"><path d="M2 10 L10 2 M4 2 H10 V8" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+      </a>
     </div>
   </div>
 </section>
 
+<!-- Site Footer -->
 <footer class="site-footer">
   <div class="wrap footer-row">
     <span class="fn">&copy; 2026 Vivek Khanna, Urban &amp; Transportation Planning</span>
