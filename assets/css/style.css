@@ -445,3 +445,61 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   opacity: 1;
   transform: scale(1);
 }
+/* Force-hide default browser cursors (arrow, hand/pointer, text selection) everywhere */
+@media (pointer: fine) {
+  *,
+  *::before,
+  *::after,
+  html,
+  body,
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  [role="button"] {
+    cursor: none !important;
+  }
+}
+
+/* Force-hide default browser cursors everywhere */
+@media (pointer: fine) {
+  *,
+  *::before,
+  *::after,
+  html,
+  body,
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  [role="button"] {
+    cursor: none !important;
+  }
+}
+
+/* Extra Large Inverse Custom Cursor */
+.custom-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 60px;                  /* Increased circle size */
+  height: 60px;
+  background-color: #ffffff;   /* Pure white yields maximum contrast inversion */
+  border-radius: 50%;
+  pointer-events: none;        /* Allows clicks to pass through to underlying elements */
+  z-index: 99999;              /* Stays on top of all page elements */
+  
+  /* Inverts colors based on whatever background is underneath */
+  mix-blend-mode: difference;
+  
+  /* Smooth position/scale transitions */
+  transform: translate(-50%, -50%) scale(1);
+  transition: transform 0.18s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Slightly expands when hovering interactive elements */
+body.hovering-interactive .custom-cursor {
+  transform: translate(-50%, -50%) scale(1.3);
+}
