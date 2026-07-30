@@ -105,30 +105,39 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   display:flex; align-items:center; gap:12px;
   font-family:var(--display); font-weight:600; font-size:16px;
 }
-.brand-mark{
-  width:36px; height:36px;
-  background:var(--graphite);
-  color:var(--offwhite);
-  display:flex; align-items:center; justify-content:center;
-  font-family:var(--mono); font-size:13px; letter-spacing:0.02em;
-  position:relative;
+.brand-mark {
+  width: 52px;            /* Increased from 36px */
+  height: 52px;           /* Increased from 36px */
+  background: var(--graphite);
+  color: var(--offwhite);
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  font-family: var(--mono); 
+  font-size: 18px;        /* Increased from 13px */
+  font-weight: 600;       /* Optional: makes the letters slightly bolder */
+  letter-spacing: 0.04em;
+  position: relative;
+  flex-shrink: 0;         /* Prevents the logo box from shrinking on smaller screens */
 }
-.brand-mark::after{
-  content:"";
-  position:absolute; inset:4px;
-  border:1px solid var(--sage);
-  pointer-events:none;
+
+.brand-mark::after {
+  content: "";
+  position: absolute; 
+  inset: 5px;             /* Adjusted border inset gap from 4px to 5px */
+  border: 1px solid var(--sage);
+  pointer-events: none;
 }
-.brand-name{ display:flex; flex-direction:column; line-height:1.1; }
+.brand-name{ display:flex; flex-direction:column; line-height:1.1;font-size: 1.25rem; font-weight: 700; }
 .brand-name small{
-  font-family:var(--mono); font-weight:400; font-size:10px;
+  font-family:var(--mono); font-weight:700; font-size:11px;
   letter-spacing:0.14em; color:var(--steel); text-transform:uppercase;
 }
 
 .nav-links{ display:flex; align-items:center; gap:2px; }
 .nav-links a{
   font-family:var(--mono);
-  font-size:12.5px;
+  font-size:1.1rem;
   letter-spacing:0.08em;
   text-transform:uppercase;
   padding:10px 16px;
