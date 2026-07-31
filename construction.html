@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Construction Projects &amp; PM — Vivek Khanna, Portfolio</title>
+<meta name="description" content="Showcase of construction project management, cost estimation, BIM automation, and project controls by Vivek Khanna.">
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  /* Filter Bar Styling */
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  .filter-btn {
+    background: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 2px;
+    padding: 6px 14px;
+    font-family: var(--mono, monospace);
+    font-size: 0.8rem;
+    color: var(--text-muted, #525866);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .filter-btn:hover,
+  .filter-btn.active {
+    background-color: var(--dark-green, #1E5631);
+    color: #ffffff;
+    border-color: var(--dark-green, #1E5631);
+  }
+
+  /* Portfolio Grid & Card Formation Fixes */
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+    align-items: stretch;
+  }
+
+  .project-card {
+    position: relative;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 2px;
+    background-color: #ffffff;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  /* Fixed hover state without movement */
+  .project-card:hover {
+    border-color: rgba(30, 86, 49, 0.4);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Top-Left and Bottom-Right Technical Corner Marks */
+  .project-card::before,
+  .project-card::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    pointer-events: none;
+  }
+
+  .project-card::before {
+    top: -1px;
+    left: -1px;
+    border-top: 2px solid var(--dark-green, #1E5631);
+    border-left: 2px solid var(--dark-green, #1E5631);
+  }
+
+  .project-card::after {
+    bottom: -1px;
+    right: -1px;
+    border-bottom: 2px solid var(--dark-green, #1E5631);
+    border-right: 2px solid var(--dark-green, #1E5631);
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    gap: 8px;
+  }
+
+  .project-id {
+    font-family: var(--mono, monospace);
+    font-size: 0.78rem;
+    color: var(--dark-green, #1E5631);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .project-type {
+    font-family: var(--mono, monospace);
+    font-size: 0.72rem;
+    color: var(--text-muted, #525866);
+    background-color: rgba(0, 0, 0, 0.04);
+    padding: 3px 8px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  .project-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+    line-height: 1.35;
+    color: #111111;
+  }
+
+  .project-desc {
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--text-muted, #525866);
+    margin-bottom: 20px;
+  }
+
+  .project-meta-list {
+    list-style: none;
+    padding: 12px 0 0 0;
+    margin: 0 0 16px 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .project-meta-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.82rem;
+    margin-bottom: 6px;
+  }
+
+  .project-meta-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .project-meta-item span {
+    color: var(--text-muted, #525866);
+  }
+
+  .project-meta-item b {
+    font-family: var(--mono, monospace);
+    font-weight: 500;
+    color: #111111;
+  }
+
+  .card-action {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 14px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    margin-top: auto;
+  }
+
+  .card-action .view-link {
+    font-family: var(--mono, monospace);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--dark-green, #1E5631);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  @media (max-width: 768px) {
+    .project-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="custom-cursor" aria-hidden="true"></div>
+
+<!-- Site Header / Navigation -->
+<header class="site-header">
+  <nav class="nav">
+    <a href="index.html" class="brand">
+      <span class="brand-mark">VK</span>
+      <span class="brand-name">VIVEK KHANNA<small>Urban &amp; Transportation Planning</small></span>
+    </a>
+    <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false"><span></span></button>
+    <ul class="nav-links">
+      <li><a href="index.html" data-i="01">Portfolio</a></li>
+      <li><a href="approach.html" data-i="02">Approach</a></li>
+      <li><a href="about.html" data-i="03">About</a></li>
+      <li><a href="construction.html" data-i="04" class="active">Construction &amp; PM</a></li>
+    </ul>
+  </nav>
+</header>
+
+<!-- Hero Section -->
+<section class="hero">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <svg class="hero-svg" viewBox="0 0 600 600" aria-hidden="true">
+    <rect x="250" y="150" width="220" height="300" stroke-width="1" fill="none"/>
+    <path d="M250 210 H470 M250 270 H470 M250 330 H470 M250 390 H470" stroke-width="0.8"/>
+    <path d="M305 150 V450 M360 150 V450 M415 150 V450" stroke-width="0.8"/>
+    <circle cx="250" cy="150" r="4" fill="currentColor"/>
+    <circle cx="470" cy="450" r="4" fill="currentColor"/>
+  </svg>
+  <div class="hero-inner">
+    <div class="hero-top">
+      <span class="eyebrow">Works &amp; Technical Studies</span>
+      <span class="coord">43.6532&deg; N&nbsp;&nbsp;79.3832&deg; W, Toronto, ON</span>
+    </div>
+    <h1>Estimation, BIM automation<br><em>&amp; project controls.</em></h1>
+    <div class="hero-sub">
+      <p class="hero-lede">
+        Showcase of computational BIM scripting, automated quantity take-offs, schematic cost estimating, baseline CPM scheduling, and site project management workflows.
+      </p>
+      <div class="hero-stats">
+        <div class="stat"><b>06</b><span>Featured Studies</span></div>
+        <div class="stat"><b>BIM</b><span>Dynamo / Revit Scripts</span></div>
+        <div class="stat"><b>QTO</b><span>Automated Estimating</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Portfolio Section -->
+<section class="section" id="projects">
+  <div class="wrap">
+    
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="all">All Projects</button>
+      <button class="filter-btn" data-filter="estimating">Cost Estimating &amp; Take-Offs</button>
+      <button class="filter-btn" data-filter="bim-automation">BIM &amp; Computational Automation</button>
+      <button class="filter-btn" data-filter="scheduling">CPM Scheduling &amp; Controls</button>
+    </div>
+
+    <!-- Project Portfolio Grid -->
+    <div class="project-grid">
+
+      <!-- Project Card 01 -->
+      <article class="project-card" data-category="bim-automation estimating">
+        <div>
+          <div class="card-top">
+            <span class="project-id">PRJ-01</span>
+            <span class="project-type">BIM Automation / Revit</span>
+          </div>
+          <h2 class="project-title">Automated 5D BIM Quantity Extraction &amp; Cost Modeling</h2>
+          <p class="project-desc">
+            Custom Dynamo visual script linking Autodesk Revit 3D parameters directly with automated Excel quantity take-off sheets, removing manual measuring errors across structural and envelope assemblies.
+          </p>
+        </div>
+        <div>
+          <ul class="project-meta-list">
+            <li class="project-meta-item"><span>Toolstack</span><b>Revit / Dynamo / Excel</b></li>
+            <li class="project-meta-item"><span>Workflow</span><b>Parametric Material Take-Off</b></li>
+            <li class="project-meta-item"><span>Efficiency Gain</span><b>85% Faster QTO Extraction</b></li>
+          </ul>
+          <div class="card-action">
+            <span class="view-link">
+              Examine Technical Workflow
+              <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 10 L10 2 M4 2 H10 V8" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+            </span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Project Card 02 -->
+      <article class="project-card" data-category="estimating">
+        <div>
+          <div class="card-top">
+            <span class="project-id">PRJ-02</span>
+            <span class="project-type">Cost Estimating / Bluebeam</span>
+          </div>
+          <h2 class="project-title">Class B Multi-Trade Estimate &amp; Quantity Take-Off Audit</h2>
+          <p class="project-desc">
+            Rigorous material count and Class B schematic cost estimation using Bluebeam Revu and RSMeans unit rates for structural concrete, masonry, glazing, and interior finishes.
+          </p>
+        </div>
+        <div>
+          <ul class="project-meta-list">
+            <li class="project-meta-item"><span>Toolstack</span><b>Bluebeam Revu / Cost DBs</b></li>
+            <li class="project-meta-item"><span>Scope</span><b>MasterFormat Div 03, 04, 08, 09</b></li>
+            <li class="project-meta-item"><span>Variance Precision</span><b>&plusmn; 3.8% Budget Accuracy</b></li>
+          </ul>
+          <div class="card-action">
+            <span class="view-link">
+              Examine Technical Workflow
+              <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 10 L10 2 M4 2 H10 V8" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+            </span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Project Card 03 -->
+      <article class="project-card" data-category="scheduling">
+        <div>
+          <div class="card-top">
+            <span class="project-id">PRJ-03</span>
+            <span class="project-type">Project Controls / CPM</span>
+          </div>
+          <h2 class="project-title">High-Rise Residential Baseline Schedule &amp; Critical Path Analysis</h2>
+          <p class="project-desc">
+            Development of a 220-day baseline construction master schedule using MS Project. Included Work Breakdown Structure (WBS), resource leveling, critical path optimization, and float management.
+          </p>
+        </div>
+        <div>
+          <ul class="project-meta-list">
+            <li class="project-meta-item"><span>Toolstack</span><b>MS Project / CPM Analysis</b></li>
+            <li class="project-meta-item"><span>Focus Area</span><b>Phased Substructure &amp; Envelope</b></li>
+            <li class="project-meta-item"><span>Outcome</span><b>18-Day Critical Path Recovery</b></li>
+          </ul>
+          <div class="card-action">
+            <span class="view-link">
+              Examine Technical Workflow
+              <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 10 L10 2 M4 2 H10 V8" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+            </span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Project Card 04 -->
+      <article class="project-card" data-category="bim-automation scheduling">
+        <div>
+          <div class="card-top">
+            <span class="project-id">PRJ-04</span>
+            <span class="project-type">BIM / Site Management</span>
+          </div>
+          <h2 class="project-title">Multi-Disciplinary Clash Detection &amp; Constructability Review</h2>
+          <p class="project-desc">
+            Automated spatial interference checking between structural framing and mechanical services. Generates RFI tracking logs and automated clash reports prior to site mobilization.
+          </p>
+        </div>
+        <div>
+          <ul class="project-meta-list">
+            <li class="project-meta-item"><span>Toolstack</span><b>Revit / Navisworks / Python</b></li>
+            <li class="project-meta-item"><span>Scope</span><b>Structural vs. MEP Systems</b></li>
+            <li class="project-meta-item"><span>Clashes Resolved</span><b>52 Pre-Site Interferences</b></li>
+          </ul>
+          <div class="card-action">
+            <span class="view-link">
+              Examine Technical Workflow
+              <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 10 L10 2 M4 2 H10 V8" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+            </span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Project Card 05 -->
+      <article class="project-card" data-category="bim-automation estimating">
+        <div>
+          <div class="card-top">
+            <span class="project-id">PRJ-05</span>
+            <span class="project-type">Python / BIM Automation</span>
+          </div>
+          <h2 class="project-title">Algorithmic Material Scraper &amp; Take-Off Pipeline</h2>
+          <p class="project-desc">
+            Custom Python script written to parse IFC spatial data and local construction market databases to dynamically generate line-item material cost breakdowns and tender summaries.
+          </p>
+        </div>
+        <div>
+          <ul class="project-meta-list">
+            <li class="project-meta-item"><span>Toolstack</span><b>Python / IFCOpenShell / pandas</b></li>
+            <li class="project-meta-item"><span>Workflow</span><b>Automated Data Parsing</b></li>
+            <li class="project-meta-item"><span>Outcome</span><b>Real-time Material Indexing</b></li>
+          </ul>
+          <div class="card-action">
+            <span class="view-link">
+              Examine Technical Workflow
+              <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 10 L10 2 M4 2 H10 V8" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+            </span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Project Card 06 -->
+      <article class="project-card" data-category="scheduling estimating">
+        <div>
+          <div class="card-top">
+            <span class="project-id">PRJ-06</span>
+            <span class="project-type">Earned Value / Controls</span>
+          </div>
+          <h2 class="project-title">Earned Value Management (EVM) &amp; Variance Dashboard</h2>
+          <p class="project-desc">
+            Interactive progress controls system tracking Schedule Variance (SV), Cost Variance (CV), and Cost Performance Index (CPI) across major construction work packages.
+          </p>
+        </div>
+        <div>
+          <ul class="project-meta-list">
+            <li class="project-meta-item"><span>Toolstack</span><b>PowerBI / Excel / MS Project</b></li>
+            <li class="project-meta-item"><span>Metrics</span><b>SPI / CPI / Forecast Curves</b></li>
+            <li class="project-meta-item"><span>Control Focus</span><b>Budget &amp; Progress Billing</b></li>
+          </ul>
+          <div class="card-action">
+            <span class="view-link">
+              Examine Technical Workflow
+              <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 10 L10 2 M4 2 H10 V8" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+            </span>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- Working Principles Section -->
+<section class="section on-dark">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Project Controls, in brief</h2>
+      <p class="desc">Core principles for delivering complex capital construction projects on time and within budget.</p>
+    </div>
+    <div class="hero-stats" style="gap:clamp(28px,6vw,64px)">
+      <div class="stat"><b>01</b><span>Automated 5D Take-Offs</span></div>
+      <div class="stat"><b>02</b><span>Parametric Clash Testing</span></div>
+      <div class="stat"><b>03</b><span>Rigorous Baseline CPM</span></div>
+      <div class="stat"><b>04</b><span>EVM Cost Tracking</span></div>
+    </div>
+    <div style="margin-top:36px;">
+      <a class="btn on-dark" href="about.html">View full background &amp; experience
+        <svg viewBox="0 0 12 12"><path d="M2 10 L10 2 M4 2 H10 V8" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Site Footer -->
+<footer class="site-footer">
+  <div class="wrap footer-row">
+    <span class="fn">&copy; 2026 Vivek Khanna, Urban &amp; Transportation Planning</span>
+    <span class="fn">Drawn in Toronto, ON</span>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
+<script>
+  // Filter Bar Logic
+  document.querySelectorAll('.filter-btn').forEach(button => {
+    button.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+
+      const filter = button.getAttribute('data-filter');
+      document.querySelectorAll('.project-card').forEach(card => {
+        if (filter === 'all' || card.getAttribute('data-category').includes(filter)) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
+  });
+</script>
+</body>
+</html>
