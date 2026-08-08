@@ -4,298 +4,946 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vivek Khanna, Urban Planning Portfolio</title>
-<meta name="description" content="Urban planning, transportation, and community design work by Vivek Khanna.">
+<meta name="description" content="Urban planning, transportation, and community design work by Vivek Khanna, presented as an interactive application window.">
 <link rel="stylesheet" href="assets/css/style.css">
+
+<style>
+  /* Full-screen application window shell */
+  html, body { height:100%; overflow:hidden; }
+  body { background:var(--graphite-3); }
+
+  .site-header { display:none; } /* the app window replaces the marketing chrome on this page */
+
+  .app-window {
+    position:fixed; inset:14px;
+    display:flex; flex-direction:column;
+    background:var(--graphite);
+    border:1px solid var(--line-dark);
+    border-radius:8px;
+    overflow:hidden;
+    box-shadow:0 40px 90px rgba(0,0,0,0.55);
+  }
+
+  /* ---- Title bar ---- */
+  .app-titlebar {
+    flex:none; height:42px; display:flex; align-items:center; gap:14px;
+    padding:0 14px;
+    background:var(--graphite-2);
+    border-bottom:1px solid var(--graphite-3);
+  }
+  .app-dots { display:flex; gap:7px; }
+  .app-dots i { width:11px; height:11px; border-radius:50%; display:block; }
+  .app-dots i:nth-child(1) { background:#e0605a; }
+  .app-dots i:nth-child(2) { background:#e0b94f; }
+  .app-dots i:nth-child(3) { background:#7c9473; }
+  
+  /* Integrated Brand Logo */
+  .app-titlebar .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+  .app-titlebar .brand-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    background: var(--dark-green, #1E5631);
+    color: #ffffff;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 2px;
+  }
+  .app-titlebar .brand-name {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--offwhite);
+    letter-spacing: 0.04em;
+    font-weight: 600;
+  }
+  .app-titlebar .brand-name small {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 10px;
+    color: var(--steel-light);
+    font-weight: 400;
+  }
+
+  .app-title-coord { margin-left:auto; font-family:var(--mono); font-size:10.5px; color:var(--steel); }
+
+  /* ---- Menu bar ---- */
+  .app-menubar {
+    flex:none; height:32px; display:flex; align-items:stretch;
+    background:var(--graphite-2); border-bottom:1px solid var(--graphite-3);
+    position:relative; z-index:50;
+  }
+  .app-menu { position:relative; }
+  .app-menu > button {
+    height:100%; padding:0 14px; background:transparent; border:none;
+    font-family:var(--mono); font-size:11px; letter-spacing:0.04em;
+    color:var(--steel-light); cursor:pointer;
+  }
+  .app-menu > button:hover, .app-menu.is-open > button { background:var(--graphite-3); color:var(--offwhite); }
+  .app-menu-drop {
+    position:absolute; top:100%; left:0; min-width:220px;
+    background:var(--graphite-2); border:1px solid var(--graphite-3);
+    box-shadow:0 16px 34px rgba(0,0,0,0.4);
+    display:none; flex-direction:column; padding:6px 0;
+  }
+  .app-menu.is-open .app-menu-drop { display:flex; }
+  .app-menu-drop button {
+    text-align:left; background:transparent; border:none; cursor:pointer;
+    padding:9px 16px; font-family:var(--mono); font-size:11.5px; color:var(--steel-light);
+  }
+  .app-menu-drop button:hover { background:var(--graphite-3); color:var(--offwhite); }
+  .app-menu-drop button:disabled { opacity:0.35; cursor:default; }
+  .app-menu-drop button:disabled:hover { background:transparent; color:var(--steel-light); }
+  .app-menu-sep { height:1px; background:var(--graphite-3); margin:6px 0; }
+
+  /* ---- Toolbar ---- */
+  .app-toolbar {
+    flex:none; min-height:44px; display:flex; align-items:center; gap:8px;
+    padding:6px 12px; flex-wrap:wrap;
+    background:var(--graphite); border-bottom:1px solid var(--graphite-3);
+  }
+  .app-tool {
+    display:flex; align-items:center; gap:7px;
+    height:30px; padding:0 11px;
+    background:var(--graphite-2); border:1px solid var(--graphite-3);
+    color:var(--steel-light); font-family:var(--mono); font-size:10.5px; letter-spacing:0.03em;
+    cursor:pointer; white-space:nowrap;
+  }
+  .app-tool:hover { border-color:var(--sage); color:var(--offwhite); }
+  .app-tool svg { width:13px; height:13px; flex:none; }
+  .app-tool-sep { width:1px; align-self:stretch; background:var(--graphite-3); margin:2px 4px; }
+  .app-status-zoom { margin-left:auto; font-family:var(--mono); font-size:10.5px; color:var(--steel); }
+  .app-window.is-compact .app-menubar,
+  .app-window.is-compact .app-toolbar { display:none; }
+
+  /* ---- Tab bar ---- */
+  .app-tabbar {
+    flex:none; height:36px; display:flex; align-items:stretch;
+    background:var(--graphite-2); border-bottom:1px solid var(--graphite-3);
+    overflow-x:auto;
+  }
+  .app-tab {
+    display:flex; align-items:center; gap:9px;
+    padding:0 14px; border-right:1px solid var(--graphite-3);
+    font-family:var(--mono); font-size:11px; color:var(--steel);
+    cursor:pointer; white-space:nowrap; flex:none;
+  }
+  .app-tab .dot { width:6px; height:6px; border-radius:50%; background:var(--sage); flex:none; }
+  .app-tab.is-active { background:var(--graphite); color:var(--offwhite); box-shadow:inset 0 -2px 0 var(--sage); }
+  .app-tab .x {
+    margin-left:2px; width:16px; height:16px; display:flex; align-items:center; justify-content:center;
+    border-radius:3px; color:var(--steel);
+  }
+  .app-tab .x:hover { background:var(--graphite-3); color:var(--offwhite); }
+
+  /* ---- Content area ---- */
+  .app-content { position:relative; flex:1 1 auto; overflow:hidden; background:var(--graphite); }
+  .app-pane { position:absolute; inset:0; display:none; }
+  .app-pane.is-active { display:block; }
+  .app-pane iframe { width:100%; height:100%; border:0; display:block; background:var(--offwhite); }
+
+  /* ---- Status bar ---- */
+  .app-statusbar {
+    flex:none; height:24px; display:flex; align-items:center; gap:18px;
+    padding:0 14px; background:var(--graphite-2); border-top:1px solid var(--graphite-3);
+    font-family:var(--mono); font-size:10px; color:var(--steel);
+  }
+  .app-statusbar .r { margin-left:auto; }
+
+  /* ---- Canvas (inside Portfolio.gh) ---- */
+  .flow-viewport {
+    position:absolute; inset:0; overflow:hidden; cursor:grab; touch-action:none;
+  }
+  .flow-viewport.is-panning { cursor:grabbing; }
+  .flow-canvas {
+    position:absolute; top:0; left:0; width:2020px; height:1000px;
+    transform-origin:0 0; will-change:transform;
+    background-image:radial-gradient(circle, rgba(242,240,234,0.16) 1.2px, transparent 1.2px);
+    background-size:28px 28px;
+  }
+  .flow-canvas.no-grid { background-image:none; }
+  .flow-wires { position:absolute; top:0; left:0; width:2020px; height:1000px; overflow:visible; pointer-events:none; }
+  .flow-wire { fill:none; stroke:var(--sage); stroke-width:1.6; opacity:0.45; transition:opacity .15s ease, stroke-width .15s ease; }
+  .flow-wire.is-lit { opacity:0.95; stroke-width:2.2; stroke:var(--sage-pale); }
+
+  .flow-node {
+    position:absolute; width:210px; height:96px;
+    background:var(--graphite-2); border:1px solid var(--line-dark); border-radius:5px;
+    cursor:pointer; user-select:none; box-shadow:0 10px 26px rgba(0,0,0,0.35);
+    transition:border-color .15s ease, box-shadow .15s ease; touch-action:none;
+  }
+  .flow-node:hover { border-color:var(--sage); box-shadow:0 10px 30px rgba(124,148,115,0.22); }
+  .flow-node.is-dragging { cursor:grabbing; z-index:30; border-color:var(--sage-pale); }
+  .flow-node.is-selected { border-color:var(--sage-pale); box-shadow:0 0 0 3px rgba(205,215,196,0.18); }
+
+  .flow-node-head { display:flex; align-items:center; gap:7px; padding:8px 11px; border-bottom:1px solid var(--line-dark); }
+  .flow-node-dot { width:6px; height:6px; border-radius:50%; background:var(--sage); flex:none; }
+  .flow-node-tag { font-family:var(--mono); font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--sage-pale); }
+  .flow-node-body { padding:10px 12px 12px; }
+  .flow-node-name { font-family:var(--display); font-weight:600; font-size:14px; color:var(--offwhite); line-height:1.25; }
+  .flow-node-sub { margin-top:5px; font-family:var(--mono); font-size:9.5px; color:var(--steel-light); line-height:1.4; }
+
+  .flow-port { position:absolute; top:50%; width:11px; height:11px; border-radius:50%; background:var(--graphite-2); border:1.5px solid var(--sage-pale); transform:translateY(-50%); }
+  .flow-port.out { right:-6px; background:var(--sage); }
+  .flow-port.in { left:-6px; }
+
+  /* ---- Profile Node ---- */
+  .flow-node.is-profile { width:230px; height:206px; }
+  .flow-node-photo {
+    width:100%; height:104px; overflow:hidden;
+    border-bottom:1px solid var(--line-dark);
+    background:var(--graphite-3);
+    position:relative;
+  }
+  .flow-node-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+  .flow-node-photo .ph-fallback {
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+    color:var(--steel);
+  }
+  .flow-node-photo .ph-fallback svg { width:30px; height:30px; opacity:0.6; }
+  .flow-node-photo .ph-fallback span { font-family:var(--mono); font-size:8.5px; letter-spacing:0.1em; text-transform:uppercase; }
+
+  /* ---- Enhanced Detail panel ---- */
+  .flow-panel {
+    position:absolute; top:0; right:0; bottom:0; width:min(440px, 100%);
+    background:var(--paper); border-left:1px solid var(--line);
+    transform:translateX(100%); transition:transform .32s cubic-bezier(0.16,1,0.3,1);
+    z-index:40; overflow-y:auto;
+  }
+  .flow-panel.is-open { transform:translateX(0); }
+  .flow-panel-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:20px 22px 16px; border-bottom:1px solid var(--line); }
+  .flow-panel-close { width:30px; height:30px; flex:none; border:1px solid var(--line); background:transparent; color:var(--steel); cursor:pointer; font-family:var(--mono); font-size:14px; }
+  .flow-panel-close:hover { border-color:var(--graphite); color:var(--ink); }
+  .flow-panel-body { padding:20px 22px 32px; }
+  .flow-panel-tag { font-family:var(--mono); font-size:10.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--sage-deep); }
+  .flow-panel-title { font-family:var(--display); font-weight:600; font-size:1.4rem; margin-top:6px; line-height:1.15; }
+  .flow-panel-loc { font-family:var(--mono); font-size:11.5px; color:var(--steel); margin-top:8px; display:block; }
+  .flow-panel-scope { margin-top:16px; font-size:14px; line-height:1.6; color:#2c3134; }
+  
+  .flow-panel-section-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--dark-green, #1E5631);
+    margin-top: 20px;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed var(--line);
+  }
+
+  .flow-panel .plate-meta { margin-top:14px; }
+  .flow-panel .plate-deliverables { margin-top:16px; }
+  .flow-panel-course { display:block; margin-top:18px; font-family:var(--mono); font-size:11px; color:var(--steel); }
+  .flow-panel-actions { margin-top:24px; display:flex; flex-wrap:wrap; gap:10px; }
+  .flow-panel-actions button.btn, .flow-panel-actions a.btn { font-family:var(--mono); text-decoration:none; display:inline-block; }
+
+  .flow-scrim { position:absolute; inset:0; background:rgba(23,25,27,0.35); opacity:0; pointer-events:none; transition:opacity .3s ease; z-index:35; }
+  .flow-scrim.is-open { opacity:1; pointer-events:auto; }
+
+  .flow-legend {
+    position:absolute; left:14px; bottom:14px; z-index:5;
+    display:flex; flex-wrap:wrap; gap:14px;
+    font-family:var(--mono); font-size:10px; color:var(--steel-light);
+    background:rgba(23,25,27,0.55); padding:8px 12px; border:1px solid var(--graphite-3);
+  }
+  .flow-legend span { display:inline-flex; align-items:center; gap:6px; }
+  .flow-legend i { width:7px; height:7px; border-radius:50%; display:inline-block; background:var(--sage); }
+  .flow-legend i.hollow { background:transparent; border:1.5px solid var(--sage-pale); }
+
+  /* ---- Mobile View ---- */
+  .flow-fallback { display:none; }
+  @media (max-width:760px) {
+    .app-window { inset:0; border-radius:0; }
+    .app-menubar, .app-toolbar, .app-statusbar, .flow-legend { display:none; }
+    .flow-viewport { display:none; }
+    .flow-fallback {
+      display:grid; gap:1px; background:var(--graphite-3);
+      position:absolute; inset:0; overflow:auto; padding:1px;
+    }
+    .flow-fallback a { display:block; background:var(--graphite-2); padding:16px 18px; font-family:var(--mono); font-size:11.5px; color:var(--steel-light); }
+    .flow-fallback a b { display:block; font-family:var(--display); font-size:15px; font-weight:600; color:var(--offwhite); margin-top:3px; }
+  }
+</style>
 </head>
 <body>
-<div class="custom-cursor" aria-hidden="true"></div>
-<header class="site-header">
-  <nav class="nav">
+
+<div class="custom-cursor" id="customCursor" aria-hidden="true"></div>
+
+<div class="app-window" id="appWindow">
+
+  <div class="app-titlebar">
+    <div class="app-dots"><i></i><i></i><i></i></div>
+    
+    <!-- Added Logo Component -->
     <a href="index.html" class="brand">
       <span class="brand-mark">VK</span>
       <span class="brand-name">VIVEK KHANNA<small>Urban &amp; Transportation Planning</small></span>
     </a>
-    <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false"><span></span></button>
-    <ul class="nav-links">
-      <li><a href="index.html" data-i="01" class="active">Portfolio</a></li>
-      <li><a href="approach.html" data-i="02">Approach</a></li>
-      <li><a href="about.html" data-i="03">About</a></li>
-      <li><a href="construction.html" data-i="04">Construction &amp; PM</a></li>
-    </ul>
-  </nav>
-</header>
+    
+    <span class="app-title-coord">43.6532&deg; N&nbsp;&nbsp;79.3832&deg; W, Toronto, ON</span>
+  </div>
 
-<section class="hero">
-  <div class="hero-grid" aria-hidden="true"></div>
-  <svg class="hero-svg" viewBox="0 0 600 600" aria-hidden="true">
-    <circle cx="420" cy="260" r="150" stroke-width="1"/>
-    <circle cx="420" cy="260" r="95" stroke-width="1"/>
-    <path d="M420 110 V410 M270 260 H570" stroke-width="1"/>
-    <path d="M300 150 L540 380 M540 150 L300 380" stroke-width="0.6"/>
-  </svg>
-  <div class="hero-inner">
-    <div class="hero-top">
-      <span class="eyebrow">Urban &amp; Transportation Planning</span>
-      <span class="coord">43.6532&deg; N&nbsp;&nbsp;79.3832&deg; W, Toronto, ON</span>
+  <!-- Menu Bar -->
+  <div class="app-menubar" id="appMenubar">
+    <div class="app-menu">
+      <button type="button">File</button>
+      <div class="app-menu-drop">
+        <button data-action="open-tab" data-tab="approach">Open Approach.gh</button>
+        <button data-action="open-tab" data-tab="about">Open About.gh</button>
+        <button data-action="open-tab" data-tab="house">Open HouseViewer.gh</button>
+        <div class="app-menu-sep"></div>
+        <button data-action="print">Print Window</button>
+      </div>
     </div>
-    <h1>Reading the city<br>as a working <em>system.</em></h1>
-    <div class="hero-sub">
-      <p class="hero-lede">
-        This is a working portfolio of urban design, transportation, and
-        community planning studies, built from mapped evidence, policy
-        alignment, and real community data rather than assumptions.
-      </p>
-      <div class="hero-stats">
-        <div class="stat"><b>04</b><span>Studies on file</span></div>
-        <div class="stat"><b>03</b><span>Municipalities analyzed</span></div>
-        <div class="stat"><b>238</b><span>Survey responses synthesized</span></div>
+    <div class="app-menu">
+      <button type="button">Edit</button>
+      <div class="app-menu-drop">
+        <button data-action="reset-positions">Reset Node Positions</button>
+        <button data-action="deselect">Deselect Node</button>
+      </div>
+    </div>
+    <div class="app-menu">
+      <button type="button">View</button>
+      <div class="app-menu-drop">
+        <button data-action="zoom-in">Zoom In</button>
+        <button data-action="zoom-out">Zoom Out</button>
+        <button data-action="zoom-reset">Reset View</button>
+        <button data-action="toggle-grid">Toggle Grid</button>
+        <div class="app-menu-sep"></div>
+        <button data-action="fullscreen">Fullscreen Window</button>
+        <button data-action="compact">Toggle Compact Mode</button>
+      </div>
+    </div>
+    <div class="app-menu">
+      <button type="button">Tools</button>
+      <div class="app-menu-drop">
+        <button data-action="focus" data-node="source">Focus, Source</button>
+        <button data-action="focus" data-node="contact">Focus, Contact</button>
+        <div class="app-menu-sep"></div>
+        <button data-action="open-tab" data-tab="house">Open House Viewer</button>
+        <button data-action="mailto">Email Vivek</button>
       </div>
     </div>
   </div>
-</section>
 
-<section class="section" id="portfolio">
-  <div class="wrap">
-    <div class="section-head">
-      <h2>Portfolio</h2>
-      <p class="desc">Each plate lays out the scope, location, and deliverables for the studio brief it was written for. Full reports are available as PDF.</p>
-    </div>
+  <div class="app-toolbar">
+    <button class="app-tool" data-action="new-tab-menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 5v14M5 12h14"/></svg>
+      New Tab
+    </button>
+    <span class="app-tool-sep"></span>
+    <button class="app-tool" data-action="zoom-out" aria-label="Zoom out">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M8 11h6"/></svg>
+    </button>
+    <button class="app-tool" data-action="zoom-in" aria-label="Zoom in">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg>
+    </button>
+    <button class="app-tool" data-action="zoom-reset">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12a9 9 0 1 1 3 6.7"/><path d="M3 3v6h6"/></svg>
+      Reset View
+    </button>
+    <button class="app-tool" data-action="toggle-grid">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+      Grid
+    </button>
+    <button class="app-tool" data-action="fullscreen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+      Fullscreen
+    </button>
+    <span class="app-status-zoom" id="toolbarZoom">Zoom 100%</span>
+  </div>
 
-    <div class="plates">
+  <div class="app-tabbar" id="appTabbar">
+    <div class="app-tab is-active" data-tab="portfolio"><span class="dot"></span>Portfolio.gh</div>
+  </div>
 
-      <!-- PLATE 01 - Bridletowne Circle -->
-      <article class="plate" id="bridletowne">
-        <div class="plate-media">
-          <span class="plate-tag">Plate 01, Mobility</span>
-          <span class="plate-north">N &uarr;</span>
-          <svg viewBox="0 0 300 300" aria-hidden="true">
-            <circle cx="150" cy="150" r="95" stroke-width="1.4"/>
-            <path d="M150 55 V245 M55 150 H245" stroke-width="1"/>
-            <path d="M85 85 L215 215 M215 85 L85 215" stroke-width="0.6" opacity="0.6"/>
-            <rect x="120" y="70" width="26" height="20" stroke-width="1"/>
-            <rect x="160" y="66" width="20" height="26" stroke-width="1"/>
-            <rect x="70" y="150" width="24" height="30" stroke-width="1"/>
-            <rect x="205" y="140" width="26" height="22" stroke-width="1"/>
-            <rect x="130" y="205" width="30" height="20" stroke-width="1"/>
-          </svg>
+  <div class="app-content" id="appContent">
+    <div class="app-pane is-active" data-pane="portfolio">
+      <div class="flow-viewport" id="flowViewport">
+        <div class="flow-canvas" id="flowCanvas">
+          <svg class="flow-wires" id="flowWires"></svg>
         </div>
-        <div class="plate-body">
-          <span class="plate-index">PLATE 01 / 04</span>
-          <h3 class="plate-title">Rebalancing Mobility at Bridletowne Circle</h3>
-          <span class="plate-loc">Location: <b>Scarborough, Toronto</b>, Warden Ave &amp; Finch Ave E</span>
-          <p class="plate-scope">
-            A close look at how a high-density residential node gets stranded
-            inside a loop-road suburban plan built for cars. The study traces the
-            conflict between transit-dependent residents and an arterial designed
-            purely for vehicle throughput, then builds a phased path toward a
-            fine-grain, mixed-use block.
-          </p>
-          <div class="plate-meta">
-            <div class="m"><span>Crossing width</span><b>~36 m</b></div>
-            <div class="m"><span>Posted speed</span><b>60 km/h</b></div>
-            <div class="m"><span>Cross-section</span><b>6 lanes</b></div>
-            <div class="m"><span>Refuge islands</span><b>None</b></div>
+        <div class="flow-scrim" id="flowScrim"></div>
+        <aside class="flow-panel" id="flowPanel">
+          <div class="flow-panel-head">
+            <div>
+              <span class="flow-panel-tag" id="panelTag"></span>
+              <h3 class="flow-panel-title" id="panelTitle"></h3>
+            </div>
+            <button type="button" class="flow-panel-close" id="panelClose" aria-label="Close panel">&times;</button>
           </div>
-          <div class="plate-deliverables">
-            <div class="dt">Key deliverables</div>
-            <ul>
-              <li>Network, transit, and safety audit across three infrastructure layers</li>
-              <li>Policy alignment scorecard against Vision Zero, the Official Plan, and the Cycling Network Plan</li>
-              <li>Short, medium, and long-term intervention roadmap</li>
-              <li>Before and after concept: superblock retrofit to a fine-grain, active-frontage plan</li>
-            </ul>
-          </div>
-          <div class="plate-foot">
-            <span class="plate-course">UBS 304, Advanced Transportation Planning. Individual study</span>
-            <a class="btn" href="pdfs/bridletowne-circle-mobility.pdf" target="_blank" rel="noopener">
-              View full plate
-              <svg viewBox="0 0 12 12"><path d="M2 10 L10 2 M4 2 H10 V8" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
-            </a>
-          </div>
+          <div class="flow-panel-body" id="panelBody"></div>
+        </aside>
+        <div class="flow-legend">
+          <span><i></i> Output</span>
+          <span><i class="hollow"></i> Input</span>
+          <span>Drag nodes &middot; drag canvas to pan &middot; scroll to zoom</span>
         </div>
-      </article>
-
-      <!-- PLATE 02 - Forest Hill South -->
-      <article class="plate" id="forest-hill-south">
-        <div class="plate-media">
-          <span class="plate-tag">Plate 02, Community History</span>
-          <span class="plate-north">N &uarr;</span>
-          <svg viewBox="0 0 300 300" aria-hidden="true">
-            <path d="M30 60 C 90 40, 120 90, 90 130 S 60 210, 120 230 S 220 200, 260 250" stroke-width="1.2"/>
-            <path d="M40 100 C 100 90, 140 130, 110 170 S 150 250, 210 260" stroke-width="0.8" opacity="0.7"/>
-            <path d="M60 40 C 110 60, 90 120, 150 120 S 200 160, 250 150" stroke-width="0.8" opacity="0.7"/>
-            <rect x="150" y="60" width="22" height="18" stroke-width="1"/>
-            <rect x="190" y="110" width="18" height="22" stroke-width="1"/>
-            <rect x="120" y="180" width="24" height="18" stroke-width="1"/>
-          </svg>
-        </div>
-        <div class="plate-body">
-          <span class="plate-index">PLATE 02 / 04</span>
-          <h3 class="plate-title">Forest Hill South, History &amp; Theories of Community Planning</h3>
-          <span class="plate-loc">Location: <b>Forest Hill South, Toronto</b>, Eglinton W to St. Clair W, between Bathurst and Spadina/Avenue Rd</span>
-          <p class="plate-scope">
-            A century-long look at a Garden City era village that was
-            incorporated as its own municipality in 1924, long before it was
-            folded back into Toronto. The study traces lot pattern, land use,
-            transportation, and institutional form from 1939 to today, then
-            measures the neighbourhood's founding values against the Seven
-            Grandfather Teachings.
-          </p>
-          <div class="plate-meta">
-            <div class="m"><span>Incorporated</span><b>1924</b></div>
-            <div class="m"><span>Population</span><b>~10,860</b></div>
-            <div class="m"><span>Detached / semi</span><b>~70%</b></div>
-            <div class="m"><span>Study span</span><b>1939 to 2024</b></div>
-          </div>
-          <div class="plate-deliverables">
-            <div class="dt">Key deliverables</div>
-            <ul>
-              <li>Demographic and housing profile benchmarked against City of Toronto data</li>
-              <li>Four-element built-form analysis: lot configuration, land use, transportation, institutions</li>
-              <li>Aerial and map comparison from 1939 to 2024, with findings on what drove the changes</li>
-              <li>Thirty-year vision that reframes the original planning values through Indigenous teachings</li>
-            </ul>
-          </div>
-          <div class="plate-foot">
-            <span class="plate-course">UBS 201, History and Theories of Community Planning. Group 7</span>
-            <a class="btn" href="pdfs/forest-hill-south-community-planning.pdf" target="_blank" rel="noopener">
-              View full plate
-              <svg viewBox="0 0 12 12"><path d="M2 10 L10 2 M4 2 H10 V8" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
-            </a>
-          </div>
-        </div>
-      </article>
-
-      <!-- PLATE 03 - Seneca Newnham Campus -->
-      <article class="plate" id="seneca-newnham">
-        <div class="plate-media">
-          <span class="plate-tag">Plate 03, Urban Design</span>
-          <span class="plate-north">N &uarr;</span>
-          <svg viewBox="0 0 300 300" aria-hidden="true">
-            <path d="M20 60 H280" stroke-width="1"/>
-            <path d="M40 240 C 90 200, 100 150, 70 120" stroke-width="0.9" opacity="0.7"/>
-            <rect x="70" y="120" width="46" height="30" stroke-width="1"/>
-            <rect x="130" y="100" width="30" height="60" stroke-width="1"/>
-            <rect x="170" y="130" width="50" height="26" stroke-width="1"/>
-            <rect x="150" y="180" width="34" height="24" stroke-width="1"/>
-            <rect x="60" y="190" width="20" height="20" stroke-width="0.8" opacity="0.6"/>
-          </svg>
-        </div>
-        <div class="plate-body">
-          <span class="plate-index">PLATE 03 / 04</span>
-          <h3 class="plate-title">Contextual Urban Design &amp; Visual Analyses, Seneca Newnham Campus</h3>
-          <span class="plate-loc">Location: <b>Seneca Newnham Campus</b>, North York, Toronto, near Don Mills Rd &amp; Finch Ave E</span>
-          <p class="plate-scope">
-            A Kevin Lynch style imageability reading, paths, edges, nodes,
-            districts, and landmarks, applied to a 20.2 hectare institutional
-            superblock, paired with a full SWOT of its access, architecture,
-            and open space performance.
-          </p>
-          <div class="plate-meta">
-            <div class="m"><span>Site area</span><b>20.2 ha</b></div>
-            <div class="m"><span>Typical building</span><b>4 storeys</b></div>
-            <div class="m"><span>Subway access</span><b>None</b></div>
-            <div class="m"><span>Land use</span><b>Institutional</b></div>
-          </div>
-          <div class="plate-deliverables">
-            <div class="dt">Key deliverables</div>
-            <ul>
-              <li>Full Lynch mapping: paths, edges &amp; nodes, districts, landmarks</li>
-              <li>Street and landscape audit comparing centre-line-out and outside-in sections</li>
-              <li>Four-quadrant SWOT across mobility, architecture, and land constraint</li>
-              <li>Contribution: built-form and circulation analysis (lecture 2 study)</li>
-            </ul>
-          </div>
-          <div class="plate-foot">
-            <span class="plate-course">UBS 305, Urban Design and Landscape Design. Group 4</span>
-            <a class="btn" href="pdfs/seneca-newnham-urban-design.pdf" target="_blank" rel="noopener">
-              View full plate
-              <svg viewBox="0 0 12 12"><path d="M2 10 L10 2 M4 2 H10 V8" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
-            </a>
-          </div>
-        </div>
-      </article>
-
-      <!-- PLATE 04 - Perth Cycling Network -->
-      <article class="plate" id="perth-cycling">
-        <div class="plate-media">
-          <span class="plate-tag">Plate 04, Active Transportation</span>
-          <span class="plate-north">N &uarr;</span>
-          <svg viewBox="0 0 300 300" aria-hidden="true">
-            <path d="M10 190 C 70 170, 110 210, 150 190 S 230 150, 290 170" stroke-width="1.3"/>
-            <path d="M60 40 V260 M120 40 V260 M180 40 V260 M240 40 V260" stroke-width="0.5" opacity="0.45"/>
-            <path d="M20 90 H280 M20 150 H280 M20 210 H280" stroke-width="0.5" opacity="0.45"/>
-            <circle cx="150" cy="192" r="6" stroke-width="1.2"/>
-            <circle cx="90" cy="150" r="4" stroke-width="1"/>
-            <circle cx="210" cy="150" r="4" stroke-width="1"/>
-          </svg>
-        </div>
-        <div class="plate-body">
-          <span class="plate-index">PLATE 04 / 04</span>
-          <h3 class="plate-title">Local Cycling Network Connections, Perth, Ontario</h3>
-          <span class="plate-loc">Location: <b>Downtown Perth, Ontario</b>, a 12.25 km² municipality</span>
-          <p class="plate-scope">
-            A community-informed active transportation strategy for a small
-            heritage town, turning 238 resident survey responses and a
-            five-bridge safety audit into a prioritized, constraint-aware
-            cycling network.
-          </p>
-          <div class="plate-meta">
-            <div class="m"><span>Respondents</span><b>238</b></div>
-            <div class="m"><span>Prefer off-road</span><b>48%</b></div>
-            <div class="m"><span>Bridges flagged</span><b>5</b></div>
-            <div class="m"><span>Priority corridors</span><b>6</b></div>
-          </div>
-          <div class="plate-deliverables">
-            <div class="dt">Key deliverables</div>
-            <ul>
-              <li>Existing-network mapping and bridge safety audit</li>
-              <li>Survey analysis: trip purpose, mode comfort, satisfaction with current pathways</li>
-              <li>Six priority corridors with a facility-type trade-off matrix</li>
-              <li>Constraint-based alternatives for three problem sites, plus a planning advice memo</li>
-            </ul>
-          </div>
-          <div class="plate-foot">
-            <span class="plate-course">UBS 304, Local Cycling Network Connections</span>
-            <a class="btn" href="pdfs/perth-cycling-network.pdf" target="_blank" rel="noopener">
-              View full plate
-              <svg viewBox="0 0 12 12"><path d="M2 10 L10 2 M4 2 H10 V8" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
-            </a>
-          </div>
-        </div>
-      </article>
-
+      </div>
+      <nav class="flow-fallback" id="flowFallback" aria-label="Portfolio, list view"></nav>
     </div>
   </div>
-</section>
 
-<section class="section on-dark">
-  <div class="wrap">
-    <div class="section-head">
-      <h2>Working method, in brief</h2>
-      <p class="desc">Every plate above follows the same four-stage process. See it in full on the Approach page.</p>
-    </div>
-    <div class="hero-stats" style="gap:clamp(28px,6vw,64px)">
-      <div class="stat"><b>01</b><span>Read the site and its data</span></div>
-      <div class="stat"><b>02</b><span>Diagnose the conflicts</span></div>
-      <div class="stat"><b>03</b><span>Check it against policy</span></div>
-      <div class="stat"><b>04</b><span>Design and phase the fix</span></div>
-    </div>
-    <div style="margin-top:36px;">
-      <a class="btn on-dark" href="approach.html">Read the full methodology
-        <svg viewBox="0 0 12 12"><path d="M2 10 L10 2 M4 2 H10 V8" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
-      </a>
-    </div>
+  <div class="app-statusbar">
+    <span id="statusNodes">Nodes: 12</span>
+    <span id="statusWires">Wires: 11</span>
+    <span class="r" id="statusTab">Portfolio.gh</span>
   </div>
-</section>
 
-<footer class="site-footer">
-  <div class="wrap footer-row">
-    <span class="fn">&copy; 2026 Vivek Khanna, Urban &amp; Transportation Planning</span>
-    <span class="fn">Drawn in Toronto, ON</span>
-  </div>
-</footer>
+</div>
 
-<script src="assets/js/main.js"></script>
+<script>
+(function(){
+  /* ---- Custom Cursor Script (Iframe-Safe) ---- */
+  const cursor = document.getElementById('customCursor');
+  if (cursor) {
+    window.addEventListener('mousemove', (e) => {
+      cursor.style.left = e.clientX + 'px';
+      cursor.style.top = e.clientY + 'px';
+    });
+    
+    document.addEventListener('mouseover', (e) => {
+      if (e.target.closest('a, button, input, select, textarea, [role="button"], .flow-node, .app-tab, .app-tool')) {
+        document.body.classList.add('hovering-interactive');
+      } else {
+        document.body.classList.remove('hovering-interactive');
+      }
+    });
+  }
+
+  const NODE_W = 210, NODE_H = 96;
+
+  /* ---- Expanded Data Model for Node Panels ---- */
+  const NODES = [
+    { id:'source', x:40, y:400, w:230, h:206, photo:true, tag:'SOURCE', title:'Vivek Khanna', sub:'Toronto, ON',
+      panel:{ type:'about',
+        body:"I'm an urban design and transportation planning professional with a background in BIM coordination and construction project management. Most of what's below traces back to the same habit: understand what's actually on the ground before proposing anything.",
+        overview: "Specializing in integrated spatial workflows, parametric data modeling, multimodal safety frameworks, and evidence-based master planning.",
+        credentials: ['B.Arch', 'Postgrad Urban & Transportation Planning (Seneca)', 'Postgrad Construction PM (Fanshawe)'],
+        software: ['Revit', 'Dynamo', 'AutoCAD', 'GIS', 'Rhino', 'Enscape'],
+        openTab:'about', linkLabel:'Open full profile' } },
+
+    { id:'p1', x:340, y:420, tag:'01', title:'Read Site', sub:'Aerials, census, field photos',
+      panel:{ type:'process',
+        body:"Before I sketch anything, I want the base layer right: boundaries, land use, demographics, housing type, and as much historical aerial imagery as I can find. You can't fix a plan you haven't actually looked at.",
+        methodology: "Multilayered spatial diagnostic process aggregating historical satellite overlays, municipal GIS layers, and census dissemination block profiles.",
+        outputs: ['Dissemination Area Demographics', 'Time-series Built-form Maps', 'Contextual Site Matrix'],
+        tools:['Aerial time-series','Demographic profiling','Site photography', 'ArcGIS Pro'] } },
+
+    { id:'p2', x:620, y:420, tag:'02', title:'Diagnose Conflicts', sub:'Lynch mapping, SWOT',
+      panel:{ type:'process',
+        body:"I'd rather measure a problem than describe it. That might mean mapping a site through Kevin Lynch's paths, edges, nodes, districts and landmarks, running a SWOT, or pulling hard numbers like crossing distance and posted speed.",
+        methodology: "Evaluating physical legibility alongside micro-mobility friction points and vehicle collision frequency records.",
+        outputs: ['5-Element Imageability Maps', 'Crossing Exposure Index', 'Conflict Heatmaps'],
+        tools:['Lynch: paths, edges, nodes','SWOT','Safety exposure metrics', 'Speed & Volume Audits'] } },
+
+    { id:'p3', x:900, y:420, tag:'03', title:'Align to Policy', sub:'Vision Zero, Official Plan',
+      panel:{ type:'process',
+        body:"Most municipalities already have an Official Plan, a Vision Zero target, or a cycling network plan on the books. I like holding the site up against those documents directly, it turns a design opinion into something closer to an accountability check.",
+        methodology: "Translating broad policy goals (e.g., Toronto Complete Streets, Vision Zero) into measurable spatial metrics for design scoring.",
+        outputs: ['Policy Scorecard Matrices', 'Stakeholder Requirement Logs', 'Precedent Benchmarks'],
+        tools:['Policy alignment scorecards','Community survey synthesis','Precedent review', 'Toronto Complete Streets Guidelines'] } },
+
+    { id:'p4', x:1180, y:420, tag:'04', title:'Design + Phase', sub:'Short, medium, long term',
+      panel:{ type:'process',
+        body:"I try to avoid all-or-nothing masterplans. Proposals get broken into tiers: what could go in this year with paint and signal timing, what needs a construction season, and what's a longer horizon rebuild.",
+        methodology: "Phased capital expenditure programming integrated directly into 3D massing and ROW cross-section iterations.",
+        outputs: ['Phased Implementation Timelines', 'Tactical Urbanism Quick-Builds', 'Parametric Cost Estimates'],
+        tools:['Phased roadmaps','Before / after massing','Constraint mapping', 'Revit/Dynamo Auto-QTO'] } },
+
+    { id:'out1', x:1510, y:60, tag:'OUTPUT', title:'Bridletowne Circle', sub:'UBS 304, mobility',
+      panel:{ type:'project',
+        location:'Scarborough, Toronto, Warden Ave &amp; Finch Ave E',
+        scope:'A close look at how a high-density residential node gets stranded inside a loop-road suburban plan built for cars. The study traces the conflict between transit-dependent residents and an arterial designed purely for vehicle throughput, then builds a phased path toward a fine-grain, mixed-use block.',
+        context: 'Suburban arterial corridor with severe pedestrian-vehicle friction, high transit usage, and wide right-of-ways.',
+        meta:[['Crossing width','~36 m'],['Posted speed','60 km/h'],['Cross-section','6 lanes'],['Refuge islands','None']],
+        deliverables:[
+          'Network, transit, and safety audit across three infrastructure layers',
+          'Policy alignment scorecard against Vision Zero, the Official Plan, and the Cycling Network Plan',
+          'Short, medium, and long-term intervention roadmap',
+          'Before and after concept: superblock retrofit to a fine-grain, active-frontage plan'
+        ],
+        course:'UBS 304, Advanced Transportation Planning. Individual study',
+        pdf:'pdfs/bridletowne-circle-mobility.pdf' } },
+
+    { id:'out2', x:1510, y:230, tag:'OUTPUT', title:'Forest Hill South', sub:'UBS 201, community history',
+      panel:{ type:'project',
+        location:'Forest Hill South, Toronto, Eglinton W to St. Clair W',
+        scope:"A century-long look at a Garden City era village incorporated as its own municipality in 1924, long before it was folded back into Toronto. The study traces lot pattern, land use, transportation, and institutional form from 1939 to today.",
+        context: 'Historical analysis of garden-suburb subdivision principles and urban densification along transit corridors.',
+        meta:[['Incorporated','1924'],['Population','~10,860'],['Detached / semi','~70%'],['Study span','1939 to 2024']],
+        deliverables:[
+          'Demographic and housing profile benchmarked against City of Toronto data',
+          'Four-element built-form analysis: lot configuration, land use, transportation, institutions',
+          'Aerial and map comparison from 1939 to 2024, with findings on what drove the changes',
+          'Thirty-year vision that reframes the original planning values through Indigenous teachings'
+        ],
+        course:'UBS 201, History and Theories of Community Planning. Group 7',
+        pdf:'pdfs/forest-hill-south-community-planning.pdf' } },
+
+    { id:'out3', x:1510, y:400, tag:'OUTPUT', title:'Seneca Newnham', sub:'UBS 305, urban design',
+      panel:{ type:'project',
+        location:'Seneca Newnham Campus, North York, Toronto',
+        scope:'A Kevin Lynch style imageability reading, paths, edges, nodes, districts, and landmarks, applied to a 20.2 hectare institutional superblock, paired with a full SWOT of its access, architecture, and open space performance.',
+        context: 'Campus landscape and accessibility audit evaluating physical barriers, wayfinding, and active movement networks.',
+        meta:[['Site area','20.2 ha'],['Typical building','4 storeys'],['Subway access','None'],['Land use','Institutional']],
+        deliverables:[
+          'Full Lynch mapping: paths, edges &amp; nodes, districts, landmarks',
+          'Street and landscape audit comparing centre-line-out and outside-in sections',
+          'Four-quadrant SWOT across mobility, architecture, and land constraint',
+          'Contribution: built-form and circulation analysis (lecture 2 study)'
+        ],
+        course:'UBS 305, Urban Design and Landscape Design. Group 4',
+        pdf:'pdfs/seneca-newnham-urban-design.pdf' } },
+
+    { id:'out4', x:1510, y:570, tag:'OUTPUT', title:'Perth Cycling Network', sub:'UBS 304, active transportation',
+      panel:{ type:'project',
+        location:'Downtown Perth, Ontario, a 12.25 km&sup2; municipality',
+        scope:'A community-informed active transportation strategy for a small heritage town, turning 238 resident survey responses and a five-bridge safety audit into a prioritized, constraint-aware cycling network.',
+        context: 'Small-town active transportation framework balancing heritage constraints, narrow rights-of-way, and water crossings.',
+        meta:[['Respondents','238'],['Prefer off-road','48%'],['Bridges flagged','5'],['Priority corridors','6']],
+        deliverables:[
+          'Existing-network mapping and bridge safety audit',
+          'Survey analysis: trip purpose, mode comfort, satisfaction with current pathways',
+          'Six priority corridors with a facility-type trade-off matrix',
+          'Constraint-based alternatives for three problem sites, plus a planning advice memo'
+        ],
+        course:'UBS 304, Local Cycling Network Connections',
+        pdf:'pdfs/perth-cycling-network.pdf' } },
+
+    { id:'out5', x:1510, y:740, tag:'OUTPUT', title:'Isometric House Viewer', sub:'Interactive massing study',
+      panel:{ type:'viewer',
+        body:'A hand-built isometric massing model with a floor-by-floor explode view, the kind of quick spatial study that usually happens in Revit or SketchUp before a design gets any further.',
+        features: ['Floor-by-Floor Exploded View', 'Interactive Camera Rotation', 'BIM Level Parsing Integration'],
+        openTab:'house', linkLabel:'Open interactive viewer' } },
+
+    { id:'about', x:340, y:660, tag:'DATA', title:'About.CV', sub:'Experience, education, credentials',
+      panel:{ type:'about',
+        body:'BIM coordination and architectural production experience in India, a Postgraduate Certificate in Sustainable Urban &amp; Transportation Planning from Seneca, a Postgraduate Certificate in Construction Project Management from Fanshawe, and a B.Arch from Chitkara.',
+        overview: 'Detailed technical background covering project coordination, municipal development policies, BIM management, and active transport infrastructure.',
+        credentials: ['B.Arch', 'Postgrad Urban & Transportation Planning (Seneca)', 'Postgrad Construction PM (Fanshawe)'],
+        software: ['Revit', 'Dynamo', 'AutoCAD', 'GIS', 'Rhino', 'Enscape'],
+        openTab:'about', linkLabel:'Open full profile' } },
+
+    { id:'contact', x:340, y:820, tag:'MAILTO', title:'Contact', sub:'vivekkhanna.canada@gmail.com',
+      panel:{ type:'contact', 
+        email:'vivekkhanna.canada@gmail.com',
+        location: 'Toronto, Ontario, Canada',
+        availability: 'Open for urban planning, BIM management, and transportation design roles.' } }
+  ];
+
+  const CONNECTIONS = [
+    ['source','p1'], ['p1','p2'], ['p2','p3'], ['p3','p4'],
+    ['p4','out1'], ['p4','out2'], ['p4','out3'], ['p4','out4'], ['p4','out5'],
+    ['source','about'], ['source','contact']
+  ];
+
+  document.getElementById('statusNodes').textContent = 'Nodes: ' + NODES.length;
+  document.getElementById('statusWires').textContent = 'Wires: ' + CONNECTIONS.length;
+
+  const hasOutput = id => CONNECTIONS.some(c => c[0] === id);
+  const hasInput  = id => CONNECTIONS.some(c => c[1] === id);
+
+  const viewport = document.getElementById('flowViewport');
+  const canvas   = document.getElementById('flowCanvas');
+  const svg      = document.getElementById('flowWires');
+  const panelEl  = document.getElementById('flowPanel');
+  const scrimEl  = document.getElementById('flowScrim');
+  const panelTag = document.getElementById('panelTag');
+  const panelTitle = document.getElementById('panelTitle');
+  const panelBody = document.getElementById('panelBody');
+  const fallback = document.getElementById('flowFallback');
+  const appWindow = document.getElementById('appWindow');
+  const toolbarZoom = document.getElementById('toolbarZoom');
+  const statusTab = document.getElementById('statusTab');
+
+  const state = { pan:{ x:-10, y:-180 }, zoom:1 };
+  let selectedId = null;
+
+  NODES.forEach(n => { n.origX = n.x; n.origY = n.y; });
+
+  function applyTransform(){
+    canvas.style.transform = `translate(${state.pan.x}px, ${state.pan.y}px) scale(${state.zoom})`;
+    const pct = Math.round(state.zoom * 100) + '%';
+    toolbarZoom.textContent = 'Zoom ' + pct;
+  }
+
+  /* ---- Node Rendering ---- */
+  function renderNodes(){
+    NODES.forEach(n => {
+      const el = document.createElement('div');
+      el.className = 'flow-node' + (n.photo ? ' is-profile' : '');
+      el.style.left = n.x + 'px';
+      el.style.top = n.y + 'px';
+      if (n.w) el.style.width = n.w + 'px';
+      if (n.h) el.style.height = n.h + 'px';
+      el.dataset.id = n.id;
+
+      let ports = '';
+      if (hasInput(n.id))  ports += '<span class="flow-port in"></span>';
+      if (hasOutput(n.id)) ports += '<span class="flow-port out"></span>';
+
+      let photoBlock = '';
+      if (n.photo) {
+        photoBlock =
+          '<div class="flow-node-photo">' +
+            '<img src="assets/img/profile.jpg" alt="Vivek Khanna" ' +
+              'onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
+            '<div class="ph-fallback" style="display:flex;">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>' +
+              '<span>Add assets/img/profile.jpg</span>' +
+            '</div>' +
+          '</div>';
+      }
+
+      el.innerHTML =
+        photoBlock +
+        '<div class="flow-node-head"><span class="flow-node-dot"></span><span class="flow-node-tag">' + n.tag + '</span></div>' +
+        '<div class="flow-node-body"><div class="flow-node-name">' + n.title + '</div><div class="flow-node-sub">' + n.sub + '</div></div>' +
+        ports;
+
+      canvas.appendChild(el);
+      wireNodeDrag(el, n);
+    });
+  }
+
+  function portPos(node, which){
+    const w = node.w || NODE_W, h = node.h || NODE_H;
+    return which === 'out' ? { x: node.x + w, y: node.y + h / 2 } : { x: node.x, y: node.y + h / 2 };
+  }
+  function wirePath(fromNode, toNode){
+    const a = portPos(fromNode, 'out'), b = portPos(toNode, 'in');
+    const midX = (a.x + b.x) / 2;
+    return `M ${a.x},${a.y} C ${midX},${a.y} ${midX},${b.y} ${b.x},${b.y}`;
+  }
+  function renderWires(){
+    svg.innerHTML = '';
+    CONNECTIONS.forEach(([fromId, toId]) => {
+      const fromNode = NODES.find(n => n.id === fromId);
+      const toNode   = NODES.find(n => n.id === toId);
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('class', 'flow-wire');
+      path.setAttribute('d', wirePath(fromNode, toNode));
+      path.dataset.from = fromId; path.dataset.to = toId;
+      svg.appendChild(path);
+    });
+  }
+  function updateWiresFor(nodeId){
+    svg.querySelectorAll('.flow-wire').forEach(path => {
+      if (path.dataset.from === nodeId || path.dataset.to === nodeId) {
+        const fromNode = NODES.find(n => n.id === path.dataset.from);
+        const toNode   = NODES.find(n => n.id === path.dataset.to);
+        path.setAttribute('d', wirePath(fromNode, toNode));
+      }
+    });
+  }
+  function litWiresFor(nodeId, on){
+    svg.querySelectorAll('.flow-wire').forEach(path => {
+      if (path.dataset.from === nodeId || path.dataset.to === nodeId) path.classList.toggle('is-lit', on);
+    });
+  }
+  function setNodePos(node, x, y){
+    node.x = x; node.y = y;
+    const el = canvas.querySelector('[data-id="'+node.id+'"]');
+    if (el) { el.style.left = x + 'px'; el.style.top = y + 'px'; }
+    updateWiresFor(node.id);
+  }
+
+  /* ---- Rich Information Rendering in Detail Panel ---- */
+  function renderPanel(node){
+    const p = node.panel;
+    panelTag.textContent = node.tag;
+    panelTitle.textContent = node.title;
+
+    if (p.type === 'project') {
+      panelBody.innerHTML =
+        '<span class="flow-panel-loc">' + p.location + '</span>' +
+        '<p class="flow-panel-scope">' + p.scope + '</p>' +
+        '<div class="flow-panel-section-title">Context &amp; Site Dynamics</div>' +
+        '<p style="font-size:13px; color:#525866; line-height:1.5;">' + p.context + '</p>' +
+        '<div class="flow-panel-section-title">Key Parameters</div>' +
+        '<div class="plate-meta">' + p.meta.map(m => '<div class="m"><span>'+m[0]+'</span><b>'+m[1]+'</b></div>').join('') + '</div>' +
+        '<div class="flow-panel-section-title">Deliverables</div>' +
+        '<div class="plate-deliverables"><ul>' + p.deliverables.map(d => '<li>'+d+'</li>').join('') + '</ul></div>' +
+        '<span class="flow-panel-course">' + p.course + '</span>' +
+        '<div class="flow-panel-actions"><a class="btn" href="' + p.pdf + '" target="_blank" rel="noopener">View full PDF</a></div>';
+    } else if (p.type === 'process') {
+      panelBody.innerHTML =
+        '<p class="flow-panel-scope">' + p.body + '</p>' +
+        '<div class="flow-panel-section-title">Methodology</div>' +
+        '<p style="font-size:13px; color:#525866; line-height:1.5;">' + p.methodology + '</p>' +
+        '<div class="flow-panel-section-title">Key Outputs</div>' +
+        '<ul style="font-size:13px; padding-left:18px; color:#525866;">' + p.outputs.map(o => '<li style="margin-bottom:4px;">'+o+'</li>').join('') + '</ul>' +
+        '<div class="flow-panel-section-title">Toolkit &amp; Frameworks</div>' +
+        '<div class="plate-tags" style="margin-top:8px;">' + p.tools.map(t => '<span class="tag" style="color:var(--sage-deep); border-color:var(--line); margin-right:4px; margin-bottom:4px; display:inline-block;">'+t+'</span>').join('') + '</div>' +
+        '<div class="flow-panel-actions"><button type="button" class="btn" data-open-tab="approach">Read full methodology</button></div>';
+    } else if (p.type === 'about') {
+      panelBody.innerHTML =
+        '<p class="flow-panel-scope">' + p.body + '</p>' +
+        '<div class="flow-panel-section-title">Overview</div>' +
+        '<p style="font-size:13px; color:#525866; line-height:1.5;">' + p.overview + '</p>' +
+        '<div class="flow-panel-section-title">Credentials</div>' +
+        '<ul style="font-size:13px; padding-left:18px; color:#525866;">' + p.credentials.map(c => '<li style="margin-bottom:4px;">'+c+'</li>').join('') + '</ul>' +
+        '<div class="flow-panel-section-title">Software Stack</div>' +
+        '<div class="plate-tags" style="margin-top:8px;">' + p.software.map(s => '<span class="tag" style="color:var(--sage-deep); border-color:var(--line); margin-right:4px; margin-bottom:4px; display:inline-block;">'+s+'</span>').join('') + '</div>' +
+        '<div class="flow-panel-actions"><button type="button" class="btn" data-open-tab="' + p.openTab + '">' + p.linkLabel + '</button></div>';
+    } else if (p.type === 'viewer') {
+      panelBody.innerHTML =
+        '<p class="flow-panel-scope">' + p.body + '</p>' +
+        '<div class="flow-panel-section-title">Interactive Features</div>' +
+        '<ul style="font-size:13px; padding-left:18px; color:#525866;">' + p.features.map(f => '<li style="margin-bottom:4px;">'+f+'</li>').join('') + '</ul>' +
+        '<div class="flow-panel-actions"><button type="button" class="btn" data-open-tab="' + p.openTab + '">' + p.linkLabel + '</button></div>';
+    } else if (p.type === 'contact') {
+      panelBody.innerHTML =
+        '<p class="flow-panel-scope">' + p.availability + '</p>' +
+        '<div class="flow-panel-section-title">Location</div>' +
+        '<p style="font-size:13px; color:#525866;">' + p.location + '</p>' +
+        '<div class="flow-panel-actions"><a class="btn" href="mailto:' + p.email + '">Email ' + p.email + '</a></div>';
+    }
+  }
+
+  panelBody.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-open-tab]');
+    if (btn) openTab(btn.getAttribute('data-open-tab'));
+  });
+
+  function openPanel(node){
+    if (selectedId) {
+      litWiresFor(selectedId, false);
+      const prevEl = canvas.querySelector('[data-id="'+selectedId+'"]');
+      if (prevEl) prevEl.classList.remove('is-selected');
+    }
+    selectedId = node.id;
+    litWiresFor(node.id, true);
+    const el = canvas.querySelector('[data-id="'+node.id+'"]');
+    if (el) el.classList.add('is-selected');
+    renderPanel(node);
+    panelEl.classList.add('is-open');
+    scrimEl.classList.add('is-open');
+  }
+  function closePanel(){
+    if (selectedId) {
+      litWiresFor(selectedId, false);
+      const el = canvas.querySelector('[data-id="'+selectedId+'"]');
+      if (el) el.classList.remove('is-selected');
+    }
+    selectedId = null;
+    panelEl.classList.remove('is-open');
+    scrimEl.classList.remove('is-open');
+  }
+  document.getElementById('panelClose').addEventListener('click', closePanel);
+  scrimEl.addEventListener('click', closePanel);
+
+  /* ---- Node Drag & Click ---- */
+  function wireNodeDrag(el, nodeData){
+    let dragging = false, moved = false;
+    let startClientX = 0, startClientY = 0, startX = 0, startY = 0;
+
+    el.addEventListener('mouseenter', () => { if (selectedId !== nodeData.id) litWiresFor(nodeData.id, true); });
+    el.addEventListener('mouseleave', () => { if (selectedId !== nodeData.id) litWiresFor(nodeData.id, false); });
+
+    el.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      dragging = true; moved = false;
+      startClientX = e.clientX; startClientY = e.clientY;
+      startX = nodeData.x; startY = nodeData.y;
+      el.setPointerCapture(e.pointerId);
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const dx = (e.clientX - startClientX) / state.zoom;
+      const dy = (e.clientY - startClientY) / state.zoom;
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
+      if (!moved) return;
+      el.classList.add('is-dragging');
+      setNodePos(nodeData, startX + dx, startY + dy);
+    });
+    const endDrag = () => {
+      if (!dragging) return;
+      dragging = false;
+      el.classList.remove('is-dragging');
+      if (!moved) openPanel(nodeData);
+    };
+    el.addEventListener('pointerup', endDrag);
+    el.addEventListener('pointercancel', endDrag);
+  }
+
+  /* ---- Canvas Pan ---- */
+  let panning = false, panStartX = 0, panStartY = 0, panOriginX = 0, panOriginY = 0;
+  viewport.addEventListener('pointerdown', (e) => {
+    if (e.target !== viewport && e.target !== canvas) return;
+    panning = true;
+    viewport.classList.add('is-panning');
+    panStartX = e.clientX; panStartY = e.clientY;
+    panOriginX = state.pan.x; panOriginY = state.pan.y;
+    viewport.setPointerCapture(e.pointerId);
+  });
+  viewport.addEventListener('pointermove', (e) => {
+    if (!panning) return;
+    state.pan.x = panOriginX + (e.clientX - panStartX);
+    state.pan.y = panOriginY + (e.clientY - panStartY);
+    applyTransform();
+  });
+  const endPan = () => { panning = false; viewport.classList.remove('is-panning'); };
+  viewport.addEventListener('pointerup', (e) => {
+    endPan();
+    if (e.target === viewport || e.target === canvas) closePanel();
+  });
+  viewport.addEventListener('pointercancel', endPan);
+
+  /* ---- Zoom Controls ---- */
+  function setZoom(z){ state.zoom = Math.min(1.4, Math.max(0.5, z)); applyTransform(); }
+  viewport.addEventListener('wheel', (e) => { e.preventDefault(); setZoom(state.zoom - e.deltaY * 0.001); }, { passive:false });
+
+  function resetView(){ state.pan = { x:-10, y:-180 }; state.zoom = 1; applyTransform(); }
+  function focusNode(id){
+    const n = NODES.find(x => x.id === id); if (!n) return;
+    const rect = viewport.getBoundingClientRect();
+    const w = n.w || NODE_W, h = n.h || NODE_H;
+    state.zoom = 1;
+    state.pan.x = rect.width / 2 - (n.x + w / 2);
+    state.pan.y = rect.height / 2 - (n.y + h / 2);
+    applyTransform();
+    openPanel(n);
+  }
+  function resetPositions(){
+    NODES.forEach(n => setNodePos(n, n.origX, n.origY));
+  }
+
+  /* ---- Fallback List ---- */
+  function renderFallback(){
+    fallback.innerHTML = NODES.map(n => {
+      const p = n.panel;
+      let href, targetAttrs = '';
+      if (p.type === 'project') { href = p.pdf; targetAttrs = ' target="_blank" rel="noopener"'; }
+      else if (p.type === 'contact') { href = 'mailto:' + p.email; }
+      else { href = (p.openTab === 'about') ? 'about.html' : (p.openTab === 'house') ? 'house-viewer.html' : 'approach.html'; }
+      return '<a href="'+href+'"'+targetAttrs+'>' + n.tag + '<b>' + n.title + '</b></a>';
+    }).join('');
+  }
+
+  /* ---- Tab System ---- */
+  const TAB_DEFS = {
+    approach: { label:'Approach.gh', src:'approach.html' },
+    about:    { label:'About.gh',    src:'about.html' },
+    house:    { label:'HouseViewer.gh', src:'house-viewer.html' }
+  };
+  const tabbar = document.getElementById('appTabbar');
+  const content = document.getElementById('appContent');
+  let activeTab = 'portfolio';
+
+  function activateTab(id){
+    activeTab = id;
+    tabbar.querySelectorAll('.app-tab').forEach(t => t.classList.toggle('is-active', t.dataset.tab === id));
+    content.querySelectorAll('.app-pane').forEach(p => p.classList.toggle('is-active', p.dataset.pane === id));
+    statusTab.textContent = id === 'portfolio' ? 'Portfolio.gh' : TAB_DEFS[id].label;
+  }
+
+  function openTab(id){
+    if (id === 'portfolio') { activateTab('portfolio'); return; }
+    if (!TAB_DEFS[id]) return;
+    let tabBtn = tabbar.querySelector('[data-tab="'+id+'"]');
+    if (!tabBtn) {
+      tabBtn = document.createElement('div');
+      tabBtn.className = 'app-tab';
+      tabBtn.dataset.tab = id;
+      tabBtn.innerHTML = '<span class="dot"></span>' + TAB_DEFS[id].label + '<span class="x" data-close="'+id+'">&times;</span>';
+      tabBtn.addEventListener('click', (e) => {
+        if (e.target.closest('[data-close]')) return;
+        activateTab(id);
+      });
+      tabBtn.querySelector('[data-close]').addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeTab(id);
+      });
+      tabbar.appendChild(tabBtn);
+
+      const pane = document.createElement('div');
+      pane.className = 'app-pane';
+      pane.dataset.pane = id;
+      pane.innerHTML = '<iframe src="' + TAB_DEFS[id].src + '" title="' + TAB_DEFS[id].label + '"></iframe>';
+      content.appendChild(pane);
+    }
+    activateTab(id);
+    closeAllMenus();
+  }
+
+  function closeTab(id){
+    const tabBtn = tabbar.querySelector('[data-tab="'+id+'"]');
+    const pane = content.querySelector('[data-pane="'+id+'"]');
+    if (tabBtn) tabBtn.remove();
+    if (pane) pane.remove();
+    if (activeTab === id) activateTab('portfolio');
+  }
+
+  tabbar.querySelector('[data-tab="portfolio"]').addEventListener('click', () => activateTab('portfolio'));
+
+  /* ---- Menu Bar Controls ---- */
+  const menubar = document.getElementById('appMenubar');
+  function closeAllMenus(){
+    menubar.querySelectorAll('.app-menu.is-open').forEach(m => m.classList.remove('is-open'));
+  }
+  menubar.querySelectorAll('.app-menu > button').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const menu = btn.parentElement;
+      const wasOpen = menu.classList.contains('is-open');
+      closeAllMenus();
+      if (!wasOpen) menu.classList.add('is-open');
+    });
+  });
+  document.addEventListener('click', closeAllMenus);
+
+  function runAction(el){
+    const action = el.getAttribute('data-action');
+    switch(action){
+      case 'open-tab': openTab(el.getAttribute('data-tab')); break;
+      case 'print': window.print(); break;
+      case 'reset-positions': resetPositions(); break;
+      case 'deselect': closePanel(); break;
+      case 'zoom-in': setZoom(state.zoom + 0.15); break;
+      case 'zoom-out': setZoom(state.zoom - 0.15); break;
+      case 'zoom-reset': resetView(); break;
+      case 'toggle-grid': canvas.classList.toggle('no-grid'); break;
+      case 'fullscreen':
+        if (document.fullscreenElement) document.exitFullscreen();
+        else appWindow.requestFullscreen && appWindow.requestFullscreen();
+        break;
+      case 'compact': appWindow.classList.toggle('is-compact'); break;
+      case 'focus': focusNode(el.getAttribute('data-node')); break;
+      case 'mailto': window.location.href = 'mailto:vivekkhanna.canada@gmail.com'; break;
+      case 'new-tab-menu':
+        closeAllMenus();
+        menubar.querySelector('.app-menu').classList.add('is-open');
+        return;
+    }
+    closeAllMenus();
+  }
+  menubar.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (btn) runAction(btn);
+  });
+  document.querySelector('.app-toolbar').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    e.stopPropagation();
+    runAction(btn);
+  });
+
+  renderNodes();
+  renderWires();
+  applyTransform();
+  renderFallback();
+})();
+</script>
 </body>
 </html>
