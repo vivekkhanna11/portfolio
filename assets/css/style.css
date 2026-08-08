@@ -493,8 +493,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   position: fixed;
   top: 0;
   left: 0;
-  width: 60px;                  /* Increased circle size */
-  height: 60px;
+  width: 30px;                  /* Increased circle size */
+  height: 30px;
   background-color: #ffffff;   /* Pure white yields maximum contrast inversion */
   border-radius: 50%;
   pointer-events: none;        /* Allows clicks to pass through to underlying elements */
