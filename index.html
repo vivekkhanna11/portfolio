@@ -163,13 +163,13 @@
   }
   .flow-viewport.is-panning { cursor:grabbing; }
   .flow-canvas {
-    position:absolute; top:0; left:0; width:2020px; height:1000px;
+    position:absolute; top:0; left:0; width:2020px; height:1060px;
     transform-origin:0 0; will-change:transform;
     background-image:radial-gradient(circle, rgba(242,240,234,0.16) 1.2px, transparent 1.2px);
     background-size:28px 28px;
   }
   .flow-canvas.no-grid { background-image:none; }
-  .flow-wires { position:absolute; top:0; left:0; width:2020px; height:1000px; overflow:visible; pointer-events:none; }
+  .flow-wires { position:absolute; top:0; left:0; width:2020px; height:1060px; overflow:visible; pointer-events:none; }
   .flow-wire { fill:none; stroke:var(--sage); stroke-width:1.6; opacity:0.45; transition:opacity .15s ease, stroke-width .15s ease; }
   .flow-wire.is-lit { opacity:0.95; stroke-width:2.2; stroke:var(--sage-pale); }
 
@@ -300,6 +300,7 @@
         <button data-action="open-tab" data-tab="approach">Open Approach.gh</button>
         <button data-action="open-tab" data-tab="about">Open About.gh</button>
         <button data-action="open-tab" data-tab="house">Open HouseViewer.gh</button>
+        <button data-action="open-tab" data-tab="construction">Open Construction.gh</button>
         <div class="app-menu-sep"></div>
         <button data-action="print">Print Window</button>
       </div>
@@ -394,31 +395,19 @@
   </div>
 
   <div class="app-statusbar">
-    <span id="statusNodes">Nodes: 12</span>
-    <span id="statusWires">Wires: 11</span>
+    <span id="statusNodes">Nodes: 13</span>
+    <span id="statusWires">Wires: 12</span>
     <span class="r" id="statusTab">Portfolio.gh</span>
   </div>
 
 </div>
 
+<script src="assets/js/main.js"></script>
 <script>
 (function(){
-  /* ---- Custom Cursor Script (Iframe-Safe) ---- */
-  const cursor = document.getElementById('customCursor');
-  if (cursor) {
-    window.addEventListener('mousemove', (e) => {
-      cursor.style.left = e.clientX + 'px';
-      cursor.style.top = e.clientY + 'px';
-    });
-    
-    document.addEventListener('mouseover', (e) => {
-      if (e.target.closest('a, button, input, select, textarea, [role="button"], .flow-node, .app-tab, .app-tool')) {
-        document.body.classList.add('hovering-interactive');
-      } else {
-        document.body.classList.remove('hovering-interactive');
-      }
-    });
-  }
+  /* Node hover/interaction state (drag highlighting, wire lighting, etc.)
+     lives further down. Cursor behavior now comes entirely from the
+     shared assets/js/main.js, so every page behaves identically. */
 
   const NODE_W = 210, NODE_H = 96;
 
@@ -460,7 +449,7 @@
         outputs: ['Phased Implementation Timelines', 'Tactical Urbanism Quick-Builds', 'Parametric Cost Estimates'],
         tools:['Phased roadmaps','Before / after massing','Constraint mapping', 'Revit/Dynamo Auto-QTO'] } },
 
-    { id:'out1', x:1510, y:60, tag:'OUTPUT', title:'Bridletowne Circle', sub:'UBS 304, mobility',
+    { id:'out1', x:1510, y:200, tag:'OUTPUT', title:'Bridletowne Circle', sub:'UBS 304, mobility',
       panel:{ type:'project',
         location:'Scarborough, Toronto, Warden Ave &amp; Finch Ave E',
         scope:'A close look at how a high-density residential node gets stranded inside a loop-road suburban plan built for cars. The study traces the conflict between transit-dependent residents and an arterial designed purely for vehicle throughput, then builds a phased path toward a fine-grain, mixed-use block.',
@@ -475,7 +464,7 @@
         course:'UBS 304, Advanced Transportation Planning. Individual study',
         pdf:'pdfs/bridletowne-circle-mobility.pdf' } },
 
-    { id:'out2', x:1510, y:230, tag:'OUTPUT', title:'Forest Hill South', sub:'UBS 201, community history',
+    { id:'out2', x:1510, y:330, tag:'OUTPUT', title:'Forest Hill South', sub:'UBS 201, community history',
       panel:{ type:'project',
         location:'Forest Hill South, Toronto, Eglinton W to St. Clair W',
         scope:"A century-long look at a Garden City era village incorporated as its own municipality in 1924, long before it was folded back into Toronto. The study traces lot pattern, land use, transportation, and institutional form from 1939 to today.",
@@ -490,7 +479,7 @@
         course:'UBS 201, History and Theories of Community Planning. Group 7',
         pdf:'pdfs/forest-hill-south-community-planning.pdf' } },
 
-    { id:'out3', x:1510, y:400, tag:'OUTPUT', title:'Seneca Newnham', sub:'UBS 305, urban design',
+    { id:'out3', x:1510, y:470, tag:'OUTPUT', title:'Seneca Newnham', sub:'UBS 305, urban design',
       panel:{ type:'project',
         location:'Seneca Newnham Campus, North York, Toronto',
         scope:'A Kevin Lynch style imageability reading, paths, edges, nodes, districts, and landmarks, applied to a 20.2 hectare institutional superblock, paired with a full SWOT of its access, architecture, and open space performance.',
@@ -505,7 +494,7 @@
         course:'UBS 305, Urban Design and Landscape Design. Group 4',
         pdf:'pdfs/seneca-newnham-urban-design.pdf' } },
 
-    { id:'out4', x:1510, y:570, tag:'OUTPUT', title:'Perth Cycling Network', sub:'UBS 304, active transportation',
+    { id:'out4', x:1510, y:610, tag:'OUTPUT', title:'Perth Cycling Network', sub:'UBS 304, active transportation',
       panel:{ type:'project',
         location:'Downtown Perth, Ontario, a 12.25 km&sup2; municipality',
         scope:'A community-informed active transportation strategy for a small heritage town, turning 238 resident survey responses and a five-bridge safety audit into a prioritized, constraint-aware cycling network.',
@@ -526,6 +515,20 @@
         features: ['Floor-by-Floor Exploded View', 'Interactive Camera Rotation', 'BIM Level Parsing Integration'],
         openTab:'house', linkLabel:'Open interactive viewer' } },
 
+    { id:'out6', x:340, y:200, tag:'WORK', title:'Construction & PM', sub:'6 studies, BIM + estimating',
+      panel:{ type:'collection',
+        body:'A collection of six technical studies in cost estimating, computational BIM automation, and CPM project controls, the practical, contractor-facing side of the planning work above.',
+        focus:['BIM automation','Cost estimating','CPM scheduling','Earned value management'],
+        studies:[
+          'PRJ-01, Automated 5D BIM Quantity Extraction &amp; Cost Modeling',
+          'PRJ-02, Class B Multi-Trade Estimate &amp; Quantity Take-Off Audit',
+          'PRJ-03, High-Rise Residential Baseline Schedule &amp; Critical Path Analysis',
+          'PRJ-04, Multi-Disciplinary Clash Detection &amp; Constructability Review',
+          'PRJ-05, Algorithmic Material Scraper &amp; Take-Off Pipeline',
+          'PRJ-06, Earned Value Management (EVM) &amp; Variance Dashboard'
+        ],
+        openTab:'construction', linkLabel:'Open Construction.gh' } },
+
     { id:'about', x:340, y:660, tag:'DATA', title:'About.CV', sub:'Experience, education, credentials',
       panel:{ type:'about',
         body:'BIM coordination and architectural production experience in India, a Postgraduate Certificate in Sustainable Urban &amp; Transportation Planning from Seneca, a Postgraduate Certificate in Construction Project Management from Fanshawe, and a B.Arch from Chitkara.',
@@ -544,6 +547,7 @@
   const CONNECTIONS = [
     ['source','p1'], ['p1','p2'], ['p2','p3'], ['p3','p4'],
     ['p4','out1'], ['p4','out2'], ['p4','out3'], ['p4','out4'], ['p4','out5'],
+    ['source','out6'],
     ['source','about'], ['source','contact']
   ];
 
@@ -701,6 +705,14 @@
         '<div class="flow-panel-section-title">Interactive Features</div>' +
         '<ul style="font-size:13px; padding-left:18px; color:#525866;">' + p.features.map(f => '<li style="margin-bottom:4px;">'+f+'</li>').join('') + '</ul>' +
         '<div class="flow-panel-actions"><button type="button" class="btn" data-open-tab="' + p.openTab + '">' + p.linkLabel + '</button></div>';
+    } else if (p.type === 'collection') {
+      panelBody.innerHTML =
+        '<p class="flow-panel-scope">' + p.body + '</p>' +
+        '<div class="flow-panel-section-title">Focus Areas</div>' +
+        '<div class="plate-tags" style="margin-top:8px;">' + p.focus.map(f => '<span class="tag" style="color:var(--sage-deep); border-color:var(--line); margin-right:4px; margin-bottom:4px; display:inline-block;">'+f+'</span>').join('') + '</div>' +
+        '<div class="flow-panel-section-title">Featured Studies</div>' +
+        '<ul style="font-size:13px; padding-left:18px; color:#525866;">' + p.studies.map(s => '<li style="margin-bottom:4px;">'+s+'</li>').join('') + '</ul>' +
+        '<div class="flow-panel-actions"><button type="button" class="btn" data-open-tab="' + p.openTab + '">' + p.linkLabel + '</button></div>';
     } else if (p.type === 'contact') {
       panelBody.innerHTML =
         '<p class="flow-panel-scope">' + p.availability + '</p>' +
@@ -825,7 +837,10 @@
       let href, targetAttrs = '';
       if (p.type === 'project') { href = p.pdf; targetAttrs = ' target="_blank" rel="noopener"'; }
       else if (p.type === 'contact') { href = 'mailto:' + p.email; }
-      else { href = (p.openTab === 'about') ? 'about.html' : (p.openTab === 'house') ? 'house-viewer.html' : 'approach.html'; }
+      else if (p.openTab === 'about') { href = 'about.html'; }
+      else if (p.openTab === 'house') { href = 'house-viewer.html'; }
+      else if (p.openTab === 'construction') { href = 'construction.html'; }
+      else { href = 'approach.html'; }
       return '<a href="'+href+'"'+targetAttrs+'>' + n.tag + '<b>' + n.title + '</b></a>';
     }).join('');
   }
@@ -834,7 +849,8 @@
   const TAB_DEFS = {
     approach: { label:'Approach.gh', src:'approach.html' },
     about:    { label:'About.gh',    src:'about.html' },
-    house:    { label:'HouseViewer.gh', src:'house-viewer.html' }
+    house:    { label:'HouseViewer.gh', src:'house-viewer.html' },
+    construction: { label:'Construction.gh', src:'construction.html' }
   };
   const tabbar = document.getElementById('appTabbar');
   const content = document.getElementById('appContent');
