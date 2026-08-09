@@ -865,7 +865,10 @@
   }
 
   function openTab(id){
-    if (id === 'portfolio') { activateTab('portfolio'); return; }
+    if (id === 'portfolio') {
+      window.location.href = 'portfolio.html';
+      return;
+    }
     if (!TAB_DEFS[id]) return;
     let tabBtn = tabbar.querySelector('[data-tab="'+id+'"]');
     if (!tabBtn) {
