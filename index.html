@@ -397,8 +397,8 @@
   </div>
 
   <div class="app-statusbar">
-    <span id="statusNodes">Nodes: 13</span>
-    <span id="statusWires">Wires: 12</span>
+    <span id="statusNodes">Nodes: 14</span>
+    <span id="statusWires">Wires: 13</span>
     <span class="r" id="statusTab">Portfolio.gh</span>
   </div>
 
@@ -532,6 +532,23 @@
         ],
         openTab:'construction', linkLabel:'Open Construction.gh' } },
 
+    { id:'out7', x:620, y:200, tag:'OUTPUT', title:'BIM Portfolio', sub:'Enzyme Towers',
+      panel:{ type:'project',
+        location:'Toronto, Ontario',
+        scope:'Original BIM & Construction Management Portfolio document detailing project execution, technical documentation, and parametric workflows.',
+        context:'Comprehensive compilation of BIM coordination, 3D modeling, quantity takeoffs, and construction documentation.',
+        meta:[
+          ['Document', 'BIM Portfolio'],
+          ['Format', 'PDF Document']
+        ],
+        deliverables:[
+          'Complete original BIM portfolio document',
+          'Technical project showcases and architectural coordination',
+          'Construction project management work samples'
+        ],
+        course:'BIM & Construction Portfolio',
+        pdf:'pdfs/VivekKhannaBIMPortfolio Orignal - Copy.pdf' } },
+
     { id:'about', x:340, y:660, tag:'DATA', title:'About.CV', sub:'Experience, education, credentials',
       panel:{ type:'about',
         body:'BIM coordination and architectural production experience in India, a Postgraduate Certificate in Sustainable Urban &amp; Transportation Planning from Seneca, a Postgraduate Certificate in Construction Project Management from Fanshawe, and a B.Arch from Chitkara.',
@@ -550,7 +567,7 @@
   const CONNECTIONS = [
     ['source','p1'], ['p1','p2'], ['p2','p3'], ['p3','p4'],
     ['p4','out1'], ['p4','out2'], ['p4','out3'], ['p4','out4'], ['p4','out5'],
-    ['source','out6'],
+    ['source','out6'], ['out6','out7'],
     ['source','about'], ['source','contact']
   ];
 
@@ -725,8 +742,6 @@
     }
     window.PortfolioViewer?.bind();
   }
-
-  
 
   panelBody.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-open-tab]');
