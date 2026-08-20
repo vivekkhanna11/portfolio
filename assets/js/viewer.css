@@ -1,0 +1,594 @@
+/* =========================================================
+   PORTFOLIO PDF + IMAGE VIEWER
+   Custom UI — no iframe / no browser PDF toolbar
+   ========================================================= */
+
+.viewer-root {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: clamp(12px, 3vw, 32px);
+
+  background: rgba(10, 12, 13, 0.84);
+  backdrop-filter: blur(22px) saturate(0.85);
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transition:
+    opacity 0.22s ease,
+    visibility 0.22s ease;
+}
+
+.viewer-root.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.viewer-shell {
+  width: min(1920px, 100%);
+  height: min(92vh, 920px);
+  min-height: 720px;
+
+  display: flex;
+  flex-direction: column;
+
+  background: var(--graphite, #17191b);
+  border: 1px solid rgba(242, 240, 234, 0.14);
+  border-radius: 12px;
+  overflow: hidden;
+
+  box-shadow:
+    0 40px 100px rgba(0, 0, 0, 0.58),
+    0 8px 30px rgba(0, 0, 0, 0.28);
+}
+
+/* ---------------------------------------------------------
+   TOP BAR
+   --------------------------------------------------------- */
+
+.viewer-topbar {
+  min-height: 54px;
+
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  padding: 0 15px;
+
+  background: var(--graphite-2, #202325);
+  border-bottom: 1px solid var(--graphite-3, #2b2f31);
+}
+
+.viewer-window-dots {
+  display: flex;
+  gap: 7px;
+  flex: none;
+}
+
+.viewer-window-dots i {
+  width: 10px;
+  height: 10px;
+  display: block;
+  border-radius: 50%;
+  background: var(--steel, #5c6670);
+}
+
+.viewer-window-dots i:first-child {
+  background: #e0605a;
+}
+
+.viewer-window-dots i:nth-child(2) {
+  background: #e0b94f;
+}
+
+.viewer-window-dots i:nth-child(3) {
+  background: var(--sage, #7c9473);
+}
+
+.viewer-kicker {
+  font-family: var(--mono, monospace);
+  font-size: 9px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--sage-pale, #cdd7c4);
+}
+
+.viewer-title {
+  min-width: 0;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  font-family: var(--display, sans-serif);
+  font-size: 14px;
+  font-weight: 600;
+
+  color: var(--offwhite, #f2f0ea);
+}
+
+.viewer-close {
+  margin-left: auto;
+
+  width: 32px;
+  height: 32px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(242, 240, 234, 0.14);
+  border-radius: 7px;
+
+  background: transparent;
+  color: var(--steel-light, #a3adb5);
+
+  cursor: pointer;
+
+  font-size: 20px;
+  line-height: 1;
+
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.viewer-close:hover {
+  color: var(--offwhite, #f2f0ea);
+  background: var(--graphite-3, #2b2f31);
+  border-color: var(--sage, #7c9473);
+}
+
+/* ---------------------------------------------------------
+   DOCUMENT AREA
+   --------------------------------------------------------- */
+
+.viewer-stage {
+  position: relative;
+
+  flex: 1 1 auto;
+  min-height: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 50% 30%,
+      rgba(124, 148, 115, 0.09),
+      transparent 36%
+    ),
+    #101214;
+
+  touch-action: none;
+}
+
+.viewer-stage.is-dragging {
+  cursor: grabbing;
+}
+
+.viewer-page-wrap {
+  position: relative;
+
+  display: grid;
+  place-items: center;
+
+  transform-origin: center center;
+
+  will-change: transform;
+
+  transition: transform 0.14s ease;
+}
+
+.viewer-page {
+  display: block;
+
+  max-width: none;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 25px 65px rgba(0, 0, 0, 0.5);
+
+  user-select: none;
+}
+
+.viewer-image {
+  display: block;
+
+  max-width: min(84vw, 1100px);
+  max-height: 70vh;
+
+  width: auto;
+  height: auto;
+
+  object-fit: contain;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 25px 65px rgba(0, 0, 0, 0.5);
+
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ---------------------------------------------------------
+   LOADING
+   --------------------------------------------------------- */
+
+.viewer-loading {
+  position: absolute;
+  inset: 0;
+
+  display: grid;
+  place-items: center;
+
+  font-family: var(--mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+
+  color: var(--steel-light, #a3adb5);
+
+  pointer-events: none;
+}
+
+.viewer-loading span::after {
+  content: "";
+  display: inline-block;
+  width: 1.1em;
+
+  animation: viewerDots 1s steps(4, end) infinite;
+}
+
+@keyframes viewerDots {
+  0%   { content: ""; }
+  25%  { content: "."; }
+  50%  { content: ".."; }
+  75%  { content: "..."; }
+}
+
+/* ---------------------------------------------------------
+   ERROR
+   --------------------------------------------------------- */
+
+.viewer-error {
+  max-width: 560px;
+
+  padding: 28px;
+
+  text-align: center;
+
+  font-family: var(--mono, monospace);
+  font-size: 11px;
+  line-height: 1.7;
+
+  color: var(--offwhite, #f2f0ea);
+}
+
+.viewer-error strong {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: var(--sage-pale, #cdd7c4);
+  font-size: 13px;
+}
+
+/* ---------------------------------------------------------
+   PAGE NAVIGATION
+   --------------------------------------------------------- */
+
+.viewer-nav {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 14px;
+
+  pointer-events: none;
+}
+
+.viewer-nav button {
+  pointer-events: auto;
+
+  width: 44px;
+  height: 44px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(242, 240, 234, 0.2);
+  border-radius: 50%;
+
+  background: rgba(23, 25, 27, 0.74);
+  backdrop-filter: blur(10px);
+
+  color: var(--offwhite, #f2f0ea);
+
+  cursor: pointer;
+
+  font-size: 22px;
+  line-height: 1;
+
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.viewer-nav button:hover {
+  transform: scale(1.06);
+
+  background: rgba(43, 47, 49, 0.94);
+  border-color: var(--sage, #7c9473);
+}
+
+.viewer-nav button:disabled {
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------
+   BOTTOM CONTROLS
+   --------------------------------------------------------- */
+
+.viewer-bottom {
+  min-height: 70px;
+
+  display: flex;
+  align-items: center;
+  gap: 18px;
+
+  padding: 9px 17px 10px;
+
+  background: var(--graphite-2, #202325);
+  border-top: 1px solid var(--graphite-3, #2b2f31);
+}
+
+.viewer-control-group {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.viewer-control-label {
+  white-space: nowrap;
+
+  font-family: var(--mono, monospace);
+  font-size: 9px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+
+  color: var(--steel, #5c6670);
+}
+
+.viewer-value {
+  min-width: 64px;
+
+  text-align: right;
+
+  font-family: var(--mono, monospace);
+  font-size: 10px;
+
+  color: var(--steel-light, #a3adb5);
+}
+
+/* ---------------------------------------------------------
+   APPLE-STYLE SLIDERS
+   --------------------------------------------------------- */
+
+.viewer-range {
+  --fill: 50%;
+
+  width: clamp(110px, 18vw, 230px);
+  height: 22px;
+
+  margin: 0;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  background: transparent;
+
+  cursor: pointer;
+}
+
+.viewer-range::-webkit-slider-runnable-track {
+  height: 4px;
+
+  border-radius: 999px;
+
+  background:
+    linear-gradient(
+      to right,
+      var(--sage, #7c9473) 0,
+      var(--sage, #7c9473) var(--fill),
+      var(--graphite-3, #2b2f31) var(--fill),
+      var(--graphite-3, #2b2f31) 100%
+    );
+}
+
+.viewer-range::-moz-range-track {
+  height: 4px;
+
+  border-radius: 999px;
+
+  background: var(--graphite-3, #2b2f31);
+}
+
+.viewer-range::-moz-range-progress {
+  height: 4px;
+
+  border-radius: 999px;
+
+  background: var(--sage, #7c9473);
+}
+
+.viewer-range::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+
+  width: 15px;
+  height: 15px;
+
+  margin-top: -5.5px;
+
+  border: 1px solid rgba(242, 240, 234, 0.72);
+  border-radius: 50%;
+
+  background: var(--offwhite, #f2f0ea);
+
+  box-shadow:
+    0 1px 5px rgba(0, 0, 0, 0.45);
+}
+
+.viewer-range::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+
+  border: 1px solid rgba(242, 240, 234, 0.72);
+  border-radius: 50%;
+
+  background: var(--offwhite, #f2f0ea);
+
+  box-shadow:
+    0 1px 5px rgba(0, 0, 0, 0.45);
+}
+
+/* ---------------------------------------------------------
+   CAPTION
+   --------------------------------------------------------- */
+
+.viewer-caption {
+  margin-left: auto;
+
+  min-width: 0;
+  max-width: 34%;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  text-align: right;
+
+  font-family: var(--mono, monospace);
+  font-size: 9.5px;
+
+  color: var(--steel, #5c6670);
+}
+
+.viewer-bottom.is-image .viewer-page-control {
+  display: none;
+}
+
+.viewer-bottom.is-image .viewer-zoom-control {
+  margin-left: auto;
+}
+
+/* ---------------------------------------------------------
+   FIRST OPEN HINT
+   --------------------------------------------------------- */
+
+.viewer-swipe-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+
+  transform: translateX(-50%);
+
+  font-family: var(--mono, monospace);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+
+  color: rgba(242, 240, 234, 0.42);
+
+  pointer-events: none;
+
+  opacity: 0;
+
+  transition: opacity 0.3s ease;
+}
+
+.viewer-root.is-first-open .viewer-swipe-hint {
+  opacity: 1;
+}
+
+/* ---------------------------------------------------------
+   BODY LOCK
+   --------------------------------------------------------- */
+
+body.viewer-lock {
+  overflow: hidden !important;
+}
+
+/* ---------------------------------------------------------
+   MOBILE
+   --------------------------------------------------------- */
+
+@media (max-width: 760px) {
+
+  .viewer-root {
+    padding: 0;
+  }
+
+  .viewer-shell {
+    width: 100%;
+    height: 100%;
+
+    min-height: 0;
+
+    border-radius: 0;
+  }
+
+  .viewer-topbar {
+    min-height: 48px;
+  }
+
+  .viewer-stage {
+    min-height: 0;
+  }
+
+  .viewer-image {
+    max-width: 92vw;
+    max-height: 68vh;
+  }
+
+  .viewer-bottom {
+    gap: 9px;
+    flex-wrap: wrap;
+
+    padding: 8px 10px;
+  }
+
+  .viewer-caption {
+    display: none;
+  }
+
+  .viewer-range {
+    width: clamp(90px, 30vw, 150px);
+  }
+
+  .viewer-nav {
+    padding: 0 7px;
+  }
+
+  .viewer-nav button {
+    width: 38px;
+    height: 38px;
+  }
+}
