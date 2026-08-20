@@ -1,594 +1,705 @@
-/* =========================================================
-   PORTFOLIO PDF + IMAGE VIEWER
-   Custom UI — no iframe / no browser PDF toolbar
-   ========================================================= */
-
-.viewer-root {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: grid;
-  place-items: center;
-  padding: clamp(12px, 3vw, 32px);
-
-  background: rgba(10, 12, 13, 0.84);
-  backdrop-filter: blur(22px) saturate(0.85);
-
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-
-  transition:
-    opacity 0.22s ease,
-    visibility 0.22s ease;
-}
-
-.viewer-root.is-open {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-
-.viewer-shell {
-  width: min(1920px, 100%);
-  height: min(92vh, 920px);
-  min-height: 720px;
-
-  display: flex;
-  flex-direction: column;
-
-  background: var(--graphite, #17191b);
-  border: 1px solid rgba(242, 240, 234, 0.14);
-  border-radius: 12px;
-  overflow: hidden;
-
-  box-shadow:
-    0 40px 100px rgba(0, 0, 0, 0.58),
-    0 8px 30px rgba(0, 0, 0, 0.28);
-}
-
-/* ---------------------------------------------------------
-   TOP BAR
-   --------------------------------------------------------- */
-
-.viewer-topbar {
-  min-height: 54px;
-
-  display: flex;
-  align-items: center;
-  gap: 14px;
-
-  padding: 0 15px;
-
-  background: var(--graphite-2, #202325);
-  border-bottom: 1px solid var(--graphite-3, #2b2f31);
-}
-
-.viewer-window-dots {
-  display: flex;
-  gap: 7px;
-  flex: none;
-}
-
-.viewer-window-dots i {
-  width: 10px;
-  height: 10px;
-  display: block;
-  border-radius: 50%;
-  background: var(--steel, #5c6670);
-}
-
-.viewer-window-dots i:first-child {
-  background: #e0605a;
-}
-
-.viewer-window-dots i:nth-child(2) {
-  background: #e0b94f;
-}
-
-.viewer-window-dots i:nth-child(3) {
-  background: var(--sage, #7c9473);
-}
-
-.viewer-kicker {
-  font-family: var(--mono, monospace);
-  font-size: 9px;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--sage-pale, #cdd7c4);
-}
-
-.viewer-title {
-  min-width: 0;
-
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-
-  font-family: var(--display, sans-serif);
-  font-size: 14px;
-  font-weight: 600;
-
-  color: var(--offwhite, #f2f0ea);
-}
-
-.viewer-close {
-  margin-left: auto;
-
-  width: 32px;
-  height: 32px;
-
-  display: grid;
-  place-items: center;
-
-  border: 1px solid rgba(242, 240, 234, 0.14);
-  border-radius: 7px;
-
-  background: transparent;
-  color: var(--steel-light, #a3adb5);
-
-  cursor: pointer;
-
-  font-size: 20px;
-  line-height: 1;
-
-  transition:
-    color 0.15s ease,
-    background 0.15s ease,
-    border-color 0.15s ease;
-}
-
-.viewer-close:hover {
-  color: var(--offwhite, #f2f0ea);
-  background: var(--graphite-3, #2b2f31);
-  border-color: var(--sage, #7c9473);
-}
-
-/* ---------------------------------------------------------
-   DOCUMENT AREA
-   --------------------------------------------------------- */
-
-.viewer-stage {
-  position: relative;
-
-  flex: 1 1 auto;
-  min-height: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  overflow: hidden;
-
-  background:
-    radial-gradient(
-      circle at 50% 30%,
-      rgba(124, 148, 115, 0.09),
-      transparent 36%
-    ),
-    #101214;
-
-  touch-action: none;
-}
-
-.viewer-stage.is-dragging {
-  cursor: grabbing;
-}
-
-.viewer-page-wrap {
-  position: relative;
-
-  display: grid;
-  place-items: center;
-
-  transform-origin: center center;
-
-  will-change: transform;
-
-  transition: transform 0.14s ease;
-}
-
-.viewer-page {
-  display: block;
-
-  max-width: none;
-
-  background: #ffffff;
-
-  box-shadow:
-    0 25px 65px rgba(0, 0, 0, 0.5);
-
-  user-select: none;
-}
-
-.viewer-image {
-  display: block;
-
-  max-width: min(84vw, 1100px);
-  max-height: 70vh;
-
-  width: auto;
-  height: auto;
-
-  object-fit: contain;
-
-  background: #ffffff;
-
-  box-shadow:
-    0 25px 65px rgba(0, 0, 0, 0.5);
-
-  user-select: none;
-  -webkit-user-drag: none;
-}
-
-/* ---------------------------------------------------------
-   LOADING
-   --------------------------------------------------------- */
-
-.viewer-loading {
-  position: absolute;
-  inset: 0;
-
-  display: grid;
-  place-items: center;
-
-  font-family: var(--mono, monospace);
-  font-size: 10px;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-
-  color: var(--steel-light, #a3adb5);
-
-  pointer-events: none;
-}
-
-.viewer-loading span::after {
-  content: "";
-  display: inline-block;
-  width: 1.1em;
-
-  animation: viewerDots 1s steps(4, end) infinite;
-}
-
-@keyframes viewerDots {
-  0%   { content: ""; }
-  25%  { content: "."; }
-  50%  { content: ".."; }
-  75%  { content: "..."; }
-}
-
-/* ---------------------------------------------------------
-   ERROR
-   --------------------------------------------------------- */
-
-.viewer-error {
-  max-width: 560px;
-
-  padding: 28px;
-
-  text-align: center;
-
-  font-family: var(--mono, monospace);
-  font-size: 11px;
-  line-height: 1.7;
-
-  color: var(--offwhite, #f2f0ea);
-}
-
-.viewer-error strong {
-  display: block;
-
-  margin-bottom: 8px;
-
-  color: var(--sage-pale, #cdd7c4);
-  font-size: 13px;
-}
-
-/* ---------------------------------------------------------
-   PAGE NAVIGATION
-   --------------------------------------------------------- */
-
-.viewer-nav {
-  position: absolute;
-  inset: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  padding: 0 14px;
-
-  pointer-events: none;
-}
-
-.viewer-nav button {
-  pointer-events: auto;
-
-  width: 44px;
-  height: 44px;
-
-  display: grid;
-  place-items: center;
-
-  border: 1px solid rgba(242, 240, 234, 0.2);
-  border-radius: 50%;
-
-  background: rgba(23, 25, 27, 0.74);
-  backdrop-filter: blur(10px);
-
-  color: var(--offwhite, #f2f0ea);
-
-  cursor: pointer;
-
-  font-size: 22px;
-  line-height: 1;
-
-  transition:
-    transform 0.15s ease,
-    background 0.15s ease,
-    border-color 0.15s ease;
-}
-
-.viewer-nav button:hover {
-  transform: scale(1.06);
-
-  background: rgba(43, 47, 49, 0.94);
-  border-color: var(--sage, #7c9473);
-}
-
-.viewer-nav button:disabled {
-  opacity: 0.2;
-  pointer-events: none;
-}
-
-/* ---------------------------------------------------------
-   BOTTOM CONTROLS
-   --------------------------------------------------------- */
-
-.viewer-bottom {
-  min-height: 70px;
-
-  display: flex;
-  align-items: center;
-  gap: 18px;
-
-  padding: 9px 17px 10px;
-
-  background: var(--graphite-2, #202325);
-  border-top: 1px solid var(--graphite-3, #2b2f31);
-}
-
-.viewer-control-group {
-  min-width: 0;
-
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-
-.viewer-control-label {
-  white-space: nowrap;
-
-  font-family: var(--mono, monospace);
-  font-size: 9px;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-
-  color: var(--steel, #5c6670);
-}
-
-.viewer-value {
-  min-width: 64px;
-
-  text-align: right;
-
-  font-family: var(--mono, monospace);
-  font-size: 10px;
-
-  color: var(--steel-light, #a3adb5);
-}
-
-/* ---------------------------------------------------------
-   APPLE-STYLE SLIDERS
-   --------------------------------------------------------- */
-
-.viewer-range {
-  --fill: 50%;
-
-  width: clamp(110px, 18vw, 230px);
-  height: 22px;
-
-  margin: 0;
-
-  appearance: none;
-  -webkit-appearance: none;
-
-  background: transparent;
-
-  cursor: pointer;
-}
-
-.viewer-range::-webkit-slider-runnable-track {
-  height: 4px;
-
-  border-radius: 999px;
-
-  background:
-    linear-gradient(
-      to right,
-      var(--sage, #7c9473) 0,
-      var(--sage, #7c9473) var(--fill),
-      var(--graphite-3, #2b2f31) var(--fill),
-      var(--graphite-3, #2b2f31) 100%
+(() => {
+  "use strict";
+
+  /*
+   * =========================================================
+   * CUSTOM PORTFOLIO PDF + IMAGE VIEWER
+   * =========================================================
+   */
+
+  const PDFJS_VERSION = "4.10.38";
+
+  const PDFJS_SRC =
+    `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.min.mjs`;
+
+  const PDFJS_WORKER =
+    `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.mjs`;
+
+  let pdfjsPromise = null;
+  let activePdf = null;
+  let activeImages = [];
+  let imageIndex = 0;
+  let currentMode = null;
+  let currentPage = 1;
+  let pageCount = 0;
+  let zoom = 1;
+  let fitScale = 1;
+  let renderToken = 0;
+  let firstOpen = true;
+
+  const pan = {
+    active: false,
+    startX: 0,
+    startY: 0,
+    originX: 0,
+    originY: 0,
+    x: 0,
+    y: 0
+  };
+
+  /* =========================================================
+     CREATE VIEWER
+     ========================================================= */
+
+  function createViewer() {
+    let root = document.querySelector(".viewer-root");
+
+    if (root) {
+      return root;
+    }
+
+    root = document.createElement("div");
+    root.className = "viewer-root";
+    root.setAttribute("aria-hidden", "true");
+
+    root.innerHTML = `
+      <section
+        class="viewer-shell"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="viewerTitle"
+      >
+        <header class="viewer-topbar">
+          <div class="viewer-window-dots" aria-hidden="true">
+            <i></i>
+            <i></i>
+            <i></i>
+          </div>
+
+          <span class="viewer-kicker" id="viewerKicker">
+            DOCUMENT
+          </span>
+
+          <strong class="viewer-title" id="viewerTitle">
+            Viewer
+          </strong>
+
+          <!-- TOP RIGHT ZOOM DISPLAY -->
+          <div class="viewer-zoom-top" id="viewerZoomDisplay" style="margin-left: auto; font-family: var(--mono, monospace); font-size: 11px; color: var(--steel-light, #a3adb5);">
+            100%
+          </div>
+
+          <button
+            class="viewer-close"
+            type="button"
+            aria-label="Close viewer"
+            style="margin-left: 12px;"
+          >
+            ×
+          </button>
+        </header>
+
+        <div class="viewer-stage" id="viewerStage">
+          <div class="viewer-loading" id="viewerLoading">
+            <span>Loading</span>
+          </div>
+
+          <div class="viewer-page-wrap" id="viewerPageWrap"></div>
+
+          <div class="viewer-nav" id="viewerNav">
+            <button type="button" id="viewerPrev" aria-label="Previous page">‹</button>
+            <button type="button" id="viewerNext" aria-label="Next page">›</button>
+          </div>
+
+          <div class="viewer-swipe-hint">
+            Swipe or use the arrow keys
+          </div>
+        </div>
+
+        <footer class="viewer-bottom" id="viewerBottom" style="flex-direction: column; gap: 8px; padding: 10px;">
+          <!-- THUMBNAIL TRACK FOR PAGES -->
+          <div
+            class="viewer-thumbnails"
+            id="viewerThumbnails"
+            style="display: flex; gap: 8px; overflow-x: auto; max-width: 100%; padding: 4px 0; scroll-behavior: smooth;"
+          ></div>
+
+          <div style="display: flex; width: 100%; align-items: center; justify-content: space-between;">
+            <span class="viewer-value" id="viewerPageValue">
+              1 / 1
+            </span>
+            <span class="viewer-caption" id="viewerCaption"></span>
+          </div>
+        </footer>
+      </section>
+    `;
+
+    document.body.appendChild(root);
+
+    /* CLOSE */
+    root.querySelector(".viewer-close").addEventListener("click", closeViewer);
+    root.addEventListener("click", event => {
+      if (event.target === root) {
+        closeViewer();
+      }
+    });
+
+    /* PREVIOUS / NEXT */
+    root.querySelector("#viewerPrev").addEventListener("click", () => navigate(-1));
+    root.querySelector("#viewerNext").addEventListener("click", () => navigate(1));
+
+    /* DRAGGING */
+    const stage = root.querySelector("#viewerStage");
+    stage.addEventListener("pointerdown", startPan);
+    stage.addEventListener("pointermove", movePan);
+    stage.addEventListener("pointerup", endPan);
+    stage.addEventListener("pointercancel", endPan);
+
+    /* MOUSE WHEEL ZOOM */
+    stage.addEventListener(
+      "wheel",
+      event => {
+        if (!root.classList.contains("is-open")) return;
+        event.preventDefault();
+
+        const nextZoom = Math.max(0.5, Math.min(2, zoom - event.deltaY * 0.001));
+        zoom = Math.round(nextZoom * 20) / 20;
+
+        updateZoomDisplay();
+        resetPan();
+
+        if (currentMode === "pdf") {
+          renderPdfPage();
+        } else if (currentMode === "image") {
+          renderImage();
+        }
+      },
+      { passive: false }
     );
-}
 
-.viewer-range::-moz-range-track {
-  height: 4px;
-
-  border-radius: 999px;
-
-  background: var(--graphite-3, #2b2f31);
-}
-
-.viewer-range::-moz-range-progress {
-  height: 4px;
-
-  border-radius: 999px;
-
-  background: var(--sage, #7c9473);
-}
-
-.viewer-range::-webkit-slider-thumb {
-  appearance: none;
-  -webkit-appearance: none;
-
-  width: 15px;
-  height: 15px;
-
-  margin-top: -5.5px;
-
-  border: 1px solid rgba(242, 240, 234, 0.72);
-  border-radius: 50%;
-
-  background: var(--offwhite, #f2f0ea);
-
-  box-shadow:
-    0 1px 5px rgba(0, 0, 0, 0.45);
-}
-
-.viewer-range::-moz-range-thumb {
-  width: 15px;
-  height: 15px;
-
-  border: 1px solid rgba(242, 240, 234, 0.72);
-  border-radius: 50%;
-
-  background: var(--offwhite, #f2f0ea);
-
-  box-shadow:
-    0 1px 5px rgba(0, 0, 0, 0.45);
-}
-
-/* ---------------------------------------------------------
-   CAPTION
-   --------------------------------------------------------- */
-
-.viewer-caption {
-  margin-left: auto;
-
-  min-width: 0;
-  max-width: 34%;
-
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-
-  text-align: right;
-
-  font-family: var(--mono, monospace);
-  font-size: 9.5px;
-
-  color: var(--steel, #5c6670);
-}
-
-.viewer-bottom.is-image .viewer-page-control {
-  display: none;
-}
-
-.viewer-bottom.is-image .viewer-zoom-control {
-  margin-left: auto;
-}
-
-/* ---------------------------------------------------------
-   FIRST OPEN HINT
-   --------------------------------------------------------- */
-
-.viewer-swipe-hint {
-  position: absolute;
-  left: 50%;
-  bottom: 14px;
-
-  transform: translateX(-50%);
-
-  font-family: var(--mono, monospace);
-  font-size: 9px;
-  letter-spacing: 0.06em;
-
-  color: rgba(242, 240, 234, 0.42);
-
-  pointer-events: none;
-
-  opacity: 0;
-
-  transition: opacity 0.3s ease;
-}
-
-.viewer-root.is-first-open .viewer-swipe-hint {
-  opacity: 1;
-}
-
-/* ---------------------------------------------------------
-   BODY LOCK
-   --------------------------------------------------------- */
-
-body.viewer-lock {
-  overflow: hidden !important;
-}
-
-/* ---------------------------------------------------------
-   MOBILE
-   --------------------------------------------------------- */
-
-@media (max-width: 760px) {
-
-  .viewer-root {
-    padding: 0;
+    return root;
   }
 
-  .viewer-shell {
-    width: 100%;
-    height: 100%;
+  /* =========================================================
+     UPDATE ZOOM DISPLAY
+     ========================================================= */
 
-    min-height: 0;
-
-    border-radius: 0;
+  function updateZoomDisplay() {
+    const display = document.querySelector("#viewerZoomDisplay");
+    if (display) {
+      display.textContent = `${Math.round(zoom * 100)}%`;
+    }
   }
 
-  .viewer-topbar {
-    min-height: 48px;
+  /* =========================================================
+     THUMBNAIL GENERATION
+     ========================================================= */
+
+  async function generatePdfThumbnails() {
+    const container = document.querySelector("#viewerThumbnails");
+    if (!container || !activePdf) return;
+
+    container.innerHTML = "";
+
+    for (let i = 1; i <= pageCount; i++) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = `viewer-thumb-btn ${i === currentPage ? "active" : ""}`;
+      btn.style.cssText = `
+        border: 2px solid ${i === currentPage ? "var(--sage, #7c9473)" : "transparent"};
+        background: var(--graphite-3, #2b2f31);
+        color: #fff;
+        padding: 4px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: var(--mono, monospace);
+        font-size: 10px;
+        flex: none;
+        transition: border-color 0.15s ease;
+      `;
+      btn.textContent = `P. ${i}`;
+
+      btn.addEventListener("click", () => {
+        if (currentPage === i) return;
+        currentPage = i;
+        resetPan();
+        renderPdfPage();
+      });
+
+      container.appendChild(btn);
+    }
   }
 
-  .viewer-stage {
-    min-height: 0;
+  function updateActiveThumbnail() {
+    const container = document.querySelector("#viewerThumbnails");
+    if (!container) return;
+
+    const buttons = container.querySelectorAll(".viewer-thumb-btn");
+    buttons.forEach((btn, idx) => {
+      const isSelected = (idx + 1) === currentPage;
+      btn.style.borderColor = isSelected ? "var(--sage, #7c9473)" : "transparent";
+      if (isSelected) {
+        btn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      }
+    });
   }
 
-  .viewer-image {
-    max-width: 92vw;
-    max-height: 68vh;
+  /* =========================================================
+     LOAD PDF.JS
+     ========================================================= */
+
+  async function loadPdfJs() {
+    if (!pdfjsPromise) {
+      pdfjsPromise = import(PDFJS_SRC).then(pdfjsLib => {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+        return pdfjsLib;
+      });
+    }
+    return pdfjsPromise;
   }
 
-  .viewer-bottom {
-    gap: 9px;
-    flex-wrap: wrap;
-
-    padding: 8px 10px;
+  function resolveUrl(path) {
+    try {
+      return new URL(path, document.baseURI).href;
+    } catch (error) {
+      return path;
+    }
   }
 
-  .viewer-caption {
-    display: none;
+  function setLoading(show, text = "Loading") {
+    const loading = document.querySelector("#viewerLoading");
+    if (!loading) return;
+    loading.style.display = show ? "grid" : "none";
+    const span = loading.querySelector("span");
+    if (span) span.textContent = text;
   }
 
-  .viewer-range {
-    width: clamp(90px, 30vw, 150px);
+  function showError(title, message) {
+    const wrap = document.querySelector("#viewerPageWrap");
+    if (!wrap) return;
+    wrap.innerHTML = `
+      <div class="viewer-error">
+        <strong>${escapeHTML(title)}</strong>
+        ${escapeHTML(message)}
+      </div>
+    `;
+    setLoading(false);
   }
 
-  .viewer-nav {
-    padding: 0 7px;
+  function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, character => {
+      const map = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      };
+      return map[character];
+    });
   }
 
-  .viewer-nav button {
-    width: 38px;
-    height: 38px;
+  function resetPan() {
+    pan.x = 0;
+    pan.y = 0;
+    const wrap = document.querySelector("#viewerPageWrap");
+    if (wrap) wrap.style.transform = "translate(0px, 0px)";
   }
-}
+
+  function startPan(event) {
+    if (event.button !== 0 || event.target.closest("button")) return;
+    const stage = event.currentTarget;
+    pan.active = true;
+    pan.startX = event.clientX;
+    pan.startY = event.clientY;
+    pan.originX = pan.x;
+    pan.originY = pan.y;
+    stage.classList.add("is-dragging");
+    if (stage.setPointerCapture) stage.setPointerCapture(event.pointerId);
+  }
+
+  function movePan(event) {
+    if (!pan.active) return;
+    pan.x = pan.originX + event.clientX - pan.startX;
+    pan.y = pan.originY + event.clientY - pan.startY;
+    const wrap = document.querySelector("#viewerPageWrap");
+    if (wrap) wrap.style.transform = `translate(${pan.x}px, ${pan.y}px)`;
+  }
+
+  function endPan() {
+    pan.active = false;
+    document.querySelector("#viewerStage")?.classList.remove("is-dragging");
+  }
+
+  function setOpen(open) {
+    const root = createViewer();
+    root.classList.toggle("is-open", open);
+    root.setAttribute("aria-hidden", open ? "false" : "true");
+    document.body.classList.toggle("viewer-lock", open);
+
+    if (open && firstOpen) {
+      root.classList.add("is-first-open");
+      setTimeout(() => root.classList.remove("is-first-open"), 2200);
+      firstOpen = false;
+    }
+  }
+
+  /* =========================================================
+     OPEN PDF
+     ========================================================= */
+
+  async function openPdf(url, title = "PDF document") {
+    const root = createViewer();
+    currentMode = "pdf";
+    activeImages = [];
+    activePdf = null;
+
+    root.querySelector("#viewerKicker").textContent = "PDF / VIEWER";
+    root.querySelector("#viewerTitle").textContent = title;
+    root.querySelector("#viewerNav").style.display = "flex";
+
+    zoom = 1;
+    updateZoomDisplay();
+    resetPan();
+
+    root.querySelector("#viewerPageWrap").innerHTML = "";
+    setLoading(true, "Loading PDF");
+    setOpen(true);
+
+    const token = ++renderToken;
+    const pdfUrl = resolveUrl(url);
+
+    try {
+      const pdfjsLib = await loadPdfJs();
+      if (token !== renderToken) return;
+
+      const loadingTask = pdfjsLib.getDocument({
+        url: pdfUrl,
+        enableScripting: false,
+        disableAutoFetch: false,
+        disableStream: false
+      });
+
+      activePdf = await loadingTask.promise;
+      if (token !== renderToken) return;
+
+      pageCount = activePdf.numPages;
+      currentPage = 1;
+
+      root.querySelector("#viewerPageValue").textContent = `1 / ${pageCount}`;
+      root.querySelector("#viewerCaption").textContent = url.split("/").pop().split("?")[0];
+
+      generatePdfThumbnails();
+      await renderPdfPage(true);
+    } catch (error) {
+      console.error("[Portfolio Viewer] PDF error:", error);
+      let message = "The PDF could not be loaded.";
+      if (error?.name === "MissingPDFException") {
+        message = `The PDF was not found at: ${pdfUrl}`;
+      } else if (error?.message) {
+        message = error.message;
+      }
+      showError("PDF could not be opened", message);
+    }
+  }
+
+  /* =========================================================
+     RENDER PDF PAGE
+     ========================================================= */
+
+  async function renderPdfPage(firstRender = false) {
+    if (!activePdf) return;
+    const token = ++renderToken;
+    const root = document.querySelector(".viewer-root");
+    const stage = root.querySelector("#viewerStage");
+    const wrap = root.querySelector("#viewerPageWrap");
+
+    setLoading(true, "Rendering page");
+
+    try {
+      const page = await activePdf.getPage(currentPage);
+      if (token !== renderToken) return;
+
+      const baseViewport = page.getViewport({ scale: 1 });
+
+      if (firstRender) {
+        const availableWidth = Math.max(260, stage.clientWidth - 100);
+        const availableHeight = Math.max(260, stage.clientHeight - 50);
+
+        fitScale = Math.min(
+          availableWidth / baseViewport.width,
+          availableHeight / baseViewport.height
+        );
+        fitScale = Math.max(0.5, Math.min(1.5, fitScale));
+      }
+
+      const scale = fitScale * zoom;
+      const viewport = page.getViewport({ scale });
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d", { alpha: false });
+
+      canvas.width = Math.ceil(viewport.width * dpr);
+      canvas.height = Math.ceil(viewport.height * dpr);
+      canvas.style.width = `${viewport.width}px`;
+      canvas.style.height = `${viewport.height}px`;
+      canvas.className = "viewer-page";
+
+      wrap.innerHTML = "";
+      wrap.appendChild(canvas);
+
+      await page.render({
+        canvasContext: context,
+        viewport: viewport,
+        transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null
+      }).promise;
+
+      if (token !== renderToken) return;
+
+      root.querySelector("#viewerPageValue").textContent = `${currentPage} / ${pageCount}`;
+      updateActiveThumbnail();
+      updateNavigation();
+      setLoading(false);
+    } catch (error) {
+      console.error("[Portfolio Viewer] Render error:", error);
+      showError("Page render failed", "This PDF page could not be rendered.");
+    }
+  }
+
+  function updateNavigation() {
+    const root = document.querySelector(".viewer-root");
+    if (!root) return;
+
+    const previous = root.querySelector("#viewerPrev");
+    const next = root.querySelector("#viewerNext");
+
+    if (currentMode === "pdf") {
+      previous.disabled = currentPage <= 1;
+      next.disabled = currentPage >= pageCount;
+    }
+
+    if (currentMode === "image") {
+      previous.disabled = imageIndex <= 0;
+      next.disabled = imageIndex >= activeImages.length - 1;
+    }
+  }
+
+  /* =========================================================
+     IMAGE VIEWER
+     ========================================================= */
+
+  function openImage(items, index = 0) {
+    const root = createViewer();
+    currentMode = "image";
+    activePdf = null;
+    activeImages = items;
+    imageIndex = Math.max(0, Math.min(index, items.length - 1));
+
+    root.querySelector("#viewerKicker").textContent = "IMAGE / VIEWER";
+    root.querySelector("#viewerNav").style.display = items.length > 1 ? "flex" : "none";
+    root.querySelector("#viewerThumbnails").innerHTML = "";
+
+    zoom = 1;
+    updateZoomDisplay();
+    resetPan();
+
+    root.querySelector("#viewerPageWrap").innerHTML = "";
+    setLoading(true, "Loading image");
+    setOpen(true);
+    renderImage();
+  }
+
+  function renderImage() {
+    const root = document.querySelector(".viewer-root");
+    const item = activeImages[imageIndex];
+    if (!item) return;
+
+    const image = new Image();
+    image.decoding = "async";
+
+    image.onload = () => {
+      const wrap = root.querySelector("#viewerPageWrap");
+      wrap.innerHTML = "";
+
+      image.className = "viewer-image";
+      image.alt = item.alt || "";
+      image.draggable = false;
+
+      const stage = root.querySelector("#viewerStage");
+      const maxWidth = Math.max(260, stage.clientWidth - 80);
+      const maxHeight = Math.max(260, stage.clientHeight - 50);
+
+      const fit = Math.min(
+        maxWidth / image.naturalWidth,
+        maxHeight / image.naturalHeight,
+        1
+      );
+
+      image.style.width = `${image.naturalWidth * fit * zoom}px`;
+      image.style.height = `${image.naturalHeight * fit * zoom}px`;
+
+      wrap.appendChild(image);
+
+      root.querySelector("#viewerTitle").textContent = item.title || "Image";
+      root.querySelector("#viewerCaption").textContent = item.caption || item.alt || "";
+      root.querySelector("#viewerPageValue").textContent = `${imageIndex + 1} / ${activeImages.length}`;
+
+      updateNavigation();
+      setLoading(false);
+    };
+
+    image.onerror = () => {
+      showError("Image could not be opened", "The image path is missing or unavailable.");
+    };
+
+    image.src = resolveUrl(item.src);
+  }
+
+  function navigate(direction) {
+    if (currentMode === "pdf") {
+      const nextPage = Math.max(1, Math.min(pageCount, currentPage + direction));
+      if (nextPage !== currentPage) {
+        currentPage = nextPage;
+        resetPan();
+        renderPdfPage();
+      }
+      return;
+    }
+
+    if (currentMode === "image" && activeImages.length > 1) {
+      const nextIndex = Math.max(0, Math.min(activeImages.length - 1, imageIndex + direction));
+      if (nextIndex !== imageIndex) {
+        imageIndex = nextIndex;
+        resetPan();
+        renderImage();
+      }
+    }
+  }
+
+  function closeViewer() {
+    renderToken++;
+    activePdf = null;
+    activeImages = [];
+    currentMode = null;
+
+    const root = document.querySelector(".viewer-root");
+    if (!root) return;
+
+    root.querySelector("#viewerPageWrap").innerHTML = "";
+    setOpen(false);
+  }
+
+  function bindTriggers() {
+    document.querySelectorAll("[data-view-pdf]").forEach(element => {
+      if (element.dataset.viewerBound === "true") return;
+      element.dataset.viewerBound = "true";
+
+      element.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        const url = element.getAttribute("data-view-pdf");
+        const title = element.getAttribute("data-view-title") || element.textContent.trim() || "PDF document";
+        openPdf(url, title);
+      });
+    });
+
+    const imageTriggers = [...document.querySelectorAll("[data-view-image]")];
+    const groups = new Map();
+
+    imageTriggers.forEach(element => {
+      const group = element.getAttribute("data-view-group") || `single-${Math.random()}`;
+      if (!groups.has(group)) groups.set(group, []);
+
+      groups.get(group).push({
+        src: element.getAttribute("data-view-image"),
+        title: element.getAttribute("data-view-title") || element.getAttribute("alt") || "Image",
+        caption: element.getAttribute("data-view-caption") || "",
+        alt: element.getAttribute("alt") || ""
+      });
+    });
+
+    imageTriggers.forEach(element => {
+      if (element.dataset.viewerBound === "true") return;
+      element.dataset.viewerBound = "true";
+      element.style.cursor = "zoom-in";
+
+      element.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        const group = element.getAttribute("data-view-group") || "";
+        const items = groups.get(group) || [];
+        const source = element.getAttribute("data-view-image");
+
+        let index = items.findIndex(item => item.src === source);
+        if (index < 0) index = 0;
+
+        openImage(items.length ? items : [{
+          src: source,
+          title: element.getAttribute("data-view-title") || "Image",
+          caption: element.getAttribute("data-view-caption") || "",
+          alt: element.getAttribute("alt") || ""
+        }], index);
+      });
+    });
+  }
+
+  /* =========================================================
+     KEYBOARD CONTROLS
+     ========================================================= */
+
+  document.addEventListener("keydown", event => {
+    const root = document.querySelector(".viewer-root");
+    if (!root?.classList.contains("is-open")) return;
+
+    if (event.key === "Escape") {
+      closeViewer();
+      return;
+    }
+
+    if (event.key === "ArrowLeft") {
+      navigate(-1);
+      return;
+    }
+
+    if (event.key === "ArrowRight") {
+      navigate(1);
+      return;
+    }
+
+    if (event.key === "+" || event.key === "=") {
+      event.preventDefault();
+      zoom = Math.min(2, zoom + 0.1);
+      updateZoomDisplay();
+      resetPan();
+      if (currentMode === "pdf") renderPdfPage();
+      else renderImage();
+      return;
+    }
+
+    if (event.key === "-") {
+      event.preventDefault();
+      zoom = Math.max(0.5, zoom - 0.1);
+      updateZoomDisplay();
+      resetPan();
+      if (currentMode === "pdf") renderPdfPage();
+      else renderImage();
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    const root = document.querySelector(".viewer-root");
+    if (!root?.classList.contains("is-open")) return;
+
+    if (currentMode === "pdf") renderPdfPage(true);
+    if (currentMode === "image") renderImage();
+  });
+
+  function initialize() {
+    createViewer();
+    bindTriggers();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initialize);
+  } else {
+    initialize();
+  }
+
+  window.PortfolioViewer = {
+    openPdf,
+    openImage,
+    close: closeViewer,
+    bind: bindTriggers
+  };
+})();
