@@ -30,9 +30,9 @@
 }
 
 .viewer-shell {
-  width: min(1280px, 100%);
+  width: min(1920px, 100%);
   height: min(92vh, 920px);
-  min-height: 520px;
+  min-height: 1080px;
 
   display: flex;
   flex-direction: column;
