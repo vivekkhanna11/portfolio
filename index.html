@@ -7,6 +7,7 @@
 <meta name="description" content="Urban planning, transportation, and community design work by Vivek Khanna, presented as an interactive application window.">
 <link rel="stylesheet" href="assets/css/style.css">
 <link rel="stylesheet" href="assets/css/viewer.css">
+
 <style>
   /* Full-screen application window shell */
   html, body { height:100%; overflow:hidden; }
@@ -403,6 +404,7 @@
 
 </div>
 
+<script src="assets/js/viewer.js"></script>
 <script src="assets/js/main.js"></script>
 <script>
 (function(){
@@ -601,7 +603,7 @@
       if (n.photo) {
         photoBlock =
           '<div class="flow-node-photo">' +
-            '<img src="assets/img/PROFILE.jpg" alt="Vivek Khanna" ' +
+            '<img src="assets/img/PROFILE.jpg" alt="Vivek Khanna" data-view-image="assets/img/PROFILE.jpg" data-view-title="Vivek Khanna" data-view-caption="Profile photograph" ' +
               'onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
             '<div class="ph-fallback" style="display:flex;">' +
               '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>' +
@@ -679,7 +681,7 @@
         '<div class="flow-panel-section-title">Deliverables</div>' +
         '<div class="plate-deliverables"><ul>' + p.deliverables.map(d => '<li>'+d+'</li>').join('') + '</ul></div>' +
         '<span class="flow-panel-course">' + p.course + '</span>' +
-        '<div class="flow-panel-actions"><a class="btn" href="' + p.pdf + '" target="_blank" rel="noopener">View full PDF</a></div>';
+        '<div class="flow-panel-actions"><button class="btn" type="button" data-view-pdf="' + p.pdf + '" data-view-title="' + node.title + '">View full PDF</button></div>';
     } else if (p.type === 'process') {
       panelBody.innerHTML =
         '<p class="flow-panel-scope">' + p.body + '</p>' +
@@ -721,7 +723,10 @@
         '<p style="font-size:13px; color:#525866;">' + p.location + '</p>' +
         '<div class="flow-panel-actions"><a class="btn" href="mailto:' + p.email + '">Email ' + p.email + '</a></div>';
     }
+    window.PortfolioViewer?.bind();
   }
+
+  
 
   panelBody.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-open-tab]');
@@ -964,6 +969,5 @@
   renderFallback();
 })();
 </script>
-<script src="assets/js/viewer.js"></script>
 </body>
 </html>
