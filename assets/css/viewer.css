@@ -32,7 +32,7 @@
 .viewer-shell {
   width: min(1920px, 100%);
   height: min(92vh, 920px);
-  min-height: 1080px;
+  min-height: 720px;
 
   display: flex;
   flex-direction: column;
