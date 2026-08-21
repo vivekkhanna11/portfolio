@@ -677,25 +677,26 @@
     updateWiresFor(node.id);
   }
 
-  /* ---- Rich Information Rendering in Detail Panel ---- */
-  function renderPanel(node){
-    const p = node.panel;
-    panelTag.textContent = node.tag;
-    panelTitle.textContent = node.title;
+/* ---- Rich Information Rendering in Detail Panel ---- */
+function renderPanel(node){
+  const p = node.panel;
+  panelTag.textContent = node.tag;
+  panelTitle.textContent = node.title;
 
-    if (p.type === 'project') {
-      panelBody.innerHTML =
-        '<span class="flow-panel-loc">' + p.location + '</span>' +
-        '<p class="flow-panel-scope">' + p.scope + '</p>' +
-        '<div class="flow-panel-section-title">Context &amp; Site Dynamics</div>' +
-        '<p style="font-size:13px; color:#525866; line-height:1.5;">' + p.context + '</p>' +
-        '<div class="flow-panel-section-title">Key Parameters</div>' +
-        '<div class="plate-meta">' + p.meta.map(m => '<div class="m"><span>'+m[0]+'</span><b>'+m[1]+'</b></div>').join('') + '</div>' +
-        '<div class="flow-panel-section-title">Deliverables</div>' +
-        '<div class="plate-deliverables"><ul>' + p.deliverables.map(d => '<li>'+d+'</li>').join('') + '</ul></div>' +
-        '<span class="flow-panel-course">' + p.course + '</span>' +
-        '<div class="flow-panel-actions"><button class="btn" type="button" data-view-pdf="' + p.pdf + '" data-view-title="' + node.title + '">View full PDF</button></div>';
-    } else if (p.type === 'process') {
+  if (p.type === 'project') {
+    panelBody.innerHTML =
+      '<span class="flow-panel-loc">' + p.location + '</span>' +
+      '<p class="flow-panel-scope">' + p.scope + '</p>' +
+      '<div class="flow-panel-section-title">Context &amp; Site Dynamics</div>' +
+      '<p style="font-size:13px; color:#525866; line-height:1.5;">' + p.context + '</p>' +
+      '<div class="flow-panel-section-title">Key Parameters</div>' +
+      '<div class="plate-meta">' + p.meta.map(m => '<div class="m"><span>'+m[0]+'</span><b>'+m[1]+'</b></div>').join('') + '</div>' +
+      '<div class="flow-panel-section-title">Deliverables</div>' +
+      '<div class="plate-deliverables"><ul>' + p.deliverables.map(d => '<li>'+d+'</li>').join('') + '</ul></div>' +
+      (p.course ? '<span class="flow-panel-course">' + p.course + '</span>' : '') +
+      '<div class="flow-panel-actions"><button class="btn" type="button" data-view-pdf="' + p.pdf + '" data-view-title="' + node.title + '">View full PDF</button></div>';
+  } 
+    else if (p.type === 'process') {
       panelBody.innerHTML =
         '<p class="flow-panel-scope">' + p.body + '</p>' +
         '<div class="flow-panel-section-title">Methodology</div>' +
