@@ -124,7 +124,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .brand-mark::after {
   content: "";
   position: absolute; 
-  inset: 5px;             /* Adjusted border inset gap from 4px to 5px */
+  inset: 2px;             /* Adjusted border inset gap from 4px to 5px */
   border: 1px solid var(--sage);
   pointer-events: none;
 }
