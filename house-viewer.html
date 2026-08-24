@@ -13,8 +13,8 @@
   }
   *{box-sizing:border-box;}
   html,body{margin:0;height:100%;background:var(--graphite);color:var(--offwhite);font-family:var(--mono);}
-  #app{display:grid;grid-template-columns:340px 1fr;grid-template-rows:1fr 180px 236px;height:100vh;width:100vw;}
-  #sidebar{grid-row:1/4;background:var(--graphite-2);border-right:1px solid var(--line-dark);overflow-y:auto;padding:14px;}
+  #app{display:grid;grid-template-columns:340px 1fr 1fr;grid-template-rows:1fr 180px;height:100vh;width:100vw;}
+  #sidebar{grid-row:1/3;background:var(--graphite-2);border-right:1px solid var(--line-dark);overflow-y:auto;padding:14px;}
   #sidebar h1{font-size:11.5px;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 12px 0;padding-bottom:8px;border-bottom:1px solid var(--line-dark);color:var(--sage-pale);font-weight:600;display:flex;justify-content:space-between;align-items:center;}
   .snapToggle{display:flex;align-items:center;gap:6px;font-size:9.5px;text-transform:none;letter-spacing:0;font-weight:400;color:var(--steel);}
   .snapToggle input{accent-color:var(--sage);}
@@ -77,7 +77,7 @@
   .prow input[type=range]{margin-top:2px;}
   .prow-full{margin-top:2px;}
 
-  #viewport{grid-column:2;grid-row:1;position:relative;background:radial-gradient(ellipse at center, #26272b 0%, #17181a 100%);}
+  #viewport{grid-column:2/4;grid-row:1;position:relative;background:radial-gradient(ellipse at center, #26272b 0%, #17181a 100%);}
   #viewport canvas{display:block;}
   #legend{position:absolute;top:132px;right:10px;background:rgba(34,35,39,0.92);border:1px solid var(--line-dark);padding:6px 10px;font-size:9.5px;color:var(--steel-light);border-radius:3px;}
   #legend div{display:flex;align-items:center;gap:6px;margin:2px 0;}
@@ -105,7 +105,7 @@
   ::-webkit-scrollbar{width:8px;}
   ::-webkit-scrollbar-thumb{background:var(--line-dark);}
 
-  #estimator{grid-column:2;grid-row:3;background:var(--graphite-2);color:var(--offwhite);border-top:1px solid var(--line-dark);padding:8px 14px 10px;overflow-y:auto;font-size:10px;}
+  #estimator{grid-column:3;grid-row:2;background:var(--graphite-2);color:var(--offwhite);border-top:1px solid var(--line-dark);border-left:1px solid var(--line-dark);padding:10px 14px;overflow-y:auto;font-size:10.5px;line-height:1.5;}
   #estimator h2{font-size:9.5px;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 2px 0;color:var(--sage-pale);font-weight:700;display:flex;justify-content:space-between;align-items:baseline;}
   #estimator .estNote{font-size:8.5px;color:var(--steel);opacity:0.85;margin-bottom:6px;line-height:1.4;}
   .estTable{width:100%;border-collapse:collapse;margin-top:2px;}
