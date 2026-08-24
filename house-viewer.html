@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HouseViewer.gh — Kitchen Layout</title>
+<style>
+  :root{
+    --graphite:#1b1c1f; --graphite-2:#222327; --graphite-3:#2b2c30; --line-dark:#35363b;
+    --offwhite:#f2f0ea; --steel:#8b93a1; --steel-light:#aab1bd;
+    --sage:#7c9473; --sage-pale:#cdd7c4; --dark-green:#1e5631;
+    --danger:#d9695f; --warn:#e0a458;
+    --mono:'JetBrains Mono','Courier New',Courier,monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:var(--graphite);color:var(--offwhite);font-family:var(--mono);}
+  #app{display:grid;grid-template-columns:340px 1fr;grid-template-rows:1fr 210px;height:100vh;width:100vw;}
+  #sidebar{grid-row:1/3;background:var(--graphite-2);border-right:1px solid var(--line-dark);overflow-y:auto;padding:14px;}
+  #sidebar h1{font-size:11.5px;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 12px 0;padding-bottom:8px;border-bottom:1px solid var(--line-dark);color:var(--sage-pale);font-weight:600;display:flex;justify-content:space-between;align-items:center;}
+  .snapToggle{display:flex;align-items:center;gap:6px;font-size:9.5px;text-transform:none;letter-spacing:0;font-weight:400;color:var(--steel);}
+  .snapToggle input{accent-color:var(--sage);}
+  .block{background:var(--graphite);border:1px solid var(--line-dark);border-radius:4px;padding:10px;margin-bottom:12px;}
+  .block h2{font-size:9.5px;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 8px 0;color:var(--steel);font-weight:600;display:flex;justify-content:space-between;}
+  .block h2 .count{color:var(--steel);opacity:0.6;font-weight:400;}
+  label{display:flex;justify-content:space-between;font-size:10.5px;margin-top:8px;margin-bottom:2px;color:var(--steel-light);}
+  label span.val{color:var(--sage-pale);font-weight:600;}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:var(--line-dark);outline:none;margin:8px 0 4px;cursor:pointer;}
+  input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--line-dark);}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:var(--sage);border:2px solid var(--graphite-2);box-shadow:0 1px 4px rgba(0,0,0,0.55);cursor:pointer;margin-top:-6px;transition:transform .1s,background .1s;}
+  input[type=range]::-webkit-slider-thumb:hover{background:var(--sage-pale);transform:scale(1.15);}
+  input[type=range]::-webkit-slider-thumb:active{transform:scale(1.3);}
+  input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:var(--line-dark);}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--sage);border:2px solid var(--graphite-2);box-shadow:0 1px 4px rgba(0,0,0,0.55);cursor:pointer;}
+  input[type=range]::-moz-range-thumb:hover{background:var(--sage-pale);}
+  input[type=range]:disabled{opacity:0.3;cursor:default;}
+  input[type=range]:disabled::-webkit-slider-thumb{background:var(--steel);cursor:default;}
+  select,input[type=text]{font-family:var(--mono);font-size:10.5px;padding:6px;width:100%;border:1px solid var(--line-dark);background:var(--graphite-3);color:var(--offwhite);border-radius:3px;}
+  input[type=text]::placeholder{color:var(--steel);opacity:0.6;}
+  .checkrow{display:flex;align-items:center;gap:6px;font-size:10.5px;margin-top:8px;color:var(--steel-light);}
+  .checkrow input{accent-color:var(--sage);}
+  .shapeHint{font-size:9px;color:var(--steel);opacity:0.85;margin-top:6px;line-height:1.5;}
+  .note{font-size:9px;color:var(--steel);opacity:0.8;line-height:1.5;margin-top:4px;}
+
+  .dropdown{position:relative;}
+  .dropdown-btn{width:100%;text-align:left;font-family:var(--mono);font-size:11px;padding:8px 10px;background:var(--sage);color:#12160f;border:none;border-radius:3px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;}
+  .dropdown-btn:hover{background:var(--sage-pale);}
+  .dropdown-btn.solve{background:#3b5fe0;color:#eef2ff;}
+  .dropdown-btn.solve:hover{background:#5b7bf0;}
+  .dropdown-btn.rand{background:#c9862f;color:#241a09;}
+  .dropdown-btn.rand:hover{background:#e0a458;}
+  .dropdown-btn:disabled{opacity:0.5;cursor:default;}
+  .dropdown-menu{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--graphite-3);border:1px solid var(--line-dark);border-radius:3px;box-shadow:0 16px 34px rgba(0,0,0,0.5);z-index:20;overflow:hidden;display:none;}
+  .dropdown-menu.open{display:block;}
+  .dropdown-item{display:flex;align-items:center;gap:8px;padding:8px 10px;font-size:11px;cursor:pointer;border-bottom:1px solid var(--graphite);color:var(--offwhite);}
+  .dropdown-item:last-child{border-bottom:none;}
+  .dropdown-item:hover{background:var(--graphite);}
+  .dropdown-item .sw{width:10px;height:10px;flex:none;border:1px solid rgba(255,255,255,0.2);border-radius:2px;}
+
+  .item{border:1px solid var(--line-dark);border-left:4px solid var(--sage);border-radius:3px;margin-bottom:8px;background:var(--graphite);transition:box-shadow .15s,background .15s;}
+  .item.selected{background:#20241d;box-shadow:0 0 0 1px var(--sage-pale) inset;}
+  .item .row{display:flex;justify-content:space-between;align-items:center;padding:8px;cursor:pointer;}
+  .item .row .titles{display:flex;flex-direction:column;}
+  .item .row strong{font-size:11px;color:var(--offwhite);font-weight:600;}
+  .item .row .fam{font-size:8.5px;color:var(--steel);margin-top:1px;}
+  .item .chev{font-size:9px;color:var(--steel);transition:transform .15s;display:inline-block;margin-right:5px;}
+  .item.collapsed .chev{transform:rotate(-90deg);}
+  .item .remove{background:none;border:none;color:var(--danger);cursor:pointer;font-family:var(--mono);font-size:14px;font-weight:bold;padding:0 4px;}
+  .item-body{padding:2px 9px 9px 9px;}
+  .item.collapsed .item-body{display:none;}
+  .empty-state{font-size:10.5px;color:var(--steel);text-align:center;padding:14px 6px;border:1px dashed var(--line-dark);border-radius:3px;}
+
+  .pgroup{margin-top:8px;}
+  .pgroup .cap{font-size:8px;text-transform:uppercase;letter-spacing:0.12em;color:var(--steel);border-bottom:1px solid var(--line-dark);padding-bottom:4px;margin-bottom:6px;display:flex;align-items:center;gap:4px;}
+  .pgroup .cap .ic{opacity:0.7;}
+  .prow{display:flex;justify-content:space-between;align-items:center;margin-top:5px;}
+  .prow .plabel{font-size:10px;color:var(--steel-light);}
+  .prow .pval{font-size:9.5px;color:var(--sage-pale);background:var(--graphite-3);border:1px solid var(--line-dark);border-radius:2px;padding:1px 6px;min-width:40px;text-align:right;}
+  .prow input[type=range]{margin-top:2px;}
+  .prow-full{margin-top:2px;}
+
+  #viewport{grid-column:2;grid-row:1;position:relative;background:radial-gradient(ellipse at center, #26272b 0%, #17181a 100%);}
+  #viewport canvas{display:block;}
+  #legend{position:absolute;top:132px;right:10px;background:rgba(34,35,39,0.92);border:1px solid var(--line-dark);padding:6px 10px;font-size:9.5px;color:var(--steel-light);border-radius:3px;}
+  #legend div{display:flex;align-items:center;gap:6px;margin:2px 0;}
+  #legend .sw{width:9px;height:9px;display:inline-block;border:1px solid rgba(255,255,255,0.2);border-radius:2px;}
+
+  #viewCubeWrap{position:absolute;top:10px;right:10px;background:rgba(34,35,39,0.94);border:1px solid var(--line-dark);border-radius:4px;padding:6px;}
+  #viewCubeWrap .cap{text-align:center;font-size:7.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--steel);margin-bottom:5px;}
+  #viewCube{display:grid;grid-template-columns:repeat(3,30px);grid-template-rows:repeat(3,26px);gap:2px;}
+  #viewCube button{background:var(--graphite-3);border:1px solid var(--line-dark);color:var(--steel-light);font-family:var(--mono);font-size:8px;letter-spacing:0.02em;border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
+  #viewCube button:hover{background:var(--sage);color:#12160f;border-color:var(--sage);}
+  #viewCube button.home{background:var(--sage);color:#12160f;font-weight:700;}
+  #viewCube button.home:hover{background:var(--sage-pale);}
+  #score-badge{position:absolute;top:10px;left:10px;background:var(--graphite-2);border:1px solid var(--line-dark);color:var(--offwhite);padding:8px 14px;font-size:19px;font-weight:700;min-width:130px;border-radius:3px;}
+  #score-badge span.lbl{font-size:9.5px;font-weight:400;color:var(--steel);display:block;letter-spacing:0.06em;text-transform:uppercase;}
+  #score-badge span.quality{font-size:9.5px;font-weight:600;display:block;margin-top:2px;letter-spacing:0.04em;}
+  #hint-bar{position:absolute;bottom:10px;left:10px;background:rgba(34,35,39,0.92);border:1px solid var(--line-dark);padding:5px 10px;font-size:9px;color:var(--steel);border-radius:3px;}
+  #console{grid-column:2;grid-row:2;background:var(--graphite-2);color:var(--sage-pale);border-top:1px solid var(--line-dark);padding:10px 14px;overflow-y:auto;font-size:10.5px;line-height:1.5;}
+  #console .hdr{font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-top:6px;font-size:9.5px;color:var(--steel);}
+  #console .hdr:first-child{margin-top:0;}
+  #console .ev{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line-dark);padding:2px 0;}
+  #console .ev .nm{white-space:nowrap;color:var(--offwhite);}
+  #console .ev .dt{color:var(--steel);font-size:9.5px;text-align:right;}
+  .pen-0{color:var(--sage-pale);font-weight:700;}
+  .pen{color:var(--danger);font-weight:700;}
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--line-dark);}
+
+  #solverOverlay{position:absolute;inset:0;z-index:40;display:none;background:rgba(20,21,24,0.86);align-items:center;justify-content:center;flex-direction:column;gap:14px;}
+  #solverOverlay.show{display:flex;}
+  .solver-title{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--sage-pale);font-weight:700;}
+  .solver-flow{display:flex;align-items:stretch;gap:0;}
+  .solver-box{width:150px;min-height:96px;background:var(--graphite-2);border:1px solid var(--line-dark);border-radius:5px;padding:10px;display:flex;flex-direction:column;justify-content:space-between;}
+  .solver-box .tag{font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--sage);}
+  .solver-box .name{font-family:var(--mono);font-weight:700;font-size:12px;color:var(--offwhite);margin-top:4px;}
+  .solver-box .sub{font-size:9.5px;color:var(--steel-light);margin-top:8px;line-height:1.4;}
+  .solver-arrow{display:flex;align-items:center;justify-content:center;width:26px;color:var(--steel);font-size:14px;}
+  #solverProgress{width:590px;height:4px;background:var(--graphite-3);border-radius:2px;overflow:hidden;}
+  #solverProgress > div{height:100%;background:var(--sage);width:0%;transition:width .1s linear;}
+  #solverStop{background:var(--graphite-3);color:var(--steel-light);border:1px solid var(--line-dark);padding:7px 16px;border-radius:3px;font-family:var(--mono);font-size:10.5px;cursor:pointer;}
+  #solverStop:hover{border-color:var(--sage);color:var(--offwhite);}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="sidebar">
+    <h1>HouseViewer.gh
+      <label class="snapToggle"><input type="checkbox" id="snapChk" checked> snap</label>
+    </h1>
+
+    <div class="block">
+      <h2>Kitchen shape</h2>
+      <select id="shapeSel">
+        <option value="oneWall">One-wall</option>
+        <option value="galley">Galley (two-wall)</option>
+        <option value="lshape">L-shape</option>
+        <option value="ushape">U-shape</option>
+        <option value="island">L/U-shape with island</option>
+        <option value="studio">Studio (open-plan)</option>
+      </select>
+      <div class="shapeHint" id="shapeHint"></div>
+    </div>
+
+    <div class="block">
+      <h2>Room dimensions</h2>
+      <label>Width (ft) <span class="val" id="wVal">13</span></label>
+      <input type="range" id="roomW" min="8" max="20" step="0.5" value="13">
+      <label>Depth (ft) <span class="val" id="dVal">11</span></label>
+      <input type="range" id="roomD" min="8" max="20" step="0.5" value="11">
+      <label>Wall height (ft) <span class="val" id="hVal">9</span></label>
+      <input type="range" id="roomH" min="8" max="12" step="0.5" value="9">
+      <label>Wall thickness (in) <span class="val" id="tVal">5</span></label>
+      <input type="range" id="wallT" min="2" max="10" step="0.5" value="5">
+    </div>
+
+    <div class="block">
+      <h2>Upper cabinets</h2>
+      <div class="checkrow"><input type="checkbox" id="upperChk" checked> Show upper cabinets</div>
+      <label>Mounting height (ft) <span class="val" id="umVal">4.6</span></label>
+      <input type="range" id="upperMount" min="3.5" max="6.5" step="0.1" value="4.6">
+      <label>Depth (in) <span class="val" id="udVal">12</span></label>
+      <input type="range" id="upperDepth" min="8" max="18" step="1" value="12">
+    </div>
+
+    <div class="block">
+      <h2>Generative solver</h2>
+      <button class="dropdown-btn solve" id="solveBtn">&#9654; Refine current layout</button>
+      <button class="dropdown-btn rand" id="randomBtn" style="margin-top:8px;">&#127922; Randomize to 100/100</button>
+      <div class="note">Refine mutates from where you are now. Randomize scrambles everything and re-searches (with restarts) until it finds a perfect score, like Galapagos/Refinery.</div>
+    </div>
+
+    <div class="block">
+      <h2>Add furniture</h2>
+      <div class="dropdown" id="addDropdown">
+        <button class="dropdown-btn" id="dropdownBtn">+ Add furniture <span>&#9662;</span></button>
+        <div class="dropdown-menu" id="dropdownMenu"></div>
+      </div>
+      <button class="dropdown-btn" id="resetBtn" style="margin-top:8px;background:var(--graphite-3);color:var(--steel-light);">&#8635; Reset to example layout</button>
+    </div>
+
+    <div class="block">
+      <h2>Placed items <span class="count" id="itemCount">0</span></h2>
+      <div id="itemsList"></div>
+    </div>
+  </div>
+
+  <div id="viewport">
+    <div id="score-badge"><span class="lbl">Design score</span><span id="scoreNum">--/100</span><span class="quality" id="scoreQuality"></span></div>
+
+    <div id="viewCubeWrap">
+      <div class="cap">View</div>
+      <div id="viewCube">
+        <button data-view="iso-nw" title="Back-left iso">&#8598;</button>
+        <button data-view="top" title="Top">TOP</button>
+        <button data-view="iso-ne" title="Back-right iso">&#8599;</button>
+        <button data-view="left" title="Left">L</button>
+        <button data-view="home" class="home" title="Home isometric">ISO</button>
+        <button data-view="right" title="Right">R</button>
+        <button data-view="iso-sw" title="Front-left iso">&#8601;</button>
+        <button data-view="front" title="Front">FRONT</button>
+        <button data-view="iso-se" title="Front-right iso">&#8600;</button>
+      </div>
+    </div>
+
+    <div id="legend"></div>
+    <div id="hint-bar">click item: pick up / place &nbsp;·&nbsp; drag item: move + snap &nbsp;·&nbsp; drag background: rotate &nbsp;·&nbsp; scroll: zoom</div>
+
+    <div id="solverOverlay">
+      <div class="solver-title">Loop Until Solution Found</div>
+      <div class="solver-flow">
+        <div class="solver-box">
+          <div><div class="tag">Problem</div><div class="name" id="sbProblem">Kitchen</div></div>
+          <div class="sub" id="sbProblemSub">0 units</div>
+        </div>
+        <div class="solver-arrow">&#8594;</div>
+        <div class="solver-box">
+          <div><div class="tag">Environment</div><div class="name">Layout</div></div>
+          <div class="sub" id="sbEnv">iteration 0</div>
+        </div>
+        <div class="solver-arrow">&#8594;</div>
+        <div class="solver-box">
+          <div><div class="tag">Evaluations</div><div class="name" id="sbEvalScore">0/100</div></div>
+          <div class="sub" id="sbEvalSub">scoring current try</div>
+        </div>
+        <div class="solver-arrow">&#8594;</div>
+        <div class="solver-box">
+          <div><div class="tag">Solution</div><div class="name" id="sbSolScore">0/100</div></div>
+          <div class="sub" id="sbSolSub">best so far</div>
+        </div>
+      </div>
+      <div id="solverProgress"><div id="solverProgressBar"></div></div>
+      <button id="solverStop">Stop &amp; keep best</button>
+    </div>
+  </div>
+
+  <div id="console"></div>
+</div>
+
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+/* ---------------- config ----------------
+   COLORS below are TYPE parameters (like a Revit family's Type Parameters — the
+   defaults a family ships with). Each placed item is an INSTANCE that carries
+   its own width/depth/height/material/etc and can override the type default,
+   the same relationship a placed Revit family instance has to its type. */
+const COLORS = {
+  Fridge:        {hex:0x7ed321, w:2.5, d:2.5, h:6.0},
+  Oven_Microwave:{hex:0xf0932b, w:2.5, d:2.0, h:6.0},
+  Pantry:        {hex:0x1e5631, w:2.0, d:2.0, h:7.0},
+  Sink:          {hex:0x3b5fe0, w:2.5, d:2.0, h:3.0},
+  Dishwasher:    {hex:0x4fd1e8, w:2.0, d:2.0, h:3.0},
+  Stove:         {hex:0xd9453a, w:2.5, d:2.0, h:3.0},
+  Table:         {hex:0xf5d547, w:2.0, d:2.0, h:3.0}
+};
+const DISPLAY_NAMES = {
+  Fridge:'Fridge', Oven_Microwave:'Oven / Microwave', Pantry:'Pantry',
+  Sink:'Sink', Dishwasher:'Dishwasher', Stove:'Stove', Table:'Modular Cabinet'
+};
+function displayName(type){ return DISPLAY_NAMES[type] || type; }
+
+const MATERIALS = ['Laminate','Wood Veneer','Painted Wood','Stainless Steel','Quartz Composite'];
+const MATERIAL_FACTORS = {'Laminate':1.0,'Wood Veneer':0.8,'Painted Wood':1.05,'Stainless Steel':1.3,'Quartz Composite':0.92};
+function tintedColor(hex, material){
+  const f = MATERIAL_FACTORS[material] !== undefined ? MATERIAL_FACTORS[material] : 1.0;
+  const c = new THREE.Color(hex);
+  c.r = Math.min(1,c.r*f); c.g = Math.min(1,c.g*f); c.b = Math.min(1,c.b*f);
+  return c.getHex();
+}
+
+const STANDARD_DEPTH = 2.0; // NKBA standard base-counter depth (24in) — kept uniform across units
+const EDGE_NAMES = ["Back wall","Right wall","Front wall","Left wall"];
+const GRID = 0.5;
+const SNAP_THRESHOLD = 0.35;
+const COL_EPS = 0.03;
+const COUNTER_COLOR = 0xd7dadd;
+const CABINET_TRIM  = 0x15161a;
+const CABINET_UPPER = 0xe7ded0;
+
+const SHAPES = {
+  oneWall: {label:'One-wall',           edges:[0],       island:false, hint:'A single run of cabinets along one wall — compact, works in tight spaces.'},
+  galley:  {label:'Galley',             edges:[0,2],     island:false, hint:'Two parallel walls facing each other, walkway in between.'},
+  lshape:  {label:'L-shape',            edges:[0,1],     island:false, hint:'Two adjacent walls meeting at a corner.'},
+  ushape:  {label:'U-shape',            edges:[0,1,3],   island:false, hint:'Three walls wrap the cook — max counter space, no island.'},
+  island:  {label:'L/U + Island',       edges:[0,1,3],   island:true,  hint:'U-shape base plus a freestanding island you can drag anywhere on the floor.'},
+  studio:  {label:'Studio (open-plan)', edges:[0],       island:false, hint:'One-wall kitchen open to the rest of the room.'}
+};
+
+let room = {w:13, d:11, h:9, thickness:5/12};
+let upperCabinets = {show:true, mountHeight:4.6, depth:1.0};
+let items = [];
+let idCounter = 1;
+let selectedId = null;
+let expandedId = null;
+let snapEnabled = true;
+let currentShapeKey = 'island';
+let solving = false;
+
+function activeEdges(){ return SHAPES[currentShapeKey].edges; }
+function shapeSupportsIsland(){ return SHAPES[currentShapeKey].island; }
+
+/* ---------------- geometry helpers ---------------- */
+function wallLength(edge){ return (edge===0||edge===2) ? room.w : room.d; }
+
+function edgeToWorld(edge, offset, w, d){
+  const halfW = room.w/2, halfD = room.d/2;
+  let x,z,rot;
+  if(edge===0){ x = -halfW + offset + w/2; z = -halfD + d/2; rot = 0; }
+  else if(edge===1){ x = halfW - d/2; z = -halfD + offset + w/2; rot = Math.PI/2; }
+  else if(edge===2){ x = -halfW + offset + w/2; z = halfD - d/2; rot = 0; }
+  else { x = -halfW + d/2; z = -halfD + offset + w/2; rot = Math.PI/2; }
+  return {x,z,rot};
+}
+function wallAxisInfo(edge){
+  const halfW = room.w/2, halfD = room.d/2;
+  if(edge===0 || edge===2) return {axis:'x', origin:-halfW};
+  return {axis:'z', origin:-halfD};
+}
+
+/* ---------------- collision system (AABB in world XZ, uses per-instance depth) ---------------- */
+function computeAABBFor(width, depth, isIsland, edge, offset, ix, iz){
+  let x,z;
+  if(isIsland){ x=ix; z=iz; }
+  else { const r = edgeToWorld(edge, offset, width, depth); x=r.x; z=r.z; }
+  if(isIsland || edge===0 || edge===2){
+    return {minX:x-width/2,maxX:x+width/2,minZ:z-depth/2,maxZ:z+depth/2};
+  } else {
+    return {minX:x-depth/2,maxX:x+depth/2,minZ:z-width/2,maxZ:z+width/2};
+  }
+}
+function aabbOverlap(a,b){
+  return (a.minX < b.maxX-COL_EPS) && (a.maxX > b.minX+COL_EPS) && (a.minZ < b.maxZ-COL_EPS) && (a.maxZ > b.minZ+COL_EPS);
+}
+function itemCurrentAABB(it){
+  return computeAABBFor(it.width, it.depth, it.isIsland, it.edge, it.offset, it.ix, it.iz);
+}
+function proposalCollides(it, proposal){
+  const width = proposal.width!==undefined ? proposal.width : it.width;
+  const depth = proposal.depth!==undefined ? proposal.depth : it.depth;
+  const isIsland = proposal.isIsland!==undefined ? proposal.isIsland : it.isIsland;
+  const edge = proposal.edge!==undefined ? proposal.edge : it.edge;
+  const offset = proposal.offset!==undefined ? proposal.offset : it.offset;
+  const ix = proposal.ix!==undefined ? proposal.ix : it.ix;
+  const iz = proposal.iz!==undefined ? proposal.iz : it.iz;
+  const aabb = computeAABBFor(width, depth, isIsland, edge, offset, ix, iz);
+  return items.some(o => o!==it && aabbOverlap(aabb, itemCurrentAABB(o)));
+}
+
+function snapOffsetCandidate(item, raw){
+  const wl = wallLength(item.edge);
+  const maxOff = Math.max(0, wl - item.width);
+  let candidates = [0, maxOff];
+  if(snapEnabled){
+    candidates.push(Math.round(raw/GRID)*GRID);
+    items.forEach(other=>{
+      if(other===item || other.isIsland || other.edge!==item.edge) return;
+      candidates.push(other.offset);
+      candidates.push(other.offset + other.width);
+      candidates.push(other.offset - item.width);
+      candidates.push(other.offset + other.width - item.width);
+    });
+  }
+  let best = raw, bestDiff = snapEnabled ? SNAP_THRESHOLD : 0;
+  candidates.forEach(c=>{
+    const cc = Math.min(Math.max(c,0), maxOff);
+    const diff = Math.abs(cc - raw);
+    if(diff < bestDiff){ bestDiff = diff; best = cc; }
+  });
+  return Math.min(Math.max(best,0), maxOff);
+}
+function findNearestFreeOffset(item, raw){
+  const wl = wallLength(item.edge);
+  const maxOff = Math.max(0, wl - item.width);
+  const candidate = Math.min(Math.max(raw,0), maxOff);
+  if(!proposalCollides(item, {isIsland:false, edge:item.edge, offset:candidate})) return candidate;
+  const step = 0.05;
+  for(let d=step; d<=maxOff+step; d+=step){
+    const a = candidate-d, b = candidate+d;
+    if(a>=0 && !proposalCollides(item,{isIsland:false,edge:item.edge,offset:a})) return a;
+    if(b<=maxOff && !proposalCollides(item,{isIsland:false,edge:item.edge,offset:b})) return b;
+  }
+  return item.offset;
+}
+function safeWallOffset(item, raw){
+  return findNearestFreeOffset(item, snapOffsetCandidate(item, raw));
+}
+
+function snapIslandCandidate(item, rx, rz){
+  let candX = [0], candZ = [0];
+  if(snapEnabled){
+    candX.push(Math.round(rx/GRID)*GRID);
+    candZ.push(Math.round(rz/GRID)*GRID);
+    items.forEach(o=>{
+      if(o===item || !o.isIsland) return;
+      candX.push(o.ix, o.ix+(o.width/2+item.width/2), o.ix-(o.width/2+item.width/2));
+      candZ.push(o.iz, o.iz+(o.depth/2+item.depth/2), o.iz-(o.depth/2+item.depth/2));
+    });
+  }
+  function pick(raw, cands){
+    let best=raw, bestDiff = snapEnabled ? SNAP_THRESHOLD : 0;
+    cands.forEach(c=>{ const diff=Math.abs(c-raw); if(diff<bestDiff){bestDiff=diff;best=c;} });
+    return best;
+  }
+  return {x:pick(rx,candX), z:pick(rz,candZ)};
+}
+function findNearestFreeIslandPos(item, rx, rz){
+  const b = islandBounds(item);
+  const clampX = v=>Math.min(Math.max(v,-b.maxX),b.maxX);
+  const clampZ = v=>Math.min(Math.max(v,-b.maxZ),b.maxZ);
+  let cx = clampX(rx), cz = clampZ(rz);
+  if(!proposalCollides(item,{isIsland:true,ix:cx,iz:cz})) return {x:cx,z:cz};
+  const step=0.1, maxR=Math.max(b.maxX,b.maxZ)+step;
+  for(let r=step; r<=maxR; r+=step){
+    const dirs=[[r,0],[-r,0],[0,r],[0,-r],[r,r],[r,-r],[-r,r],[-r,-r]];
+    for(const [dx,dz] of dirs){
+      const tx=clampX(rx+dx), tz=clampZ(rz+dz);
+      if(!proposalCollides(item,{isIsland:true,ix:tx,iz:tz})) return {x:tx,z:tz};
+    }
+  }
+  return {x:item.ix, z:item.iz};
+}
+function safeIslandPos(item, rx, rz){
+  const s = snapIslandCandidate(item, rx, rz);
+  const b = islandBounds(item);
+  const cx = Math.min(Math.max(s.x,-b.maxX),b.maxX), cz = Math.min(Math.max(s.z,-b.maxZ),b.maxZ);
+  return findNearestFreeIslandPos(item, cx, cz);
+}
+function maxNonCollidingWidth(item, requested){
+  if(requested<=item.width) return requested;
+  for(let w=requested; w>item.width+0.001; w-=0.05){
+    const proposal = item.isIsland ? {width:w,isIsland:true,ix:item.ix,iz:item.iz} : {width:w,isIsland:false,edge:item.edge,offset:item.offset};
+    if(!proposalCollides(item, proposal)) return w;
+  }
+  return item.width;
+}
+function maxNonCollidingDepth(item, requested){
+  if(requested<=item.depth) return requested;
+  for(let d=requested; d>item.depth+0.001; d-=0.05){
+    const proposal = item.isIsland ? {depth:d,isIsland:true,ix:item.ix,iz:item.iz} : {depth:d,isIsland:false,edge:item.edge,offset:item.offset};
+    if(!proposalCollides(item, proposal)) return d;
+  }
+  return item.depth;
+}
+
+function islandBounds(item){
+  const halfW = room.w/2, halfD = room.d/2;
+  const clearance = room.thickness + 1.0;
+  return {
+    maxX: Math.max(0, halfW - item.width/2 - clearance),
+    maxZ: Math.max(0, halfD - item.depth/2 - clearance)
+  };
+}
+
+function resolveAllCollisions(){
+  for(let pass=0; pass<2; pass++){
+    items.forEach(it=>{
+      if(it.isIsland){
+        const b = islandBounds(it);
+        const cx = Math.min(Math.max(it.ix,-b.maxX),b.maxX), cz = Math.min(Math.max(it.iz,-b.maxZ),b.maxZ);
+        const pos = findNearestFreeIslandPos(it, cx, cz);
+        it.ix = pos.x; it.iz = pos.z;
+      } else {
+        const maxOff = Math.max(0, wallLength(it.edge)-it.width);
+        it.offset = findNearestFreeOffset(it, Math.min(Math.max(it.offset,0),maxOff));
+      }
+    });
+  }
+}
+
+/* ---------------- three.js setup ---------------- */
+const viewport = document.getElementById('viewport');
+const scene = new THREE.Scene();
+const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+viewport.appendChild(renderer.domElement);
+
+let camera, controls;
+function makeCamera(){
+  const w = viewport.clientWidth, h = viewport.clientHeight;
+  const aspect = w/h;
+  const d = 14;
+  camera = new THREE.OrthographicCamera(-d*aspect, d*aspect, d, -d, 0.1, 200);
+  camera.position.set(21.21,24.49,21.21);
+  camera.lookAt(0,0,0);
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enablePan = false;
+  controls.minZoom = 0.5;
+  controls.maxZoom = 3;
+  controls.target.set(0,2,0);
+  controls.update();
+}
+makeCamera();
+
+/* ---------------- view box (Revit ViewCube-style presets) ---------------- */
+function setView(name){
+  const R = 30;
+  const presets = {
+    home:   [21.21, 24.49, 21.21],
+    top:    [0, R, 0.01],
+    front:  [0, 2, R],
+    left:   [-R, 2, 0],
+    right:  [R, 2, 0],
+    'iso-nw':[-R*0.7, R*0.6, -R*0.7],
+    'iso-ne':[ R*0.7, R*0.6, -R*0.7],
+    'iso-sw':[-R*0.7, R*0.6,  R*0.7],
+    'iso-se':[ R*0.7, R*0.6,  R*0.7]
+  };
+  const p = presets[name] || presets.home;
+  camera.position.set(p[0], p[1], p[2]);
+  controls.target.set(0, 2, 0);
+  camera.lookAt(controls.target);
+  controls.update();
+}
+document.querySelectorAll('#viewCube button').forEach(btn=>{
+  btn.addEventListener('click', ()=> setView(btn.dataset.view));
+});
+
+scene.add(new THREE.HemisphereLight(0xaeb6c4, 0x2a2b2f, 0.9));
+const dir = new THREE.DirectionalLight(0xd9ddc9, 0.75);
+dir.position.set(13,20,11);
+dir.castShadow = true;
+dir.shadow.mapSize.set(1024,1024);
+dir.shadow.camera.left=-18; dir.shadow.camera.right=18; dir.shadow.camera.top=18; dir.shadow.camera.bottom=-18;
+scene.add(dir);
+scene.add(new THREE.AmbientLight(0x7c9473, 0.12));
+
+const roomGroup = new THREE.Group();
+const gridGroup = new THREE.Group();
+const furnGroup = new THREE.Group();
+scene.add(roomGroup, gridGroup, furnGroup);
+
+function resize(){
+  const w = viewport.clientWidth, h = viewport.clientHeight;
+  renderer.setSize(w,h);
+  renderer.setPixelRatio(window.devicePixelRatio||1);
+  const aspect = w/h;
+  const d = Math.max(room.w, room.d) * 0.85;
+  camera.left = -d*aspect; camera.right = d*aspect;
+  camera.top = d; camera.bottom = -d;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+
+function boxMesh(w,h,d,color,rough){
+  const m = new THREE.Mesh(new THREE.BoxGeometry(Math.max(w,0.02),Math.max(h,0.02),Math.max(d,0.02)), new THREE.MeshStandardMaterial({color, roughness: rough===undefined?0.75:rough}));
+  m.castShadow = true; m.receiveShadow = true;
+  return m;
+}
+
+function rebuildRoom(){
+  roomGroup.clear();
+  gridGroup.clear();
+  const w = room.w, d = room.d, h = room.h, t = room.thickness;
+  const halfW = w/2, halfD = d/2;
+
+  const outline = new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.BoxGeometry(w,h,d)),
+    new THREE.LineBasicMaterial({color:0x3c3d42, transparent:true, opacity:0.6})
+  );
+  outline.position.y = h/2;
+  roomGroup.add(outline);
+
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(w,d), new THREE.MeshStandardMaterial({color:0x232427, roughness:0.95}));
+  floor.rotation.x = -Math.PI/2;
+  floor.receiveShadow = true;
+  roomGroup.add(floor);
+
+  const wallMat = new THREE.MeshStandardMaterial({color:0x2b2c30, roughness:0.9});
+  const active = activeEdges();
+  function addWallBox(edge){
+    let geo, x,z;
+    if(edge===0){ geo = new THREE.BoxGeometry(w+t, h, t); x=0; z=-halfD-t/2; }
+    else if(edge===2){ geo = new THREE.BoxGeometry(w+t, h, t); x=0; z=halfD+t/2; }
+    else if(edge===1){ geo = new THREE.BoxGeometry(t, h, d+t); x=halfW+t/2; z=0; }
+    else { geo = new THREE.BoxGeometry(t, h, d+t); x=-halfW-t/2; z=0; }
+    const mesh = new THREE.Mesh(geo, wallMat);
+    mesh.position.set(x, h/2, z);
+    mesh.receiveShadow = true; mesh.castShadow = true;
+    roomGroup.add(mesh);
+    const baseTrim = boxMesh((edge===0||edge===2)?w+t:0.12, 0.15, (edge===1||edge===3)?d+t:0.12, 0x7c9473, 0.6);
+    baseTrim.position.set(x, 0.08, z);
+    roomGroup.add(baseTrim);
+  }
+  active.forEach(addWallBox);
+
+  if(upperCabinets.show){
+    active.forEach(edge=>{
+      const wl = wallLength(edge);
+      const tall = items.filter(i=>!i.isIsland && i.edge===edge && i.height>=5)
+        .map(i=>[i.offset, i.offset+i.width]).sort((a,b)=>a[0]-b[0]);
+      const merged = [];
+      tall.forEach(iv=>{
+        if(merged.length && iv[0] <= merged[merged.length-1][1]+0.05) merged[merged.length-1][1] = Math.max(merged[merged.length-1][1], iv[1]);
+        else merged.push([iv[0], iv[1]]);
+      });
+      let cursor = 0; const gaps=[];
+      merged.forEach(iv=>{ if(iv[0]-cursor>0.4) gaps.push([cursor, iv[0]]); cursor = Math.max(cursor, iv[1]); });
+      if(wl-cursor>0.4) gaps.push([cursor, wl]);
+      const upperH = Math.max(0.3, room.h - 0.6 - upperCabinets.mountHeight);
+      gaps.forEach(([gs,ge])=>{
+        const gw = ge-gs, depth=upperCabinets.depth;
+        const {x,z,rot} = edgeToWorld(edge, gs, gw, depth);
+        const mesh = boxMesh(gw-0.06, upperH, depth-0.06, CABINET_UPPER, 0.85);
+        mesh.position.set(x, upperCabinets.mountHeight+upperH/2, z);
+        mesh.rotation.y = rot;
+        roomGroup.add(mesh);
+      });
+    });
+  }
+
+  const size = Math.max(w,d);
+  const divisions = Math.round(size/GRID);
+  const grid = new THREE.GridHelper(size, divisions, 0x35363b, 0x2b2c30);
+  grid.position.y = 0.01;
+  gridGroup.add(grid);
+}
+
+/* ---------------- per-type furniture builders (type-specific instance params applied) ---------------- */
+function buildUnit(it, color){
+  const type=it.type, w=it.width, h=it.height, depth=it.depth;
+  const g = new THREE.Group();
+  if(type==='Sink'){
+    const cabH = Math.max(0.4, h-0.15);
+    const cab = boxMesh(w-0.06, cabH, depth-0.06, color); cab.position.set(0,cabH/2,0); g.add(cab);
+    const top = boxMesh(w, 0.12, depth, COUNTER_COLOR); top.position.set(0, cabH+0.06, 0); g.add(top);
+    if((it.basinConfig||'Single Basin')==='Double Basin'){
+      [-1,1].forEach(s=>{
+        const basin = boxMesh(w*0.26, 0.09, depth*0.5, CABINET_TRIM, 0.4); basin.position.set(s*w*0.16, cabH+0.13, -0.05); g.add(basin);
+      });
+    } else {
+      const basin = boxMesh(w*0.55, 0.09, depth*0.5, CABINET_TRIM, 0.4); basin.position.set(0, cabH+0.13, -0.05); g.add(basin);
+    }
+    const faucet = new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.5,8), new THREE.MeshStandardMaterial({color:0xaab1bd, roughness:0.3, metalness:0.4}));
+    faucet.position.set(0, cabH+0.18+0.25, -depth/2+0.15); faucet.castShadow=true;
+    g.add(faucet);
+  } else if(type==='Dishwasher'){
+    const cab = boxMesh(w-0.06, h-0.1, depth-0.06, color); cab.position.set(0,(h-0.1)/2,0); g.add(cab);
+    if((it.panelStyle||'Visible Controls')==='Visible Controls'){
+      const panel = boxMesh(w*0.8, 0.14, 0.03, CABINET_TRIM, 0.4); panel.position.set(0, h-0.55, depth/2-0.02); g.add(panel);
+    }
+  } else if(type==='Stove'){
+    const cabH = Math.max(0.4, h-0.15);
+    const cab = boxMesh(w-0.06, cabH, depth-0.06, color); cab.position.set(0,cabH/2,0); g.add(cab);
+    const fuel = it.fuelType || 'Gas';
+    const top = boxMesh(w, 0.09, depth, 0x1c1d20, fuel==='Induction'?0.15:0.3); top.position.set(0, cabH+0.045, 0); g.add(top);
+    if(fuel!=='Induction'){
+      const burnerColor = fuel==='Electric' ? 0x6b3a2a : 0x0e0f11;
+      const bx = w*0.24, bz = depth*0.22;
+      [[-bx,-bz],[bx,-bz],[-bx,bz],[bx,bz]].forEach(([px,pz])=>{
+        const burner = new THREE.Mesh(new THREE.CylinderGeometry(Math.min(bx,bz)*0.55,Math.min(bx,bz)*0.55,0.03,16), new THREE.MeshStandardMaterial({color:burnerColor, roughness:0.5}));
+        burner.position.set(px, cabH+0.1, pz); g.add(burner);
+      });
+    }
+  } else if(type==='Oven_Microwave'){
+    const ovenH = Math.min(3.0, h*0.5);
+    const cab = boxMesh(w-0.06, ovenH, depth-0.06, color); cab.position.set(0, ovenH/2, 0); g.add(cab);
+    const door = boxMesh(w*0.75, ovenH*0.55, 0.03, CABINET_TRIM, 0.3); door.position.set(0, ovenH*0.5, depth/2-0.02); g.add(door);
+    const micH = Math.max(0.8, h - ovenH - 1.3);
+    const mic = boxMesh(w*0.92, micH, depth*0.85, 0x3a3b40, 0.6); mic.position.set(0, ovenH+1.3+micH/2, 0); g.add(mic);
+    const micDoor = boxMesh(w*0.7, micH*0.65, 0.02, 0x111214, 0.3); micDoor.position.set(0, ovenH+1.3+micH/2, depth*0.85/2-0.01); g.add(micDoor);
+  } else if(type==='Fridge'){
+    const body = boxMesh(w-0.04, h, depth-0.04, color); body.position.set(0,h/2,0); g.add(body);
+    if((it.doorConfig||'French Door')==='Top Freezer'){
+      const split = boxMesh(w+0.02, 0.04, depth+0.02, CABINET_TRIM, 0.4); split.position.set(0,h*0.7,0); g.add(split);
+      const handle = boxMesh(w*0.5,0.05,0.05, 0xaab1bd, 0.3); handle.position.set(0, h*0.4, depth/2+0.02); g.add(handle);
+    } else {
+      const split = boxMesh(0.04, h-0.2, depth+0.02, CABINET_TRIM, 0.4); split.position.set(0,h/2,0); g.add(split);
+      [-1,1].forEach(s=>{
+        const handle = boxMesh(0.05,h*0.35,0.05, 0xaab1bd, 0.3); handle.position.set(s*w*0.12, h*0.55, depth/2+0.02); g.add(handle);
+      });
+    }
+  } else if(type==='Pantry'){
+    const body = boxMesh(w-0.04, h, depth-0.04, color); body.position.set(0,h/2,0); g.add(body);
+    const split = boxMesh(0.03, h-0.2, depth+0.02, CABINET_TRIM, 0.4); split.position.set(0,h/2,0); g.add(split);
+  } else if(type==='Table'){
+    // "Modular Cabinet" — plain base-cabinet box with a countertop cap, matching the other counter units
+    const cabH = Math.max(0.4, h-0.15);
+    const cab = boxMesh(w-0.06, cabH, depth-0.06, color); cab.position.set(0,cabH/2,0); g.add(cab);
+    const top = boxMesh(w, 0.12, depth, COUNTER_COLOR); top.position.set(0, cabH+0.06, 0); g.add(top);
+    const split = boxMesh(0.02, cabH-0.1, depth-0.01, CABINET_TRIM, 0.4); split.position.set(0,cabH/2,0); g.add(split);
+  } else {
+    g.add(boxMesh(w,h,depth,color));
+  }
+  return g;
+}
+
+function rebuildFurniture(){
+  furnGroup.clear();
+  items.forEach(it=>{
+    let x,z,rot;
+    if(it.isIsland){ x=it.ix; z=it.iz; rot=0; }
+    else { const r = edgeToWorld(it.edge, it.offset, it.width, it.depth); x=r.x; z=r.z; rot=r.rot; }
+
+    const color = tintedColor(COLORS[it.type].hex, it.material||'Laminate');
+    const group = buildUnit(it, color);
+    group.position.set(x, 0, z);
+    group.rotation.y = rot;
+    group.traverse(o=>{ o.userData.itemId = it.id; });
+    furnGroup.add(group);
+
+    if(it.id === selectedId){
+      const outline = new THREE.LineSegments(
+        new THREE.EdgesGeometry(new THREE.BoxGeometry(it.width+0.14, it.height+0.14, it.depth+0.14)),
+        new THREE.LineBasicMaterial({color:0xcdd7c4})
+      );
+      outline.position.set(x, it.height/2, z);
+      outline.rotation.y = rot;
+      furnGroup.add(outline);
+    }
+  });
+}
+
+function animate(){
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+/* ---------------- pointer interaction: hold-drag OR click-to-carry, both with snapping ---------------- */
+const raycaster = new THREE.Raycaster();
+const mouseNDC = new THREE.Vector2();
+const groundPlane = new THREE.Plane(new THREE.Vector3(0,1,0), 0);
+let dragItem = null, pointerDownPos = null, isDragging = false;
+let carryItem = null, carryOrigin = null;
+
+function ndcFromEvent(e){
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouseNDC.x = ((e.clientX-rect.left)/rect.width)*2 - 1;
+  mouseNDC.y = -((e.clientY-rect.top)/rect.height)*2 + 1;
+}
+function pickFurnitureMesh(e){
+  ndcFromEvent(e);
+  raycaster.setFromCamera(mouseNDC, camera);
+  const hits = raycaster.intersectObjects(furnGroup.children, true);
+  return hits.length ? hits[0].object : null;
+}
+function groundPoint(e){
+  ndcFromEvent(e);
+  raycaster.setFromCamera(mouseNDC, camera);
+  const pt = new THREE.Vector3();
+  raycaster.ray.intersectPlane(groundPlane, pt);
+  return pt;
+}
+function moveItemToPointer(item, e){
+  const pt = groundPoint(e);
+  if(item.isIsland){
+    const pos = safeIslandPos(item, pt.x, pt.z);
+    item.ix = pos.x; item.iz = pos.z;
+  } else {
+    const {axis, origin} = wallAxisInfo(item.edge);
+    const along = (axis==='x' ? pt.x : pt.z) - origin;
+    const raw = along - item.width/2;
+    item.offset = safeWallOffset(item, raw);
+  }
+  // tall units (fridge, pantry, oven/microwave) determine where upper cabinets
+  // leave a gap — rebuild the room too when one of these moves, so the upper
+  // cabinets track it live instead of staying stuck at the pre-drag layout.
+  if(item.height>=5) rebuildRoom();
+  rebuildFurniture();
+  rebuildItemsList();
+  renderConsole();
+}
+
+renderer.domElement.addEventListener('pointerdown', e=>{
+  if(solving) return;
+  if(carryItem){
+    // any click while carrying finalizes placement right where it is
+    carryItem = null; carryOrigin = null;
+    controls.enabled = true;
+    return;
+  }
+  const mesh = pickFurnitureMesh(e);
+  pointerDownPos = {x:e.clientX, y:e.clientY};
+  if(mesh && mesh.userData.itemId!=null){
+    dragItem = items.find(i=>i.id===mesh.userData.itemId);
+    controls.enabled = false;
+    isDragging = false;
+  }
+});
+
+renderer.domElement.addEventListener('pointermove', e=>{
+  if(solving) return;
+  if(carryItem){
+    renderer.domElement.style.cursor = 'grabbing';
+    moveItemToPointer(carryItem, e);
+    return;
+  }
+  const hoverMesh = pickFurnitureMesh(e);
+  renderer.domElement.style.cursor = dragItem ? 'grabbing' : (hoverMesh ? 'grab' : 'auto');
+  if(!dragItem) return;
+  const moved = pointerDownPos && (Math.abs(e.clientX-pointerDownPos.x)>3 || Math.abs(e.clientY-pointerDownPos.y)>3);
+  if(!moved) return;
+  isDragging = true;
+  moveItemToPointer(dragItem, e);
+});
+
+window.addEventListener('pointerup', ()=>{
+  if(solving) return;
+  if(dragItem && !isDragging){
+    // a plain click (no drag) on an item — pick it up so it follows the cursor until the next click
+    selectedId = dragItem.id;
+    expandedId = selectedId;
+    carryItem = dragItem;
+    carryOrigin = {edge:dragItem.edge, offset:dragItem.offset, ix:dragItem.ix, iz:dragItem.iz, isIsland:dragItem.isIsland};
+    controls.enabled = false;
+    rebuildFurniture();
+    rebuildItemsList();
+  } else if(!carryItem){
+    controls.enabled = true;
+  }
+  dragItem = null;
+  isDragging = false;
+});
+
+window.addEventListener('keydown', e=>{
+  if(e.key === 'Escape' && carryItem){
+    Object.assign(carryItem, carryOrigin);
+    if(carryItem.height>=5) rebuildRoom();
+    carryItem = null; carryOrigin = null;
+    controls.enabled = true;
+    rebuildFurniture(); rebuildItemsList(); renderConsole();
+  }
+});
+
+/* ---------------- legend ---------------- */
+function rebuildLegend(){
+  const el = document.getElementById('legend');
+  el.innerHTML = '';
+  Object.keys(COLORS).forEach(k=>{
+    const row = document.createElement('div');
+    const sw = document.createElement('span');
+    sw.className='sw';
+    sw.style.background = '#'+COLORS[k].hex.toString(16).padStart(6,'0');
+    row.appendChild(sw);
+    row.appendChild(document.createTextNode(displayName(k)));
+    el.appendChild(row);
+  });
+}
+
+/* ---------------- evaluation engine ---------------- */
+function centerOf(it){
+  if(it.isIsland) return {x:it.ix, z:it.iz};
+  const {x,z} = edgeToWorld(it.edge, it.offset, it.width, it.depth);
+  return {x,z};
+}
+function dist2D(a,b){ return Math.sqrt((a.x-b.x)**2 + (a.z-b.z)**2); }
+function findType(t){ return items.find(i=>i.type===t); }
+
+function evaluate(){
+  const evals = [];
+  const warnings = [];
+  let totalPenalty = 0;
+  function add(name, penalty, detail){ totalPenalty += penalty; evals.push({name, penalty, detail}); }
+
+  const sink = findType('Sink'), dw = findType('Dishwasher');
+  const stove = findType('Stove'), fridge = findType('Fridge');
+
+  if(sink && dw){
+    const dd = dist2D(centerOf(sink), centerOf(dw));
+    add('sink-by-dishwasher', dd>3 ? Math.min(20, Math.round((dd-3)*6)) : 0, `distance: ${dd.toFixed(2)}ft`);
+  } else add('sink-by-dishwasher', 0, 'inapplicable');
+
+  const low = items.filter(i=>i.height<=3.2);
+  if(low.length>=2){
+    let isolated=0;
+    low.forEach(a=>{
+      const nearest = Math.min(...low.filter(b=>b!==a).map(b=>dist2D(centerOf(a),centerOf(b))));
+      if(nearest>4) isolated++;
+    });
+    add('low-furniture-together', isolated*5, `${isolated} isolated`);
+  } else add('low-furniture-together', 0, 'inapplicable');
+
+  if(sink && fridge && stove){
+    const e3 = [sink.isIsland?'isl':sink.edge, fridge.isIsland?'isl':fridge.edge, stove.isIsland?'isl':stove.edge];
+    const uniq = new Set(e3).size;
+    add('sink-fridge-stove-different-edges', uniq<3 ? (3-uniq)*3 : 0, `edges:(${e3.join(',')})`);
+  } else add('sink-fridge-stove-different-edges', 0, 'inapplicable');
+
+  const tallOnFront = items.filter(i=>i.height>=6 && !i.isIsland && i.edge===2).length;
+  add('no-tall-living-edge', tallOnFront*4, `${tallOnFront} tall on front edge`);
+
+  if(fridge){
+    const fc = centerOf(fridge);
+    const near = items.filter(i=>i!==fridge && (fridge.isIsland ? true : (!i.isIsland && i.edge===fridge.edge)));
+    let blocked=0;
+    near.forEach(o=>{ if(dist2D(fc, centerOf(o)) < (fridge.width/2+o.width/2+0.3)) blocked++; });
+    add('fridge-accessibility', Math.min(blocked,2)*3, `${blocked} crowding`);
+  } else add('fridge-accessibility', 0, 'inapplicable');
+
+  if(sink && stove && fridge){
+    const legs = [dist2D(centerOf(sink),centerOf(stove)), dist2D(centerOf(stove),centerOf(fridge)), dist2D(centerOf(fridge),centerOf(sink))];
+    const legPen = legs.reduce((p,l)=>p+(l<4?(4-l)*2:l>9?(l-9)*2:0),0);
+    add('kitchen-triangle-legs-4to9', Math.round(legPen), `[${legs.map(l=>l.toFixed(1)).join(',')}]`);
+    const sum = legs.reduce((a,b)=>a+b,0);
+    add('kitchen-triangle-sum-13to26', Math.round(sum<13?(13-sum)*1.5:sum>26?(sum-26)*1.5:0), `sum:${sum.toFixed(1)}`);
+  } else {
+    add('kitchen-triangle-legs-4to9', 0, 'inapplicable');
+    add('kitchen-triangle-sum-13to26', 0, 'inapplicable');
+  }
+
+  if(sink){
+    if(sink.isIsland) add('sink-on-low-edge', 0, 'island — n/a');
+    else { const wl = wallLength(sink.edge); add('sink-on-low-edge', wl<4?6:0, `wall:${wl.toFixed(1)}ft`); }
+  } else add('sink-on-low-edge', 0, 'inapplicable');
+
+  if(sink && stove){
+    const dd = dist2D(centerOf(sink), centerOf(stove));
+    add('sink-stove-side-work-area', dd<1.2?6:dd>7?4:0, `dist:${dd.toFixed(2)}ft`);
+  } else add('sink-stove-side-work-area', 0, 'inapplicable');
+
+  return {evals, warnings, score: Math.max(0, Math.round(100-totalPenalty))};
+}
+
+function qualityLabel(score){
+  if(score>=90) return {text:'★ Excellent layout', color:'#cdd7c4'};
+  if(score>=75) return {text:'Good layout', color:'#aab1bd'};
+  if(score>=50) return {text:'Needs work', color:'#e0a458'};
+  return {text:'Poor layout', color:'#d9695f'};
+}
+
+function renderConsole(){
+  const {evals, warnings, score} = evaluate();
+  const c = document.getElementById('console');
+  let html = '<div class="hdr">Warnings</div>';
+  html += warnings.length ? warnings.map(w=>`<div class="ev">${w}</div>`).join('') : '<div class="ev"><span class="nm">None</span></div>';
+  html += '<div class="hdr">Evaluations</div>';
+  evals.forEach(e=>{
+    html += `<div class="ev"><span class="nm">${e.name} <span class="${e.penalty>0?'pen':'pen-0'}">[${e.penalty}]</span></span><span class="dt">${e.detail}</span></div>`;
+  });
+  c.innerHTML = html;
+  document.getElementById('scoreNum').textContent = score.toFixed(1)+'/100';
+  const q = qualityLabel(score);
+  const qEl = document.getElementById('scoreQuality');
+  qEl.textContent = q.text; qEl.style.color = q.color;
+  return score;
+}
+
+/* ---------------- generative solver (Problem -> Environment -> Evaluations -> Solution) ---------------- */
+function snapshotPositions(){
+  return items.map(it=>({id:it.id, edge:it.edge, offset:it.offset, ix:it.ix, iz:it.iz, isIsland:it.isIsland}));
+}
+function applySnapshot(snap){
+  snap.forEach(s=>{
+    const it = items.find(i=>i.id===s.id);
+    if(it){ it.edge=s.edge; it.offset=s.offset; it.ix=s.ix; it.iz=s.iz; it.isIsland=s.isIsland; }
+  });
+}
+function randomProposalFor(it){
+  if(it.isIsland){
+    const b = islandBounds(it);
+    let x = (Math.random()*2-1)*b.maxX, z = (Math.random()*2-1)*b.maxZ;
+    x = Math.min(Math.max(Math.round(x/GRID)*GRID,-b.maxX),b.maxX);
+    z = Math.min(Math.max(Math.round(z/GRID)*GRID,-b.maxZ),b.maxZ);
+    return {isIsland:true, ix:x, iz:z};
+  } else {
+    const ae = activeEdges();
+    const edge = ae[Math.floor(Math.random()*ae.length)];
+    const wl = wallLength(edge);
+    const maxOff = Math.max(0, wl-it.width);
+    let off = Math.round((Math.random()*maxOff)/GRID)*GRID;
+    off = Math.min(Math.max(off,0),maxOff);
+    return {isIsland:false, edge, offset:off};
+  }
+}
+function randomizeAllPositions(){
+  items.forEach(it=>{
+    const proposal = randomProposalFor(it);
+    if(!proposalCollides(it, proposal)) Object.assign(it, proposal);
+  });
+  resolveAllCollisions();
+}
+
+let solverIter=0, solverBestSnap=null, solverBestScore=-1, solverCurScore=0, solverMaxIter=350, solverStopFlag=false;
+let solverMode='refine', solverAttempt=0, solverMaxAttempts=1;
+
+function updateSolverBadges(){
+  document.getElementById('sbProblemSub').textContent = items.length + ' units';
+  document.getElementById('sbEnv').textContent = 'attempt '+(solverAttempt+1)+' · iteration ' + solverIter + ' / ' + solverMaxIter;
+  document.getElementById('sbEvalScore').textContent = solverCurScore.toFixed(0)+'/100';
+  document.getElementById('sbSolScore').textContent = solverBestScore.toFixed(0)+'/100';
+  document.getElementById('solverProgressBar').style.width = Math.min(100,(solverIter/solverMaxIter)*100)+'%';
+}
+
+function beginSolverAttempt(){
+  if(solverMode==='randomize') randomizeAllPositions();
+  solverIter = 0; solverStopFlag = false;
+  solverCurScore = evaluate().score;
+  if(solverAttempt===0){ solverBestScore = solverCurScore; solverBestSnap = snapshotPositions(); }
+  else if(solverCurScore > solverBestScore){ solverBestScore = solverCurScore; solverBestSnap = snapshotPositions(); }
+  updateSolverBadges();
+  requestAnimationFrame(solverStep);
+}
+
+function solverStep(){
+  if(solverStopFlag || solverBestScore>=100){ finishSolver(); return; }
+  if(solverIter >= solverMaxIter){
+    solverAttempt++;
+    if(solverMode!=='randomize' || solverAttempt>=solverMaxAttempts){ finishSolver(); return; }
+    beginSolverAttempt(); return;
+  }
+  const batches = 8;
+  for(let k=0; k<batches && solverIter<solverMaxIter && !solverStopFlag && solverBestScore<100; k++, solverIter++){
+    const temperature = Math.max(0.03, 1 - solverIter/solverMaxIter);
+    const it = items[Math.floor(Math.random()*items.length)];
+    const proposal = randomProposalFor(it);
+    if(proposalCollides(it, proposal)) continue;
+    const backup = {edge:it.edge, offset:it.offset, ix:it.ix, iz:it.iz, isIsland:it.isIsland};
+    Object.assign(it, proposal);
+    const newScore = evaluate().score;
+    const delta = newScore - solverCurScore;
+    const accept = delta >= 0 || Math.random() < Math.exp(delta/(temperature*12));
+    if(accept){
+      solverCurScore = newScore;
+      if(newScore > solverBestScore){ solverBestScore = newScore; solverBestSnap = snapshotPositions(); }
+    } else {
+      Object.assign(it, backup);
+    }
+  }
+  rebuildFurniture();
+  renderConsole();
+  updateSolverBadges();
+  requestAnimationFrame(solverStep);
+}
+
+function finishSolver(){
+  applySnapshot(solverBestSnap);
+  rebuildItemsList(); refreshAll();
+  document.getElementById('sbEvalSub').textContent = 'done';
+  document.getElementById('sbSolSub').textContent = solverBestScore>=100 ? 'perfect score found!' : 'best found after search';
+  setTimeout(()=>{
+    document.getElementById('solverOverlay').classList.remove('show');
+    solving = false;
+    document.getElementById('solveBtn').disabled = false;
+    document.getElementById('randomBtn').disabled = false;
+  }, 1000);
+}
+
+function runSolver(mode){
+  if(solving) return;
+  solving = true;
+  selectedId = null; expandedId = null;
+  document.getElementById('solveBtn').disabled = true;
+  document.getElementById('randomBtn').disabled = true;
+  document.getElementById('solverOverlay').classList.add('show');
+  solverMode = mode;
+  solverMaxAttempts = mode==='randomize' ? 8 : 1;
+  solverMaxIter = mode==='randomize' ? 500 : 350;
+  solverAttempt = 0;
+  document.getElementById('sbEvalSub').textContent = 'scoring current try';
+  document.getElementById('sbSolSub').textContent = 'best so far';
+  beginSolverAttempt();
+}
+document.getElementById('solveBtn').addEventListener('click', ()=>runSolver('refine'));
+document.getElementById('randomBtn').addEventListener('click', ()=>runSolver('randomize'));
+document.getElementById('solverStop').addEventListener('click', ()=>{ solverStopFlag = true; });
+
+/* ---------------- upper cabinet controls ---------------- */
+document.getElementById('upperChk').addEventListener('change', e=>{ upperCabinets.show = e.target.checked; refreshAll(); });
+document.getElementById('upperMount').addEventListener('input', e=>{
+  upperCabinets.mountHeight = parseFloat(e.target.value);
+  document.getElementById('umVal').textContent = upperCabinets.mountHeight.toFixed(1);
+  refreshAll();
+});
+document.getElementById('upperDepth').addEventListener('input', e=>{
+  upperCabinets.depth = parseFloat(e.target.value)/12;
+  document.getElementById('udVal').textContent = e.target.value;
+  refreshAll();
+});
+
+/* ---------------- shape handling ---------------- */
+function applyShape(key){
+  currentShapeKey = key;
+  const s = SHAPES[key];
+  document.getElementById('shapeHint').textContent = s.hint;
+  const ae = s.edges;
+  items.forEach(it=>{
+    if(it.isIsland && !s.island){
+      it.isIsland = false; it.edge = ae[0]; it.offset = 0;
+    } else if(!it.isIsland && !ae.includes(it.edge)){
+      it.edge = ae[0]; it.offset = 0;
+    }
+  });
+  resolveAllCollisions();
+  rebuildItemsList();
+  refreshAll();
+}
+document.getElementById('shapeSel').addEventListener('change', e=> applyShape(e.target.value));
+
+/* ---------------- add-furniture dropdown ---------------- */
+function defaultInstanceFields(type){
+  const f = {material:'Laminate', comments:''};
+  if(type==='Fridge') f.doorConfig='French Door';
+  if(type==='Sink') f.basinConfig='Single Basin';
+  if(type==='Stove') f.fuelType='Gas';
+  if(type==='Dishwasher') f.panelStyle='Visible Controls';
+  return f;
+}
+function buildDropdown(){
+  const menu = document.getElementById('dropdownMenu');
+  menu.innerHTML = '';
+  Object.keys(COLORS).forEach(type=>{
+    const spec = COLORS[type];
+    const row = document.createElement('div');
+    row.className = 'dropdown-item';
+    row.innerHTML = `<span class="sw" style="background:#${spec.hex.toString(16).padStart(6,'0')}"></span>${displayName(type)}`;
+    row.addEventListener('click', ()=>{
+      const ae = activeEdges();
+      // freestanding island is opt-in only — added items always start as a normal wall
+      // unit; use the "Freestanding island" checkbox on the item to convert it.
+      const newItem = Object.assign({
+        id:idCounter++, type,
+        isIsland: false,
+        edge: ae[0], offset: 0,
+        ix: 0, iz: 0,
+        width:spec.w, depth:spec.d, height:spec.h,
+        mark: 'K-'+String(idCounter).padStart(2,'0')
+      }, defaultInstanceFields(type));
+      newItem.offset = safeWallOffset(newItem, 0.2);
+      items.push(newItem);
+      selectedId = newItem.id; expandedId = newItem.id;
+      menu.classList.remove('open');
+      rebuildItemsList();
+      refreshAll();
+    });
+    menu.appendChild(row);
+  });
+}
+document.getElementById('dropdownBtn').addEventListener('click', e=>{
+  e.stopPropagation();
+  document.getElementById('dropdownMenu').classList.toggle('open');
+});
+document.addEventListener('click', ()=> document.getElementById('dropdownMenu').classList.remove('open'));
+
+/* ---------------- room sliders ---------------- */
+document.getElementById('roomW').addEventListener('input', e=>{
+  room.w = parseFloat(e.target.value);
+  document.getElementById('wVal').textContent = room.w;
+  clampAllOffsets(); rebuildItemsList(); refreshAll();
+});
+document.getElementById('roomD').addEventListener('input', e=>{
+  room.d = parseFloat(e.target.value);
+  document.getElementById('dVal').textContent = room.d;
+  clampAllOffsets(); rebuildItemsList(); refreshAll();
+});
+document.getElementById('roomH').addEventListener('input', e=>{
+  room.h = parseFloat(e.target.value);
+  document.getElementById('hVal').textContent = room.h;
+  refreshAll();
+});
+document.getElementById('wallT').addEventListener('input', e=>{
+  const inches = parseFloat(e.target.value);
+  document.getElementById('tVal').textContent = inches;
+  room.thickness = inches/12;
+  refreshAll();
+});
+document.getElementById('snapChk').addEventListener('change', e=>{ snapEnabled = e.target.checked; });
+
+function clampAllOffsets(){
+  items.forEach(it=>{
+    if(it.isIsland){
+      const b = islandBounds(it);
+      it.ix = Math.min(Math.max(it.ix,-b.maxX), b.maxX);
+      it.iz = Math.min(Math.max(it.iz,-b.maxZ), b.maxZ);
+    } else {
+      const maxOff = Math.max(0, wallLength(it.edge)-it.width);
+      it.offset = Math.min(it.offset, maxOff);
+    }
+  });
+  resolveAllCollisions();
+}
+
+/* ---------------- items list panel (Revit Properties Palette style) ---------------- */
+function rebuildItemsList(){
+  const list = document.getElementById('itemsList');
+  document.getElementById('itemCount').textContent = items.length;
+  list.innerHTML = '';
+  if(items.length===0){
+    list.innerHTML = '<div class="empty-state">No items yet — use + Add furniture above, or click one in the 3D view to select it.</div>';
+    return;
+  }
+  const ae = activeEdges();
+  items.forEach(it=>{
+    if(!it.material) Object.assign(it, defaultInstanceFields(it.type), {mark: it.mark || ('K-'+String(it.id).padStart(2,'0'))});
+    const spec = COLORS[it.type];
+    const div = document.createElement('div');
+    const collapsed = expandedId !== it.id;
+    div.className = 'item' + (it.id===selectedId ? ' selected' : '') + (collapsed ? ' collapsed' : '');
+    div.dataset.id = it.id;
+    div.style.borderLeftColor = '#'+spec.hex.toString(16).padStart(6,'0');
+
+    let constraintsHtml = '';
+    if(shapeSupportsIsland()){
+      constraintsHtml += `<div class="checkrow"><input type="checkbox" class="islandChk" ${it.isIsland?'checked':''}> Freestanding island</div>`;
+    }
+    if(it.isIsland){
+      const b = islandBounds(it);
+      constraintsHtml += `
+        <div class="prow"><span class="plabel">Position X</span><span class="pval" id="pvPX-${it.id}">${it.ix.toFixed(1)} ft</span></div>
+        <input class="prow-full posXSlider" type="range" min="${(-b.maxX).toFixed(2)}" max="${b.maxX.toFixed(2)}" step="0.1" value="${it.ix}">
+        <div class="prow"><span class="plabel">Position Z</span><span class="pval" id="pvPZ-${it.id}">${it.iz.toFixed(1)} ft</span></div>
+        <input class="prow-full posZSlider" type="range" min="${(-b.maxZ).toFixed(2)}" max="${b.maxZ.toFixed(2)}" step="0.1" value="${it.iz}">
+      `;
+    } else {
+      const wl = wallLength(it.edge);
+      const maxOff = Math.max(0, wl-it.width);
+      constraintsHtml += `
+        <div class="prow"><span class="plabel">Host wall</span></div>
+        <select class="edgeSel">
+          ${ae.map(i=>`<option value="${i}" ${i===it.edge?'selected':''}>${EDGE_NAMES[i]}</option>`).join('')}
+        </select>
+        <div class="prow"><span class="plabel">Offset along wall</span><span class="pval">${it.offset.toFixed(1)} ft</span></div>
+        <input class="prow-full posSlider" type="range" min="0" max="${maxOff.toFixed(2)}" step="0.1" value="${it.offset}" ${maxOff<=0?'disabled':''}>
+      `;
+    }
+
+    const dimsHtml = `
+      <div class="prow"><span class="plabel">Width</span><span class="pval wVal2">${it.width.toFixed(1)} ft</span></div>
+      <input class="prow-full widthSlider" type="range" min="1" max="6" step="0.1" value="${it.width}">
+      <div class="prow"><span class="plabel">Depth</span><span class="pval dVal2">${it.depth.toFixed(1)} ft</span></div>
+      <input class="prow-full depthSlider" type="range" min="1.2" max="3.2" step="0.1" value="${it.depth}">
+      <div class="prow"><span class="plabel">Height</span><span class="pval hVal2">${it.height.toFixed(1)} ft</span></div>
+      <input class="prow-full heightSlider" type="range" min="1.5" max="8" step="0.1" value="${it.height}">
+    `;
+
+    let typeParamHtml = '';
+    if(it.type==='Fridge'){
+      typeParamHtml = `<div class="prow"><span class="plabel">Door configuration</span></div>
+        <select class="typeParam" data-field="doorConfig">
+          ${['French Door','Side-by-Side','Top Freezer'].map(o=>`<option ${it.doorConfig===o?'selected':''}>${o}</option>`).join('')}
+        </select>`;
+    } else if(it.type==='Sink'){
+      typeParamHtml = `<div class="prow"><span class="plabel">Basin configuration</span></div>
+        <select class="typeParam" data-field="basinConfig">
+          ${['Single Basin','Double Basin'].map(o=>`<option ${it.basinConfig===o?'selected':''}>${o}</option>`).join('')}
+        </select>`;
+    } else if(it.type==='Stove'){
+      typeParamHtml = `<div class="prow"><span class="plabel">Fuel type</span></div>
+        <select class="typeParam" data-field="fuelType">
+          ${['Gas','Electric','Induction'].map(o=>`<option ${it.fuelType===o?'selected':''}>${o}</option>`).join('')}
+        </select>`;
+    } else if(it.type==='Dishwasher'){
+      typeParamHtml = `<div class="prow"><span class="plabel">Panel style</span></div>
+        <select class="typeParam" data-field="panelStyle">
+          ${['Visible Controls','Fully Integrated'].map(o=>`<option ${it.panelStyle===o?'selected':''}>${o}</option>`).join('')}
+        </select>`;
+    }
+
+    const matHtml = `<div class="prow"><span class="plabel">Material</span></div>
+      <select class="materialSel">
+        ${MATERIALS.map(m=>`<option ${it.material===m?'selected':''}>${m}</option>`).join('')}
+      </select>`;
+
+    const identityHtml = `
+      <div class="prow"><span class="plabel">Mark</span><span class="pval">${it.mark}</span></div>
+      <input class="prow-full commentsInput" type="text" placeholder="Comments..." value="${(it.comments||'').replace(/"/g,'&quot;')}">
+    `;
+
+    div.innerHTML = `
+      <div class="row">
+        <span class="titles"><strong><span class="chev">&#9660;</span>${displayName(it.type)}</strong><span class="fam">Family: Kitchen.rfa &nbsp;·&nbsp; Type: ${displayName(it.type)}-Standard</span></span>
+        <span><button class="remove">&times;</button></span>
+      </div>
+      <div class="item-body">
+        <div class="pgroup"><div class="cap"><span class="ic">&#9635;</span>Constraints</div>${constraintsHtml}</div>
+        <div class="pgroup"><div class="cap"><span class="ic">&#8596;</span>Dimensions</div>${dimsHtml}</div>
+        ${typeParamHtml ? `<div class="pgroup"><div class="cap"><span class="ic">&#9881;</span>Type Properties</div>${typeParamHtml}</div>` : ''}
+        <div class="pgroup"><div class="cap"><span class="ic">&#9679;</span>Materials and Finishes</div>${matHtml}</div>
+        <div class="pgroup"><div class="cap"><span class="ic">&#128196;</span>Identity Data</div>${identityHtml}</div>
+      </div>
+    `;
+
+    div.querySelector('.row').addEventListener('click', (e)=>{
+      if(e.target.closest('button')) return;
+      expandedId = (expandedId===it.id) ? null : it.id;
+      selectedId = it.id;
+      rebuildItemsList(); rebuildFurniture();
+    });
+    div.querySelector('.remove').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      items = items.filter(x=>x!==it);
+      if(selectedId===it.id) selectedId=null;
+      if(expandedId===it.id) expandedId=null;
+      rebuildItemsList(); refreshAll();
+    });
+    const islandChk = div.querySelector('.islandChk');
+    if(islandChk){
+      islandChk.addEventListener('change', e=>{
+        e.stopPropagation();
+        if(e.target.checked){
+          it.isIsland = true;
+          const islandCount = items.filter(i=>i.isIsland && i!==it).length;
+          const b0 = islandBounds(it);
+          const pos = safeIslandPos(it, Math.min(islandCount*1.8,b0.maxX), 0);
+          it.ix = pos.x; it.iz = pos.z;
+        } else {
+          it.isIsland = false; it.edge = ae[0]; it.offset = safeWallOffset(it, 0);
+        }
+        rebuildItemsList(); refreshAll();
+      });
+    }
+    const edgeSel = div.querySelector('.edgeSel');
+    if(edgeSel) edgeSel.addEventListener('change', e=>{
+      it.edge = parseInt(e.target.value);
+      it.offset = safeWallOffset(it, 0);
+      rebuildItemsList(); refreshAll();
+    });
+    const posSlider = div.querySelector('.posSlider');
+    if(posSlider) posSlider.addEventListener('input', e=>{
+      it.offset = safeWallOffset(it, parseFloat(e.target.value));
+      div.querySelector('.prow .pval').textContent = it.offset.toFixed(1)+' ft';
+      refreshAll();
+    });
+    const posXSlider = div.querySelector('.posXSlider');
+    if(posXSlider) posXSlider.addEventListener('input', e=>{
+      const pos = safeIslandPos(it, parseFloat(e.target.value), it.iz);
+      it.ix = pos.x; it.iz = pos.z;
+      document.getElementById('pvPX-'+it.id).textContent = it.ix.toFixed(1)+' ft';
+      refreshAll();
+    });
+    const posZSlider = div.querySelector('.posZSlider');
+    if(posZSlider) posZSlider.addEventListener('input', e=>{
+      const pos = safeIslandPos(it, it.ix, parseFloat(e.target.value));
+      it.ix = pos.x; it.iz = pos.z;
+      document.getElementById('pvPZ-'+it.id).textContent = it.iz.toFixed(1)+' ft';
+      refreshAll();
+    });
+    div.querySelector('.widthSlider').addEventListener('input', e=>{
+      const requested = parseFloat(e.target.value);
+      it.width = maxNonCollidingWidth(it, requested);
+      if(!it.isIsland) it.offset = safeWallOffset(it, it.offset);
+      div.querySelector('.wVal2').textContent = it.width.toFixed(1)+' ft';
+      rebuildItemsList(); refreshAll();
+    });
+    div.querySelector('.depthSlider').addEventListener('input', e=>{
+      const requested = parseFloat(e.target.value);
+      it.depth = maxNonCollidingDepth(it, requested);
+      div.querySelector('.dVal2').textContent = it.depth.toFixed(1)+' ft';
+      rebuildItemsList(); refreshAll();
+    });
+    div.querySelector('.heightSlider').addEventListener('input', e=>{
+      it.height = parseFloat(e.target.value);
+      div.querySelector('.hVal2').textContent = it.height.toFixed(1)+' ft';
+      refreshAll();
+    });
+    const typeParamSel = div.querySelector('.typeParam');
+    if(typeParamSel) typeParamSel.addEventListener('change', e=>{
+      it[e.target.dataset.field] = e.target.value;
+      refreshAll();
+    });
+    div.querySelector('.materialSel').addEventListener('change', e=>{
+      it.material = e.target.value;
+      refreshAll();
+    });
+    div.querySelector('.commentsInput').addEventListener('input', e=>{
+      it.comments = e.target.value;
+    });
+    list.appendChild(div);
+  });
+}
+
+/* ---------------- refresh + seed ---------------- */
+function refreshAll(){
+  rebuildRoom();
+  rebuildFurniture();
+  renderConsole();
+  resize();
+}
+
+function seed(){
+  idCounter = 1;
+  selectedId = null; expandedId = null;
+  currentShapeKey = 'island';
+  room = {w:13, d:11, h:9, thickness:5/12};
+  upperCabinets = {show:true, mountHeight:4.6, depth:1.0};
+  const D = STANDARD_DEPTH; // uniform 24in counter depth across nearly all units
+  function mk(type, extra){
+    const it = Object.assign({
+      id:idCounter, type, isIsland:false, edge:0, offset:0, ix:0, iz:0,
+      width:COLORS[type].w, depth:D, height:COLORS[type].h,
+      mark:'K-'+String(idCounter).padStart(2,'0')
+    }, defaultInstanceFields(type), extra);
+    idCounter++;
+    return it;
+  }
+  items = [
+    // back-left wall: fridge in the corner (deeper — real fridges run ~30in), sink directly adjacent
+    // -- these two, plus stove and fridge below, form the classic 4-9ft / 13-26ft NKBA work triangle
+    mk('Fridge',   {edge:0, offset:0.0, width:2.5, depth:2.5, height:6.0}),
+    mk('Sink',     {edge:0, offset:2.5, width:2.5, height:3.0}),
+    // left counter run: modular cabinet, dishwasher (sandwiched), modular cabinet (front end)
+    mk('Table',    {edge:3, offset:2.5, width:2.0, height:3.0}),
+    mk('Dishwasher',{edge:3, offset:4.5, width:2.0, height:3.0}),
+    mk('Table',    {edge:3, offset:6.5, width:2.0, height:3.0}),
+    // right counter run: oven/microwave near back corner, modular cabinet, stove, pantry at front end
+    mk('Oven_Microwave',{edge:1, offset:2.0, width:2.5, height:6.0}),
+    mk('Table',    {edge:1, offset:4.5, width:2.0, height:3.0}),
+    mk('Stove',    {edge:1, offset:6.5, width:2.5, height:3.0}),
+    mk('Pantry',   {edge:1, offset:9.0, width:2.0, height:7.0})
+    // no island by default — it's an add-on: use "+ Add furniture" and check
+    // "Freestanding island" on the item (or add a Modular Cabinet, then check it)
+  ];
+  resolveAllCollisions();
+}
+
+function loadSeed(){
+  seed();
+  document.getElementById('shapeSel').value = currentShapeKey;
+  document.getElementById('shapeHint').textContent = SHAPES[currentShapeKey].hint;
+  document.getElementById('roomW').value = room.w; document.getElementById('wVal').textContent = room.w;
+  document.getElementById('roomD').value = room.d; document.getElementById('dVal').textContent = room.d;
+  document.getElementById('roomH').value = room.h; document.getElementById('hVal').textContent = room.h;
+  document.getElementById('wallT').value = room.thickness*12; document.getElementById('tVal').textContent = Math.round(room.thickness*12);
+  document.getElementById('upperChk').checked = upperCabinets.show;
+  document.getElementById('upperMount').value = upperCabinets.mountHeight; document.getElementById('umVal').textContent = upperCabinets.mountHeight.toFixed(1);
+  document.getElementById('upperDepth').value = upperCabinets.depth*12; document.getElementById('udVal').textContent = Math.round(upperCabinets.depth*12);
+  rebuildItemsList();
+  refreshAll();
+}
+document.getElementById('resetBtn').addEventListener('click', loadSeed);
+
+loadSeed();
+buildDropdown();
+rebuildLegend();
+animate();
+</script>
+</body>
+</html>
