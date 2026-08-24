@@ -13,8 +13,8 @@
   }
   *{box-sizing:border-box;}
   html,body{margin:0;height:100%;background:var(--graphite);color:var(--offwhite);font-family:var(--mono);}
-  #app{display:grid;grid-template-columns:340px 1fr;grid-template-rows:1fr 210px;height:100vh;width:100vw;}
-  #sidebar{grid-row:1/3;background:var(--graphite-2);border-right:1px solid var(--line-dark);overflow-y:auto;padding:14px;}
+  #app{display:grid;grid-template-columns:340px 1fr;grid-template-rows:1fr 180px 236px;height:100vh;width:100vw;}
+  #sidebar{grid-row:1/4;background:var(--graphite-2);border-right:1px solid var(--line-dark);overflow-y:auto;padding:14px;}
   #sidebar h1{font-size:11.5px;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 12px 0;padding-bottom:8px;border-bottom:1px solid var(--line-dark);color:var(--sage-pale);font-weight:600;display:flex;justify-content:space-between;align-items:center;}
   .snapToggle{display:flex;align-items:center;gap:6px;font-size:9.5px;text-transform:none;letter-spacing:0;font-weight:400;color:var(--steel);}
   .snapToggle input{accent-color:var(--sage);}
@@ -104,6 +104,22 @@
   .pen{color:var(--danger);font-weight:700;}
   ::-webkit-scrollbar{width:8px;}
   ::-webkit-scrollbar-thumb{background:var(--line-dark);}
+
+  #estimator{grid-column:2;grid-row:3;background:var(--graphite-2);color:var(--offwhite);border-top:1px solid var(--line-dark);padding:8px 14px 10px;overflow-y:auto;font-size:10px;}
+  #estimator h2{font-size:9.5px;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 2px 0;color:var(--sage-pale);font-weight:700;display:flex;justify-content:space-between;align-items:baseline;}
+  #estimator .estNote{font-size:8.5px;color:var(--steel);opacity:0.85;margin-bottom:6px;line-height:1.4;}
+  .estTable{width:100%;border-collapse:collapse;margin-top:2px;}
+  .estTable .estHead{font-size:8px;text-transform:uppercase;letter-spacing:0.08em;color:var(--steel);border-bottom:1px solid var(--line-dark);}
+  .estTable .estHead th{text-align:right;font-weight:600;padding:2px 0 3px;}
+  .estTable .estHead th:first-child{text-align:left;}
+  .est-row td{padding:2.5px 0;border-bottom:1px dashed var(--line-dark);white-space:nowrap;}
+  .est-row td:first-child{color:var(--offwhite);text-align:left;}
+  .est-row td:not(:first-child){text-align:right;color:var(--steel-light);font-size:9.5px;}
+  .est-row.est-total td{border-bottom:none;border-top:1px solid var(--sage);padding-top:4px;font-weight:700;color:var(--sage-pale);}
+  .est-row.est-counter td:first-child{font-style:italic;}
+  .estCols{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;}
+  .estGrand{font-size:15px;font-weight:700;color:var(--sage-pale);}
+  .estGrandLbl{font-size:8.5px;color:var(--steel);text-transform:uppercase;letter-spacing:0.08em;}
 
   #solverOverlay{position:absolute;inset:0;z-index:40;display:none;background:rgba(20,21,24,0.86);align-items:center;justify-content:center;flex-direction:column;gap:14px;}
   #solverOverlay.show{display:flex;}
@@ -233,6 +249,21 @@
   </div>
 
   <div id="console"></div>
+
+  <div id="estimator">
+    <h2>Kitchen cost estimate <span class="estGrand" id="estGrandTotal">$0</span></h2>
+    <div class="estNote">Rough materials estimate only — ballpark unit prices, excludes labor/install &amp; delivery. Not a quote.</div>
+    <div class="estCols">
+      <div>
+        <table class="estTable"><thead><tr class="estHead"><th>Element</th><th>Qty</th><th>Avg</th><th>Subtotal</th></tr></thead>
+        <tbody id="estByElement"></tbody></table>
+      </div>
+      <div>
+        <table class="estTable"><thead><tr class="estHead"><th>Material</th><th>Qty</th><th>Avg</th><th>Subtotal</th></tr></thead>
+        <tbody id="estByMaterial"></tbody></table>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
@@ -254,7 +285,7 @@ const COLORS = {
 };
 const DISPLAY_NAMES = {
   Fridge:'Fridge', Oven_Microwave:'Oven / Microwave', Pantry:'Pantry',
-  Sink:'Sink', Dishwasher:'Dishwasher', Stove:'Stove', Table:'Modular Cabinet'
+  Sink:'Sink', Dishwasher:'Dishwasher', Stove:'Stove', Table:'Lower Cabinet'
 };
 function displayName(type){ return DISPLAY_NAMES[type] || type; }
 
@@ -265,6 +296,75 @@ function tintedColor(hex, material){
   const c = new THREE.Color(hex);
   c.r = Math.min(1,c.r*f); c.g = Math.min(1,c.g*f); c.b = Math.min(1,c.b*f);
   return c.getHex();
+}
+
+/* ---------------- rough cost-estimator pricing table ----------------
+   Ballpark USD averages for a mid-range remodel. Table/Lower Cabinet is
+   priced per linear foot (its "width" along the wall); every other type
+   is a flat per-unit price. Every price is scaled by the same material
+   factor already used for color tinting, so a nicer finish also nudges
+   the estimate up — a simplification, but keeps the tool internally
+   consistent. This is for ballpark planning only, not a real quote. */
+const BASE_PRICES = {
+  Table: 180,            // $ per linear ft of lower cabinet
+  Fridge: 1800,          // flat, French-door average
+  Sink: 450,             // flat, incl. faucet
+  Dishwasher: 700,       // flat
+  Stove: 1100,           // flat
+  Oven_Microwave: 1600,  // flat, wall oven + microwave combo
+  Pantry: 900            // flat, tall pantry cabinet
+};
+const COUNTERTOP_SQFT_PRICE = 75; // $/sq ft installed, mid-range quartz-ish average
+const COUNTERTOP_TYPES = new Set(['Sink','Stove','Dishwasher','Table']); // types that carry a countertop cap
+
+function materialFactor(material){ return MATERIAL_FACTORS[material] !== undefined ? MATERIAL_FACTORS[material] : 1.0; }
+function estimateItemPrice(it){
+  const base = BASE_PRICES[it.type] || 0;
+  const f = materialFactor(it.material || 'Laminate');
+  return it.type==='Table' ? base * it.width * f : base * f;
+}
+function buildEstimate(){
+  const byElement = {}, byMaterial = {};
+  items.forEach(it=>{
+    const price = estimateItemPrice(it);
+    if(!byElement[it.type]) byElement[it.type] = {count:0, total:0};
+    byElement[it.type].count++; byElement[it.type].total += price;
+    const mat = it.material || 'Laminate';
+    if(!byMaterial[mat]) byMaterial[mat] = {count:0, total:0};
+    byMaterial[mat].count++; byMaterial[mat].total += price;
+  });
+  let counterSqft = 0;
+  items.forEach(it=>{ if(COUNTERTOP_TYPES.has(it.type)) counterSqft += it.width*it.depth; });
+  const counterTotal = counterSqft * COUNTERTOP_SQFT_PRICE;
+  let grand = counterTotal;
+  Object.values(byElement).forEach(g=> grand += g.total);
+  return {byElement, byMaterial, counterSqft, counterTotal, grand};
+}
+function money(n){ return '$'+Math.round(n).toLocaleString(); }
+function renderEstimator(){
+  const {byElement, byMaterial, counterSqft, counterTotal, grand} = buildEstimate();
+  const elBody = document.getElementById('estByElement');
+  const order = ['Table','Fridge','Sink','Dishwasher','Stove','Oven_Microwave','Pantry'];
+  let rows = '';
+  order.forEach(type=>{
+    const g = byElement[type];
+    if(!g || !g.count) return;
+    rows += `<tr class="est-row"><td>${displayName(type)}</td><td>${g.count}</td><td>${money(g.total/g.count)}</td><td>${money(g.total)}</td></tr>`;
+  });
+  rows += `<tr class="est-row est-counter"><td>Countertop</td><td>${counterSqft.toFixed(1)} ft&sup2;</td><td>$${COUNTERTOP_SQFT_PRICE}/ft&sup2;</td><td>${money(counterTotal)}</td></tr>`;
+  elBody.innerHTML = rows;
+
+  const matBody = document.getElementById('estByMaterial');
+  let matRows = '';
+  MATERIALS.forEach(mat=>{
+    const g = byMaterial[mat];
+    if(!g || !g.count) return;
+    matRows += `<tr class="est-row"><td>${mat}</td><td>${g.count}</td><td>${money(g.total/g.count)}</td><td>${money(g.total)}</td></tr>`;
+  });
+  matRows += `<tr class="est-row est-total"><td>Total</td><td></td><td></td><td>${money(grand)}</td></tr>`;
+  matBody.innerHTML = matRows;
+
+  document.getElementById('estGrandTotal').textContent = money(grand);
 }
 
 const STANDARD_DEPTH = 2.0; // NKBA standard base-counter depth (24in) — kept uniform across units
@@ -634,9 +734,13 @@ function buildUnit(it, color){
     faucet.position.set(0, cabH+0.18+0.25, -depth/2+0.15); faucet.castShadow=true;
     g.add(faucet);
   } else if(type==='Dishwasher'){
-    const cab = boxMesh(w-0.06, h-0.1, depth-0.06, color); cab.position.set(0,(h-0.1)/2,0); g.add(cab);
+    // same cabH + countertop-cap formula as Sink/Table/Stove, so the slab
+    // reads as one continuous surface across the dishwasher instead of dipping
+    const cabH = Math.max(0.4, h-0.15);
+    const cab = boxMesh(w-0.06, cabH, depth-0.06, color); cab.position.set(0,cabH/2,0); g.add(cab);
+    const top = boxMesh(w, 0.12, depth, COUNTER_COLOR); top.position.set(0, cabH+0.06, 0); g.add(top);
     if((it.panelStyle||'Visible Controls')==='Visible Controls'){
-      const panel = boxMesh(w*0.8, 0.14, 0.03, CABINET_TRIM, 0.4); panel.position.set(0, h-0.55, depth/2-0.02); g.add(panel);
+      const panel = boxMesh(w*0.8, 0.14, 0.03, CABINET_TRIM, 0.4); panel.position.set(0, cabH-0.4, depth/2-0.02); g.add(panel);
     }
   } else if(type==='Stove'){
     const cabH = Math.max(0.4, h-0.15);
@@ -1324,19 +1428,28 @@ function rebuildItemsList(){
       document.getElementById('pvPZ-'+it.id).textContent = it.iz.toFixed(1)+' ft';
       refreshAll();
     });
-    div.querySelector('.widthSlider').addEventListener('input', e=>{
+    const widthSlider = div.querySelector('.widthSlider');
+    widthSlider.addEventListener('input', e=>{
+      // 'input' fires continuously while dragging — only touch the label + 3D
+      // view here. Rebuilding the items list mid-drag would replace this very
+      // slider element and kill the browser's native drag, making it feel
+      // stuck/janky. The full panel (which needs the new offset-slider max
+      // etc) is refreshed on 'change' below, once the drag is released.
       const requested = parseFloat(e.target.value);
       it.width = maxNonCollidingWidth(it, requested);
       if(!it.isIsland) it.offset = safeWallOffset(it, it.offset);
       div.querySelector('.wVal2').textContent = it.width.toFixed(1)+' ft';
-      rebuildItemsList(); refreshAll();
+      rebuildRoom(); rebuildFurniture(); renderConsole(); renderEstimator();
     });
-    div.querySelector('.depthSlider').addEventListener('input', e=>{
+    widthSlider.addEventListener('change', ()=>{ rebuildItemsList(); refreshAll(); });
+    const depthSlider = div.querySelector('.depthSlider');
+    depthSlider.addEventListener('input', e=>{
       const requested = parseFloat(e.target.value);
       it.depth = maxNonCollidingDepth(it, requested);
       div.querySelector('.dVal2').textContent = it.depth.toFixed(1)+' ft';
-      rebuildItemsList(); refreshAll();
+      rebuildRoom(); rebuildFurniture(); renderConsole(); renderEstimator();
     });
+    depthSlider.addEventListener('change', ()=>{ rebuildItemsList(); refreshAll(); });
     div.querySelector('.heightSlider').addEventListener('input', e=>{
       it.height = parseFloat(e.target.value);
       div.querySelector('.hVal2').textContent = it.height.toFixed(1)+' ft';
@@ -1363,6 +1476,7 @@ function refreshAll(){
   rebuildRoom();
   rebuildFurniture();
   renderConsole();
+  renderEstimator();
   resize();
 }
 
@@ -1383,21 +1497,33 @@ function seed(){
     return it;
   }
   items = [
-    // back-left wall: fridge in the corner (deeper — real fridges run ~30in), sink directly adjacent
-    // -- these two, plus stove and fridge below, form the classic 4-9ft / 13-26ft NKBA work triangle
-    mk('Fridge',   {edge:0, offset:0.0, width:2.5, depth:2.5, height:6.0}),
-    mk('Sink',     {edge:0, offset:2.5, width:2.5, height:3.0}),
-    // left counter run: modular cabinet, dishwasher (sandwiched), modular cabinet (front end)
-    mk('Table',    {edge:3, offset:2.5, width:2.0, height:3.0}),
-    mk('Dishwasher',{edge:3, offset:4.5, width:2.0, height:3.0}),
-    mk('Table',    {edge:3, offset:6.5, width:2.0, height:3.0}),
-    // right counter run: oven/microwave near back corner, modular cabinet, stove, pantry at front end
+    // LEFT WALL (11ft) — filled edge-to-edge, zero leftover slab space.
+    // Fridge sits mid-run (offset 1.5 of 11) instead of jammed in the corner,
+    // so a tall unit never terminates the run right at a wall's edge.
+    mk('Table',    {edge:3, offset:0.0,  width:1.5, height:3.0}),
+    mk('Fridge',   {edge:3, offset:1.5,  width:2.5, depth:2.5, height:6.0}),
+    mk('Table',    {edge:3, offset:4.0,  width:3.0, height:3.0}),
+    mk('Table',    {edge:3, offset:7.0,  width:4.0, height:3.0}),
+
+    // BACK WALL (13ft) — filled edge-to-edge. Sink + dishwasher sit side by
+    // side for a real work zone; stove is close enough to the sink for the
+    // triangle to stay tight; pantry sits mid-run, clear of both corners.
+    mk('Table',    {edge:0, offset:0.0,  width:1.5, height:3.0}),
+    mk('Dishwasher',{edge:0, offset:1.5, width:2.0, height:3.0}),
+    mk('Sink',     {edge:0, offset:3.5,  width:2.5, height:3.0}),
+    mk('Table',    {edge:0, offset:6.0,  width:1.5, height:3.0}),
+    mk('Stove',    {edge:0, offset:7.5,  width:2.5, height:3.0}),
+    mk('Pantry',   {edge:0, offset:10.0, width:2.0, height:7.0}),
+    mk('Table',    {edge:0, offset:12.0, width:1.0, height:3.0}),
+
+    // RIGHT WALL (11ft) — filled edge-to-edge. Oven/microwave tower sits
+    // mid-run rather than at either end.
+    mk('Table',    {edge:1, offset:0.0,  width:2.0, height:3.0}),
     mk('Oven_Microwave',{edge:1, offset:2.0, width:2.5, height:6.0}),
-    mk('Table',    {edge:1, offset:4.5, width:2.0, height:3.0}),
-    mk('Stove',    {edge:1, offset:6.5, width:2.5, height:3.0}),
-    mk('Pantry',   {edge:1, offset:9.0, width:2.0, height:7.0})
+    mk('Table',    {edge:1, offset:4.5,  width:2.5, height:3.0}),
+    mk('Table',    {edge:1, offset:7.0,  width:4.0, height:3.0})
     // no island by default — it's an add-on: use "+ Add furniture" and check
-    // "Freestanding island" on the item (or add a Modular Cabinet, then check it)
+    // "Freestanding island" on the item (or add a Lower Cabinet, then check it)
   ];
   resolveAllCollisions();
 }
