@@ -181,7 +181,7 @@
       <h2>Generative solver</h2>
       <button class="dropdown-btn solve" id="solveBtn">&#9654; Refine current layout</button>
       <button class="dropdown-btn rand" id="randomBtn" style="margin-top:8px;">&#127922; Randomize to 100/100</button>
-      <div class="note">Refine mutates from where you are now. Randomize scrambles everything and re-searches (with restarts) until it finds a perfect score, like Galapagos/Refinery.</div>
+      <div class="note">Refine mutates from where you are now. Randomize scrambles everything and re-searches (with restarts) until it finds a perfect score, like Galapagos/Refinery. Either mode can add or remove lower cabinets to keep the counter run continuous, and keeps fridges/pantries off the wall corners.</div>
     </div>
 
     <div class="block">
@@ -372,6 +372,7 @@ const EDGE_NAMES = ["Back wall","Right wall","Front wall","Left wall"];
 const GRID = 0.5;
 const SNAP_THRESHOLD = 0.35;
 const COL_EPS = 0.03;
+const CORNER_CLEARANCE = 0.5; // ft — fridges/pantries keep this much run clear of where two walls meet
 const COUNTER_COLOR = 0xd7dadd;
 const CABINET_TRIM  = 0x15161a;
 const CABINET_UPPER = 0xe7ded0;
@@ -416,6 +417,18 @@ function wallAxisInfo(edge){
   return {axis:'z', origin:-halfD};
 }
 
+// True once an item's span comes within CORNER_CLEARANCE of either end of its wall — i.e. the
+// point where the room's walls meet. Fridges and pantries are kept out of that zone whenever the
+// wall is long enough to allow it; islands never count, since they don't sit against a wall.
+function isAtWallCorner(it){
+  if(it.isIsland) return false;
+  const wl = wallLength(it.edge);
+  const maxOff = Math.max(0, wl - it.width);
+  if(maxOff <= 1e-6) return true; // item spans the whole wall — both ends are unavoidably at a corner
+  return it.offset < CORNER_CLEARANCE - 1e-6 || (wl - (it.offset + it.width)) < CORNER_CLEARANCE - 1e-6;
+}
+function isCornerSensitive(it){ return !it.isIsland && (it.type==='Fridge' || it.type==='Pantry'); }
+
 /* ---------------- collision system (AABB in world XZ, uses per-instance depth) ---------------- */
 function computeAABBFor(width, depth, isIsland, edge, offset, ix, iz){
   let x,z;
@@ -448,7 +461,11 @@ function proposalCollides(it, proposal){
 function snapOffsetCandidate(item, raw){
   const wl = wallLength(item.edge);
   const maxOff = Math.max(0, wl - item.width);
-  let candidates = [0, maxOff];
+  // Fridge/pantry: keep candidates (including the raw wall-end snaps) out of the corner zone
+  // whenever the wall is long enough to give them somewhere else to go.
+  const avoidCorner = isCornerSensitive(item) && maxOff > CORNER_CLEARANCE*2;
+  const clampSafe = v => avoidCorner ? Math.min(Math.max(v, CORNER_CLEARANCE), maxOff - CORNER_CLEARANCE) : v;
+  let candidates = avoidCorner ? [] : [0, maxOff];
   if(snapEnabled){
     candidates.push(Math.round(raw/GRID)*GRID);
     items.forEach(other=>{
@@ -459,13 +476,13 @@ function snapOffsetCandidate(item, raw){
       candidates.push(other.offset + other.width - item.width);
     });
   }
-  let best = raw, bestDiff = snapEnabled ? SNAP_THRESHOLD : 0;
+  let best = clampSafe(raw), bestDiff = snapEnabled ? SNAP_THRESHOLD : 0;
   candidates.forEach(c=>{
-    const cc = Math.min(Math.max(c,0), maxOff);
+    const cc = clampSafe(Math.min(Math.max(c,0), maxOff));
     const diff = Math.abs(cc - raw);
     if(diff < bestDiff){ bestDiff = diff; best = cc; }
   });
-  return Math.min(Math.max(best,0), maxOff);
+  return clampSafe(Math.min(Math.max(best,0), maxOff));
 }
 function findNearestFreeOffset(item, raw){
   const wl = wallLength(item.edge);
@@ -560,7 +577,11 @@ function resolveAllCollisions(){
         it.ix = pos.x; it.iz = pos.z;
       } else {
         const maxOff = Math.max(0, wallLength(it.edge)-it.width);
-        it.offset = findNearestFreeOffset(it, Math.min(Math.max(it.offset,0),maxOff));
+        let target = Math.min(Math.max(it.offset,0),maxOff);
+        if(isCornerSensitive(it) && maxOff > CORNER_CLEARANCE*2){
+          target = Math.min(Math.max(target, CORNER_CLEARANCE), maxOff - CORNER_CLEARANCE);
+        }
+        it.offset = findNearestFreeOffset(it, target);
       }
     });
   }
@@ -611,8 +632,28 @@ function setView(name){
   camera.lookAt(controls.target);
   controls.update();
 }
+// The L/R buttons are meant to face the kitchen, not just an arbitrary side of the room.
+// The geometric left/right walls (edges 3/1) only carry cabinets in shapes that use them
+// (U-shape, L/U + island); in one-wall/galley/studio kitchens those walls are inactive and
+// looking straight down them from world -X/+X just shows the empty boundary of the room,
+// with the actual kitchen run (on the back/front wall) edge-on and unreadable. So: show the
+// true left/right wall face-on when it's part of the kitchen, otherwise fall back to an
+// angled iso view onto whichever wall the kitchen is actually built against.
+function resolveDirectionalView(name){
+  if(name!=='left' && name!=='right') return name;
+  const active = activeEdges();
+  if(name==='left'){
+    if(active.includes(3)) return 'left';
+    if(active.includes(2)) return 'iso-sw';
+    return 'iso-nw';
+  } else {
+    if(active.includes(1)) return 'right';
+    if(active.includes(2)) return 'iso-se';
+    return 'iso-ne';
+  }
+}
 document.querySelectorAll('#viewCube button').forEach(btn=>{
-  btn.addEventListener('click', ()=> setView(btn.dataset.view));
+  btn.addEventListener('click', ()=> setView(resolveDirectionalView(btn.dataset.view)));
 });
 
 scene.add(new THREE.HemisphereLight(0xaeb6c4, 0x2a2b2f, 0.9));
@@ -950,6 +991,30 @@ function centerOf(it){
 function dist2D(a,b){ return Math.sqrt((a.x-b.x)**2 + (a.z-b.z)**2); }
 function findType(t){ return items.find(i=>i.type===t); }
 
+// Free (uncovered) stretches of a wall's run, merging touching/overlapping items first.
+// Gaps smaller than minSize are ignored (not worth flagging or filling).
+function computeFreeGapsOnEdge(edge, minSize){
+  const wl = wallLength(edge);
+  const ivs = items.filter(i=>!i.isIsland && i.edge===edge).map(i=>[i.offset, i.offset+i.width]).sort((a,b)=>a[0]-b[0]);
+  const merged = [];
+  ivs.forEach(iv=>{
+    if(merged.length && iv[0] <= merged[merged.length-1][1] + 1e-6) merged[merged.length-1][1] = Math.max(merged[merged.length-1][1], iv[1]);
+    else merged.push(iv.slice());
+  });
+  let cursor = 0; const gaps = [];
+  merged.forEach(iv=>{
+    if(iv[0]-cursor > (minSize||0)) gaps.push([cursor, iv[0]]);
+    cursor = Math.max(cursor, iv[1]);
+  });
+  if(wl-cursor > (minSize||0)) gaps.push([cursor, wl]);
+  return gaps;
+}
+function totalOpenWallLength(){
+  let total = 0;
+  activeEdges().forEach(edge=> computeFreeGapsOnEdge(edge, 0.15).forEach(([a,b])=> total += (b-a)));
+  return total;
+}
+
 function evaluate(){
   const evals = [];
   const warnings = [];
@@ -1012,6 +1077,16 @@ function evaluate(){
     add('sink-stove-side-work-area', dd<1.2?6:dd>7?4:0, `dist:${dd.toFixed(2)}ft`);
   } else add('sink-stove-side-work-area', 0, 'inapplicable');
 
+  const cornerViolators = items.filter(i=> (i.type==='Fridge'||i.type==='Pantry') && isAtWallCorner(i));
+  add('no-fridge-pantry-at-corner', cornerViolators.length*20, `${cornerViolators.length} at a corner`);
+
+  const openWall = totalOpenWallLength();
+  // Deliberately uncapped: a capped penalty would let the solver "hide" a large gap once it's
+  // past the cap, making removal free and letting it strip cabinets it shouldn't. Scaling with
+  // the actual open footage keeps closing the gap worth it all the way, which is what actually
+  // keeps the counter run continuous as the room grows or shrinks.
+  add('countertop-continuity', Math.round(openWall*2.5), `${openWall.toFixed(1)}ft of open wall`);
+
   return {evals, warnings, score: Math.max(0, Math.round(100-totalPenalty))};
 }
 
@@ -1040,14 +1115,46 @@ function renderConsole(){
 }
 
 /* ---------------- generative solver (Problem -> Environment -> Evaluations -> Solution) ---------------- */
-function snapshotPositions(){
-  return items.map(it=>({id:it.id, edge:it.edge, offset:it.offset, ix:it.ix, iz:it.iz, isIsland:it.isIsland}));
+// Full-state snapshots (not just positions) — the solver can now add/remove items, so a
+// by-id position snapshot isn't enough to restore "best so far" once the item list itself
+// has changed size.
+function snapshotState(){
+  return items.map(it=>Object.assign({}, it));
 }
-function applySnapshot(snap){
-  snap.forEach(s=>{
-    const it = items.find(i=>i.id===s.id);
-    if(it){ it.edge=s.edge; it.offset=s.offset; it.ix=s.ix; it.iz=s.iz; it.isIsland=s.isIsland; }
+function applySnapshotState(snap){
+  items = snap.map(it=>Object.assign({}, it));
+  let maxId = 0;
+  items.forEach(it=>{ if(it.id>maxId) maxId = it.id; });
+  idCounter = Math.max(idCounter, maxId+1);
+}
+// Tries to insert a Lower Cabinet into the largest-enough open stretch of an active wall, so
+// the solver can grow the counter run to keep pace when the room gets bigger. Returns the new
+// item on success, or null if there's no open gap worth filling.
+function tryAddCabinetForGap(){
+  const ae = activeEdges();
+  const MIN_FILL = 1.0; // matches the width slider's minimum
+  let candidates = [];
+  ae.forEach(edge=>{
+    computeFreeGapsOnEdge(edge, 0).forEach(([a,b])=>{
+      if(b-a >= MIN_FILL) candidates.push({edge, start:a, end:b});
+    });
   });
+  if(!candidates.length) return null;
+  const g = candidates[Math.floor(Math.random()*candidates.length)];
+  const gapSize = g.end - g.start;
+  let width = Math.min(6, Math.round(gapSize/GRID)*GRID);
+  width = Math.min(width, gapSize);
+  if(width < MIN_FILL) return null;
+  const proposal = {isIsland:false, edge:g.edge, offset:g.start, width, depth:STANDARD_DEPTH};
+  if(proposalCollides({}, proposal)) return null; // corner/perpendicular-wall overlap near this gap
+  const newItem = Object.assign({
+    id: idCounter++, type:'Table', isIsland:false,
+    edge:g.edge, offset:g.start, ix:0, iz:0,
+    width, depth:STANDARD_DEPTH, height:COLORS.Table.h
+  }, defaultInstanceFields('Table'));
+  newItem.mark = 'K-'+String(newItem.id).padStart(2,'0');
+  items.push(newItem);
+  return newItem;
 }
 function randomProposalFor(it){
   if(it.isIsland){
@@ -1058,12 +1165,29 @@ function randomProposalFor(it){
     return {isIsland:true, ix:x, iz:z};
   } else {
     const ae = activeEdges();
-    const edge = ae[Math.floor(Math.random()*ae.length)];
-    const wl = wallLength(edge);
-    const maxOff = Math.max(0, wl-it.width);
-    let off = Math.round((Math.random()*maxOff)/GRID)*GRID;
-    off = Math.min(Math.max(off,0),maxOff);
-    return {isIsland:false, edge, offset:off};
+    const cornerSensitive = isCornerSensitive(it);
+    // Fridge/pantry: retry a few edge/offset picks looking for one clear of the corner zone
+    // before settling — keeps them off corners even during random search, not just scoring.
+    const tries = cornerSensitive ? 6 : 1;
+    let result = null;
+    for(let t=0; t<tries; t++){
+      const edge = ae[Math.floor(Math.random()*ae.length)];
+      const wl = wallLength(edge);
+      const maxOff = Math.max(0, wl-it.width);
+      let off = Math.round((Math.random()*maxOff)/GRID)*GRID;
+      off = Math.min(Math.max(off,0),maxOff);
+      if(cornerSensitive && maxOff > CORNER_CLEARANCE*2){
+        off = Math.min(Math.max(off, CORNER_CLEARANCE), maxOff - CORNER_CLEARANCE);
+        off = Math.round(off/GRID)*GRID;
+        off = Math.min(Math.max(off,0),maxOff);
+      }
+      result = {isIsland:false, edge, offset:off};
+      if(!cornerSensitive) break;
+      const touchesStart = off < CORNER_CLEARANCE;
+      const touchesEnd = (wl - (off+it.width)) < CORNER_CLEARANCE;
+      if(!touchesStart && !touchesEnd) break;
+    }
+    return result;
   }
 }
 function randomizeAllPositions(){
@@ -1089,8 +1213,11 @@ function beginSolverAttempt(){
   if(solverMode==='randomize') randomizeAllPositions();
   solverIter = 0; solverStopFlag = false;
   solverCurScore = evaluate().score;
-  if(solverAttempt===0){ solverBestScore = solverCurScore; solverBestSnap = snapshotPositions(); }
-  else if(solverCurScore > solverBestScore){ solverBestScore = solverCurScore; solverBestSnap = snapshotPositions(); }
+  if(solverAttempt===0){ solverBestScore = solverCurScore; solverBestSnap = snapshotState(); }
+  else if(solverCurScore > solverBestScore){ solverBestScore = solverCurScore; solverBestSnap = snapshotState(); }
+  // Sync the 3D view to this attempt's starting layout right away, so a randomize attempt
+  // doesn't briefly keep showing the previous layout before the first mutation batch runs.
+  rebuildFurniture(); renderConsole();
   updateSolverBadges();
   requestAnimationFrame(solverStep);
 }
@@ -1105,19 +1232,42 @@ function solverStep(){
   const batches = 8;
   for(let k=0; k<batches && solverIter<solverMaxIter && !solverStopFlag && solverBestScore<100; k++, solverIter++){
     const temperature = Math.max(0.03, 1 - solverIter/solverMaxIter);
-    const it = items[Math.floor(Math.random()*items.length)];
-    const proposal = randomProposalFor(it);
-    if(proposalCollides(it, proposal)) continue;
-    const backup = {edge:it.edge, offset:it.offset, ix:it.ix, iz:it.iz, isIsland:it.isIsland};
-    Object.assign(it, proposal);
+    const roll = Math.random();
+    let undo = null;
+
+    if(items.length>0 && roll < 0.7){
+      // Move: reposition one existing item.
+      const it = items[Math.floor(Math.random()*items.length)];
+      const proposal = randomProposalFor(it);
+      if(!proposal || proposalCollides(it, proposal)) continue;
+      const backup = {edge:it.edge, offset:it.offset, ix:it.ix, iz:it.iz, isIsland:it.isIsland};
+      Object.assign(it, proposal);
+      undo = ()=> Object.assign(it, backup);
+    } else if(roll < 0.85){
+      // Move: add a lower cabinet into an open wall gap — lets the layout grow to fill a
+      // larger room and keeps the countertop run continuous.
+      const added = tryAddCabinetForGap();
+      if(!added) continue;
+      undo = ()=>{ const idx = items.indexOf(added); if(idx>=0) items.splice(idx,1); };
+    } else {
+      // Move: remove a surplus lower cabinet — lets the layout shrink to fit when the room
+      // gets smaller, or clears clutter that isn't earning its keep.
+      const removable = items.filter(i=>i.type==='Table');
+      if(!removable.length) continue;
+      const victim = removable[Math.floor(Math.random()*removable.length)];
+      const idx = items.indexOf(victim);
+      items.splice(idx,1);
+      undo = ()=> items.splice(idx,0,victim);
+    }
+
     const newScore = evaluate().score;
     const delta = newScore - solverCurScore;
     const accept = delta >= 0 || Math.random() < Math.exp(delta/(temperature*12));
     if(accept){
       solverCurScore = newScore;
-      if(newScore > solverBestScore){ solverBestScore = newScore; solverBestSnap = snapshotPositions(); }
-    } else {
-      Object.assign(it, backup);
+      if(newScore > solverBestScore){ solverBestScore = newScore; solverBestSnap = snapshotState(); }
+    } else if(undo){
+      undo();
     }
   }
   rebuildFurniture();
@@ -1127,7 +1277,7 @@ function solverStep(){
 }
 
 function finishSolver(){
-  applySnapshot(solverBestSnap);
+  applySnapshotState(solverBestSnap);
   rebuildItemsList(); refreshAll();
   document.getElementById('sbEvalSub').textContent = 'done';
   document.getElementById('sbSolSub').textContent = solverBestScore>=100 ? 'perfect score found!' : 'best found after search';
