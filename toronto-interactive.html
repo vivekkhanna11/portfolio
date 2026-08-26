@@ -15,12 +15,6 @@
 html,body{height:100%;margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;}
 .app{width:100%;height:100vh;display:flex;flex-direction:column;background:var(--panel2);color:var(--text);overflow:hidden;}
 
-.tabbar{height:32px;flex:none;display:flex;align-items:flex-end;background:#141518;border-bottom:1px solid var(--border);padding-left:10px;}
-.tab{display:flex;align-items:center;gap:8px;padding:7px 14px;background:#1b1d22;border:1px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;font-size:12px;color:#c8ccd0;position:relative;top:1px;}
-.tab.active{background:#202329;color:#fff;}
-.tabdot{width:6px;height:6px;border-radius:50%;background:var(--accent);}
-.tabclose{color:#565a61;font-size:9px;margin-left:6px;}
-
 .main{flex:1;display:flex;min-height:0;}
 .leftpanel,.rightpanel{width:255px;flex:none;background:var(--panel);overflow-y:auto;padding:14px 13px;display:flex;flex-direction:column;gap:16px;transition:width .18s,padding .18s,opacity .18s;}
 .leftpanel{border-right:1px solid var(--border);}
@@ -97,9 +91,6 @@ html,body{height:100%;margin:0;background:var(--bg);font-family:-apple-system,Bl
 </head>
 <body>
 <div class="app">
-<div class="tabbar">
-<div class="tab active"><span class="tabdot"></span>Toronto.map<span class="tabclose">●</span></div>
-</div>
 
 <div class="main">
 <div class="leftpanel" id="leftpanel">
@@ -188,12 +179,12 @@ REAL TORONTO GEOGRAPHY (Fixed Official Boundary)
 ============================================================ */
 const TORONTO_BOUNDARY = [
   // West Boundary (Etobicoke Creek & Hwy 427)
-  [43.5810, -79.5410], // South-west corner (Lake Ontario)
+  [43.5810, -79.5410],
   [43.6060, -79.5530],
   [43.6350, -79.5760],
   [43.6820, -79.6050],
   [43.7140, -79.6200],
-  [43.7645, -79.6393], // North-west corner (Steeles & Hwy 50)
+  [43.7645, -79.6393],
 
   // North Boundary (Steeles Ave)
   [43.7675, -79.5855],
@@ -201,25 +192,25 @@ const TORONTO_BOUNDARY = [
   [43.7955, -79.4155],
   [43.8145, -79.3245],
   [43.8405, -79.2315],
-  [43.8554, -79.1169], // North-east corner (Pickering Border)
+  [43.8554, -79.1169],
 
   // East Boundary (Rouge River)
   [43.8340, -79.1150],
   [43.8120, -79.1180],
   [43.7950, -79.1230],
-  [43.7800, -79.1160], // South-east corner (Mouth of Rouge River)
+  [43.7800, -79.1160],
 
-  // South Boundary (Coastline & Islands - Hugs shore to remove "Red Area")
+  // South Boundary (Coastline & Islands)
   [43.7730, -79.1350],
   [43.7550, -79.1550],
   [43.7370, -79.1930],
   [43.7110, -79.2270],
   [43.6730, -79.2840],
   [43.6620, -79.3100],
-  [43.6250, -79.3300], // Start of Leslie Spit
-  [43.6120, -79.3360], // Tip of Leslie Spit
+  [43.6250, -79.3300],
+  [43.6120, -79.3360],
   [43.6200, -79.3500],
-  [43.6110, -79.3830], // Island South Tip (Gibraltar Point)
+  [43.6110, -79.3830],
   [43.6280, -79.4000],
   [43.6270, -79.4160],
   [43.6220, -79.4750],
@@ -273,22 +264,22 @@ const PLACES = {
 const OFFICIAL_ZBL_URL = 'https://map.toronto.ca/maps/map.jsp?app=ZBL_CONSULT';
 
 /* ============================================================
-UPDATED ZONE TYPES (Matched Exactly to Official Plan Colors)
+UPDATED ZONE TYPES
 ============================================================ */
 const ZONE_TYPES = [
 {id:'neighbourhoods', name:'Neighbourhoods', color:'#c9b23f', code:'RD', heightRange:[9,12], fsiRange:[0.45,0.75], coverage:'~33%',
   uses:['Detached & semi-detached dwellings','Duplex / triplex (gentle density)','Home occupations','Parks & schools (accessory)']},
- {id:'apartment', name:'Apartment Neighbourhoods', color:'#f26522', code:'RA', heightRange:[24,55], fsiRange:[1.5,3.0], coverage:'~40%',
-uses:['Apartment buildings','Multi-unit residential','Day nurseries','Local retail (ground floor)']},
+{id:'apartment', name:'Apartment Neighbourhoods', color:'#f26522', code:'RA', heightRange:[24,55], fsiRange:[1.5,3.0], coverage:'~40%',
+  uses:['Apartment buildings','Multi-unit residential','Day nurseries','Local retail (ground floor)']},
 {id:'mixeduse', name:'Mixed Use Areas', color:'#c9506a', code:'CR', heightRange:[40,150], fsiRange:[3.0,8.0], coverage:'~70%',
   uses:['Retail & service commercial','Office','Residential above grade','Entertainment & hotel']},
- {id:'employment', name:'Employment Areas', color:'#8a6fc9', code:'E', heightRange:[12,30], fsiRange:[1.0,2.0], coverage:'~55%',
+{id:'employment', name:'Employment Areas', color:'#8a6fc9', code:'E', heightRange:[12,30], fsiRange:[1.0,2.0], coverage:'~55%',
   uses:['Manufacturing & warehousing','Offices','Research & innovation','Utilities']},
- {id:'institutional', name:'Institutional Areas', color:'#4f9fc9', code:'I', heightRange:[15,40], fsiRange:[1.2,2.5], coverage:'~45%',
+{id:'institutional', name:'Institutional Areas', color:'#4f9fc9', code:'I', heightRange:[15,40], fsiRange:[1.2,2.5], coverage:'~45%',
   uses:['Schools & universities','Hospitals','Places of worship','Government facilities']},
- {id:'openspace', name:'Open Space', color:'#4f9f5c', code:'O', heightRange:[0,0], fsiRange:[0,0], coverage:'n/a',
+{id:'openspace', name:'Open Space', color:'#4f9f5c', code:'O', heightRange:[0,0], fsiRange:[0,0], coverage:'n/a',
   uses:['Parks & ravines','Golf courses','Cemeteries','Trails & natural heritage']},
- {id:'regeneration', name:'Regeneration Areas', color:'#7d8aa3', code:'RA-r', heightRange:[20,80], fsiRange:[2.0,5.0], coverage:'~60%',
+{id:'regeneration', name:'Regeneration Areas', color:'#7d8aa3', code:'RA-r', heightRange:[20,80], fsiRange:[2.0,5.0], coverage:'~60%',
   uses:['Waterfront redevelopment','Former industrial reuse','Mixed-use transition','Public realm improvement']}
 ];
 const ZT = Object.fromEntries(ZONE_TYPES.map(z=>[z.id,z]));
@@ -300,45 +291,64 @@ const WARD_BY_COUNCIL = {
 'Scarborough': ['Scarborough Southwest','Scarborough Centre','Scarborough North','Scarborough—Agincourt','Scarborough—Rouge Park','Scarborough—Guildwood']
 };
 
-// Procedural logic to generate a map that accurately resembles Map 1
+/* ============================================================
+DETERMINISTIC CLASSIFICATION LOGIC (Fixed Land Use Map 1 Anchor Nodes)
+============================================================ */
 function classify(lat,lng){
   const dDown = kmDist(lat,lng,DOWNTOWN[0],DOWNTOWN[1]);
 
-  // 1. Parks / Open Space (Green) - Major Ravines and Islands
+  // 1. Parks / Open Space (Green)
   const humberX = -79.49 - (lat-43.65)*0.1;
   const donX = -79.36 + (lat-43.65)*0.15;
-  if (Math.abs(lng - humberX) < 0.009) return 'openspace'; // Humber River
-  if (Math.abs(lng - donX) < 0.009) return 'openspace'; // Don River
-  if (kmDist(lat,lng,43.646,-79.463) < 1.2) return 'openspace'; // High Park
-  if (kmDist(lat,lng,43.81,-79.15) < 3.5 || lng > -79.16) return 'openspace'; // Rouge Park
-  if (lat < 43.635 && lng > -79.45 && lng < -79.30) return 'openspace'; // Islands & Spit
+  if (Math.abs(lng - humberX) < 0.009) return 'openspace';
+  if (Math.abs(lng - donX) < 0.009) return 'openspace';
+  if (kmDist(lat,lng,43.646,-79.463) < 1.2) return 'openspace';
+  if (kmDist(lat,lng,43.81,-79.15) < 3.5 || lng > -79.16) return 'openspace';
+  if (lat < 43.635 && lng > -79.45 && lng < -79.30) return 'openspace';
 
-  // 2. Employment (Purple) - Industrial Corridors
-  if (lat > 43.69 && lng < -79.56) return Math.random()<0.85?'employment':'mixeduse'; // Rexdale/Airport
-  if (lat > 43.73 && lat < 43.76 && lng > -79.50 && lng < -79.45) return 'employment'; // Downsview
-  if (lat > 43.79 && lng > -79.28 && lng < -79.21) return 'employment'; // Scarborough North
-  if (lat < 43.62 && lng < -79.50) return 'employment'; // South Etobicoke
+  // 2. Employment (Purple)
+  if (lat > 43.69 && lng < -79.56) return 'employment';
+  if (lat > 43.73 && lat < 43.76 && lng > -79.50 && lng < -79.45) return 'employment';
+  if (lat > 43.79 && lng > -79.28 && lng < -79.21) return 'employment';
+  if (lat < 43.62 && lng < -79.50) return 'employment';
 
   // 3. Institutional (Blue)
-  if (kmDist(lat,lng,43.773,-79.50) < 1.2) return 'institutional'; // York U
-  if (kmDist(lat,lng,43.66,-79.395) < 0.8) return 'institutional'; // U of T
+  if (kmDist(lat,lng,43.773,-79.50) < 1.2) return 'institutional';
+  if (kmDist(lat,lng,43.66,-79.395) < 0.8) return 'institutional';
 
-  // 4. Mixed Use (Red) & Apartments (Orange)
+  // 4. Mixed Use & Regeneration Areas (Downtown / Corridors)
   if (dDown < 2.5) {
-      const r = Math.random();
-      if(r<0.6) return 'mixeduse';
-      if(r<0.8) return 'apartment';
-      if(r<0.9) return 'institutional';
-      return 'regeneration'; // Downtown / Waterfront
+      if (lat < 43.642) return 'regeneration';
+      return 'mixeduse';
   }
-  // Major Roads (Yonge, Bloor, Eglinton, Sheppard)
-  if (Math.abs(lng - (-79.38 - (lat-43.65)*0.05)) < 0.006) return 'mixeduse'; // Yonge
-  if (Math.abs(lat - 43.67 - (lng+79.38)*0.1) < 0.004) return 'mixeduse'; // Bloor/Danforth
-  if (Math.abs(lat - 43.76 - (lng+79.40)*0.1) < 0.004) return Math.random()<0.7?'mixeduse':'apartment'; // Sheppard
-  
-  if (Math.random() < 0.06) return 'apartment'; // Random Apartment clusters
 
-  return 'neighbourhoods'; // Default (Yellow)
+  const isYonge = Math.abs(lng - (-79.38 - (lat-43.65)*0.05)) < 0.006;
+  const isBloor = Math.abs(lat - 43.67 - (lng+79.38)*0.1) < 0.004;
+  const isSheppard = Math.abs(lat - 43.76 - (lng+79.40)*0.1) < 0.004;
+  const isEglinton = Math.abs(lat - 43.70 - (lng+79.40)*0.05) < 0.004;
+
+  if (isYonge || isBloor) return 'mixeduse';
+
+  // Fixed Real-world Apartment Clusters (Orange - Map 1 Anchors)
+  const apartmentNodes = [
+    [43.778, -79.345], // Don Mills / Sheppard
+    [43.755, -79.290], // Victoria Park / Parkwoods
+    [43.740, -79.310], // Ellesmere / Warden
+    [43.705, -79.300], // Thorncliffe Park
+    [43.690, -79.520], // Dixon / Kipling
+    [43.715, -79.440], // Lawrence Heights
+    [43.760, -79.510], // Jane / Finch
+    [43.730, -79.220], // Scarborough Town / Markham Rd
+    [43.780, -79.250]  // Malvern
+  ];
+
+  for(const [aLat, aLng] of apartmentNodes){
+    if (kmDist(lat, lng, aLat, aLng) < 1.3) return 'apartment';
+  }
+
+  if (isSheppard || isEglinton) return 'apartment';
+
+  return 'neighbourhoods';
 }
 
 function council(lat,lng){
@@ -370,7 +380,7 @@ const cityBoundsPad = L.latLngBounds(TORONTO_BOUNDARY).pad(0.15);
 map.setMaxBounds(cityBoundsPad);
 
 /* ============================================================
-ZONING GRID (Preserved exactly to original sizes provided)
+DETERMINISTIC ZONING GRID
 ============================================================ */
 const stepLat = 0.0058, stepLng = 0.0078;
 const latMin=43.580, latMax=43.860, lngMin=-79.645, lngMax=-79.110; 
@@ -388,19 +398,23 @@ if(pointInPolygon(clat,clng,TORONTO_BOUNDARY)){
 insideGrid[r][c] = true;
 const cat = classify(clat,clng);
 const zt = ZT[cat];
-const height = zt.heightRange[1]>0 ? Math.round(zt.heightRange[0]+Math.random()*(zt.heightRange[1]-zt.heightRange[0])) : 0;
-const fsi = zt.fsiRange[1]>0 ? (zt.fsiRange[0]+Math.random()*(zt.fsiRange[1]-zt.fsiRange[0])).toFixed(2) : '0.00';
+
+// Coordinate pseudo-random seed to anchor static parameters across reload
+const seed = Math.abs(Math.sin(r * 12.9898 + c * 78.233) * 43758.5453) % 1;
+
+const height = zt.heightRange[1]>0 ? Math.round(zt.heightRange[0]+seed*(zt.heightRange[1]-zt.heightRange[0])) : 0;
+const fsi = zt.fsiRange[1]>0 ? (zt.fsiRange[0]+seed*(zt.fsiRange[1]-zt.fsiRange[0])).toFixed(2) : '0.00';
 const cc = council(clat,clng);
 
 const wardList = WARD_BY_COUNCIL[cc];
-const ward = wardList[Math.floor(Math.random()*wardList.length)];
-const walk = cat==='mixeduse'?Math.round(80+Math.random()*18):
-cat==='apartment'?Math.round(60+Math.random()*25):
-cat==='neighbourhoods'?Math.round(35+Math.random()*35):
-cat==='institutional'?Math.round(50+Math.random()*25):
-cat==='employment'?Math.round(25+Math.random()*25):
-cat==='regeneration'?Math.round(65+Math.random()*25): null;
-const transit = walk? Math.round(Math.min(99, walk*(0.8+Math.random()*0.25))) : null;
+const ward = wardList[Math.floor(seed*wardList.length)];
+const walk = cat==='mixeduse'?Math.round(80+seed*18):
+cat==='apartment'?Math.round(60+seed*25):
+cat==='neighbourhoods'?Math.round(35+seed*35):
+cat==='institutional'?Math.round(50+seed*25):
+cat==='employment'?Math.round(25+seed*25):
+cat==='regeneration'?Math.round(65+seed*25): null;
+const transit = walk? Math.round(Math.min(99, walk*(0.8+seed*0.25))) : null;
 
 cellProps[r][c] = {cat, zt, height, fsi, ward, council:cc, walk, transit,
 lat:clat.toFixed(4), lng:clng.toFixed(4), bounds:[[la,ln],[la+stepLat,ln+stepLng]]};
@@ -619,4 +633,3 @@ setTimeout(()=>map.invalidateSize(), 100);
 </script>
 </body>
 </html>
-```
