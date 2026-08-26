@@ -16,7 +16,7 @@ html,body{height:100%;margin:0;background:var(--bg);font-family:-apple-system,Bl
 .app{width:100%;height:100vh;display:flex;flex-direction:column;background:var(--panel2);color:var(--text);overflow:hidden;}
 
 .main{flex:1;display:flex;min-height:0;}
-.leftpanel,.rightpanel{width:255px;flex:none;background:var(--panel);overflow-y:auto;padding:14px 13px;display:flex;flex-direction:column;gap:16px;transition:width .18s,padding .18s,opacity .18s;}
+.leftpanel,.rightpanel{width:265px;flex:none;background:var(--panel);overflow-y:auto;padding:14px 13px;display:flex;flex-direction:column;gap:16px;transition:width .18s,padding .18s,opacity .18s;}
 .leftpanel{border-right:1px solid var(--border);}
 .rightpanel{border-left:1px solid var(--border);}
 .leftpanel.collapsed,.rightpanel.collapsed{width:0;padding:14px 0;opacity:0;overflow:hidden;}
@@ -33,7 +33,10 @@ html,body{height:100%;margin:0;background:var(--bg);font-family:-apple-system,Bl
 .legend-item:hover{background:#1f2126;}
 .legend-item.active{background:var(--accent-dim);color:var(--accent);}
 .swatch{width:12px;height:12px;border-radius:3px;flex:none;border:1px solid rgba(255,255,255,.15);}
+.swatch-line{width:16px;height:3px;border-radius:2px;flex:none;}
 .legend-count{margin-left:auto;color:var(--muted);font-size:10px;font-family:monospace;}
+
+.legend-section-label{font-size:9.5px;text-transform:uppercase;letter-spacing:0.8px;color:#8b939c;margin:10px 0 4px 6px;font-weight:600;}
 
 .note p{font-size:10.3px;color:var(--muted);line-height:1.55;margin:4px 0;}
 
@@ -58,10 +61,6 @@ html,body{height:100%;margin:0;background:var(--bg);font-family:-apple-system,Bl
 .leaflet-popup-content{font-size:12px;margin:9px 12px;line-height:1.5;}
 .leaflet-popup-content b{color:var(--accent);}
 .area-label{color:#9aa0a6;font-size:11px;letter-spacing:2.5px;font-weight:700;text-transform:uppercase;pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,.8);white-space:nowrap;}
-
-/* Line and Highway Label Styles */
-.line-label{background:rgba(15,16,19,0.85);border:1px solid var(--border2);border-radius:4px;padding:2px 6px;font-size:10px;font-weight:700;pointer-events:none;white-space:nowrap;box-shadow:0 2px 5px rgba(0,0,0,0.5);}
-.hwy-label{background:rgba(20,22,26,0.9);border:1px solid #3a3f47;color:#d0d4dc;border-radius:3px;padding:1px 5px;font-size:9.5px;font-weight:600;pointer-events:none;white-space:nowrap;}
 
 .osm-dark{ filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9) saturate(0.75); }
 
@@ -114,7 +113,7 @@ html,body{height:100%;margin:0;background:var(--bg);font-family:-apple-system,Bl
 <label class="lp-check"><input type="checkbox" id="layerBoundary" checked> City Boundary</label>
 </div>
 <div>
-<div class="panel-title">Land Use Legend <span style="font-weight:400;color:#4a4e54;">(click to isolate)</span></div>
+<div class="panel-title">Land Use &amp; Infrastructure Legend</div>
 <div id="legendList"></div>
 </div>
 </div>
@@ -240,15 +239,15 @@ function kmDist(lat1,lng1,lat2,lng2){
 const DOWNTOWN=[43.6532,-79.3832];
 
 /* ============================================================
-ACCURATE TORONTO TRANSIT NETWORK (Geographically Correct)
+ACCURATE TORONTO TRANSIT NETWORK (Geographically Correct Routes)
 ============================================================ */
 const LINE1 = {
-  color:'#f2c11e', width:5, name:'Line 1 Yonge–University', labelPos:[43.745, -79.407],
+  id:'line1', color:'#f2c11e', width:5, name:'Line 1 Yonge–University',
   stations:[
     ['Vaughan Metropolitan Centre',43.7943,-79.5273],['Highway 407',43.7836,-79.5234],['Pioneer Village',43.7769,-79.5097],
     ['York University',43.7742,-79.4998],['Finch West',43.7652,-79.4878],['Downsview Park',43.7538,-79.4784],
-    ['Sheppard West',43.7492,-79.4619],['Wilson',43.7347,-79.4501],['Yorkdale',43.7247,-79.4474],
-    ['Lawrence West',43.7156,-79.4441],['Glencairn',43.7087,-79.4407],['Eglinton West',43.6988,-79.4359],
+    ['Sheppard West',43.7492,-79.4619],['Wilson',43.7342,-79.4501],['Yorkdale',43.7247,-79.4474],
+    ['Lawrence West',43.7156,-79.4441],['Glencairn',43.7087,-79.4407],['Eglinton West',43.6992,-79.4358],
     ['St. Clair West',43.6838,-79.4151],['Dupont',43.6747,-79.4071],['Spadina',43.6672,-79.4038],
     ['St. George',43.6681,-79.3997],['Museum',43.6671,-79.3934],["Queen's Park",43.6599,-79.3906],
     ['St. Patrick',43.6548,-79.3883],['Osgoode',43.6503,-79.3867],['St. Andrew',43.6476,-79.3848],
@@ -262,7 +261,7 @@ const LINE1 = {
 };
 
 const LINE2 = {
-  color:'#2ea86f', width:5, name:'Line 2 Bloor–Danforth', labelPos:[43.686, -79.308],
+  id:'line2', color:'#2ea86f', width:5, name:'Line 2 Bloor–Danforth',
   stations:[
     ['Kipling',43.6375,-79.5356],['Islington',43.6453,-79.5244],['Royal York',43.6482,-79.5113],
     ['Old Mill',43.6498,-79.4943],['Jane',43.6501,-79.4791],['Runnymede',43.6517,-79.4756],
@@ -279,7 +278,7 @@ const LINE2 = {
 };
 
 const LINE4 = {
-  color:'#b5178f', width:5, name:'Line 4 Sheppard', labelPos:[43.771, -79.365],
+  id:'line4', color:'#b5178f', width:5, name:'Line 4 Sheppard',
   stations:[
     ['Sheppard-Yonge',43.7615,-79.4109],['Bayview',43.7668,-79.3867],
     ['Bessarion',43.7693,-79.3763],['Leslie',43.7714,-79.3656],['Don Mills',43.7753,-79.3463]
@@ -287,21 +286,21 @@ const LINE4 = {
 };
 
 const LINE5 = {
-  color:'#e0812a', width:4.5, name:'Line 5 Eglinton', labelPos:[43.712, -79.355],
+  id:'line5', color:'#e0812a', width:4.5, name:'Line 5 Eglinton LRT',
   stations:[
-    ['Mount Dennis',43.6879,-79.4859],['Keelesdale',43.6902,-79.4748],['Caledonia',43.6923,-79.4654],
-    ['Fairbank',43.6957,-79.4503],['Oakwood',43.6973,-79.4428],['Eglinton West',43.6988,-79.4359],
+    ['Mount Dennis',43.6879,-79.4859],['Keelesdale',43.6898,-79.4705],['Caledonia',43.6923,-79.4561],
+    ['Fairbank',43.6953,-79.4479],['Oakwood',43.6974,-79.4402],['Eglinton West',43.6992,-79.4358],
     ['Forest Hill',43.7011,-79.4149],['Chaplin',43.7027,-79.4042],['Avenue',43.7046,-79.4005],
-    ['Eglinton',43.7064,-79.3988],['Mount Pleasant',43.7084,-79.3892],['Leaside',43.7111,-79.3771],
-    ['Laird',43.7135,-79.3649],['Sunnybrook Park',43.7173,-79.3490],['Science Centre',43.7226,-79.3387],
-    ['Wynford',43.7240,-79.3268],['Aga Khan Park',43.7268,-79.3241],['Sloane',43.7275,-79.3138],
+    ['Eglinton',43.7064,-79.3988],['Mount Pleasant',43.7084,-79.3892],['Leaside',43.7099,-79.3688],
+    ['Laird',43.7120,-79.3621],['Sunnybrook Park',43.7183,-79.3533],['Science Centre',43.7226,-79.3387],
+    ['Wynford',43.7258,-79.3308],['Aga Khan Park',43.7268,-79.3241],['Sloane',43.7275,-79.3138],
     ['Golden Mile',43.7282,-79.2981],['Birchmount',43.7291,-79.2893],['Ionview',43.7302,-79.2801],
     ['Kennedy',43.7325,-79.2638]
   ]
 };
 
 const LINE6 = {
-  color:'#9aa0a6', width:3.5, dashed:true, name:'Line 6 Finch West LRT', labelPos:[43.754, -79.530],
+  id:'line6', color:'#00a3e0', width:3.5, dashed:true, name:'Line 6 Finch West LRT',
   stations:[
     ['Humber College',43.7286,-79.6053],['Westmore',43.7381,-79.5982],['Highway 27',43.7431,-79.5888],
     ['Martin Grove',43.7482,-79.5661],['Albion',43.7516,-79.5480],['Stevenson',43.7532,-79.5392],
@@ -317,7 +316,7 @@ ACCURATE TORONTO HIGHWAYS (Geographically Correct Alignment)
 ============================================================ */
 const HIGHWAYS = [
   {
-    name:'Gardiner Expressway', labelPos:[43.633, -79.440],
+    id:'hwy-gardiner', name:'Gardiner Expressway', color:'#a3a8b0',
     pts:[
       [43.6015,-79.5542],[43.6105,-79.5302],[43.6189,-79.5005],[43.6268,-79.4751],
       [43.6322,-79.4480],[43.6358,-79.4215],[43.6371,-79.3985],[43.6421,-79.3781],
@@ -325,14 +324,14 @@ const HIGHWAYS = [
     ]
   },
   {
-    name:'Don Valley Parkway (DVP)', labelPos:[43.6963, -79.3571],
+    id:'hwy-dvp', name:'Don Valley Parkway (DVP)', color:'#a3a8b0',
     pts:[
       [43.6515,-79.3438],[43.6582,-79.3521],[43.6685,-79.3582],[43.6853,-79.3588],
       [43.7021,-79.3565],[43.7172,-79.3421],[43.7385,-79.3362],[43.7621,-79.3385]
     ]
   },
   {
-    name:'Highway 401', labelPos:[43.728, -79.412],
+    id:'hwy-401', name:'Highway 401', color:'#a3a8b0',
     pts:[
       [43.6845,-79.6210],[43.7051,-79.5532],[43.7182,-79.4912],[43.7258,-79.4401],
       [43.7311,-79.4002],[43.7542,-79.3325],[43.7712,-79.2501],[43.7841,-79.1702],
@@ -340,13 +339,18 @@ const HIGHWAYS = [
     ]
   },
   {
-    name:'Highway 427', labelPos:[43.670, -79.562],
+    id:'hwy-427', name:'Highway 427', color:'#a3a8b0',
     pts:[
       [43.5852,-79.5445],[43.6125,-79.5531],[43.6481,-79.5622],[43.6852,-79.5712],
       [43.7155,-79.5821],[43.7512,-79.5935],[43.7781,-79.6012]
     ]
   },
-  
+  {
+    id:'hwy-allen', name:'Allen Road', color:'#a3a8b0',
+    pts:[
+      [43.6992,-79.4358],[43.7121,-79.4410],[43.7247,-79.4474],[43.7347,-79.4501],[43.7492,-79.4619]
+    ]
+  }
 ];
 
 const AREA_LABELS = [
@@ -579,43 +583,26 @@ color:'#5fd3a6', weight:1.6, opacity:.75, dashArray:'4 4', lineCap:'butt'
 
 /* ---- Highways ---- */
 const hwyGroup = L.layerGroup().addTo(map);
+const highwayPolylines = {};
+
 HIGHWAYS.forEach(h=>{
 L.polyline(h.pts, {color:'#050505', weight:5.5, opacity:.6, lineCap:'round', lineJoin:'round'}).addTo(hwyGroup);
-L.polyline(h.pts, {color:'#a3a8b0', weight:2.8, opacity:.85, dashArray:'4 6', lineCap:'round', lineJoin:'round'})
+const poly = L.polyline(h.pts, {color:h.color, weight:2.8, opacity:.85, dashArray:'4 6', lineCap:'round', lineJoin:'round'})
 .bindTooltip(h.name, {sticky:true}).addTo(hwyGroup);
-
-// Highway Map Label
-L.marker(h.labelPos, {
-  icon: L.divIcon({
-    className: 'hwy-label',
-    html: h.name,
-    iconSize: [120, 18],
-    iconAnchor: [60, 9]
-  }),
-  interactive: false
-}).addTo(hwyGroup);
+highwayPolylines[h.id] = poly;
 });
 
 /* ---- Transit ---- */
 const transitGroup = L.layerGroup().addTo(map);
 const interchangeSet = new Set(['Union','Bloor-Yonge','St. George','Sheppard-Yonge','Spadina','Kennedy','Eglinton West','Eglinton','Finch West']);
+const linePolylines = {};
 
 ALL_LINES.forEach(line=>{
 const latlngs = line.stations.map(s=>[s[1],s[2]]);
 L.polyline(latlngs, {color:'#0a0b0d', weight:line.width+3.2, opacity:0.85, lineCap:'round', lineJoin:'round'}).addTo(transitGroup);
-L.polyline(latlngs, {color:line.color, weight:line.width, opacity:line.dashed?0.85:0.98, dashArray:line.dashed?'7 6':null, lineCap:'round', lineJoin:'round'})
+const poly = L.polyline(latlngs, {color:line.color, weight:line.width, opacity:line.dashed?0.85:0.98, dashArray:line.dashed?'7 6':null, lineCap:'round', lineJoin:'round'})
 .bindTooltip(line.name).addTo(transitGroup);
-
-// Add Route Label directly onto Map
-L.marker(line.labelPos, {
-  icon: L.divIcon({
-    className: 'line-label',
-    html: `<span style="color:${line.color}">${line.name}</span>`,
-    iconSize: [140, 20],
-    iconAnchor: [70, 10]
-  }),
-  interactive: false
-}).addTo(transitGroup);
+linePolylines[line.id] = poly;
 
 line.stations.forEach(s=>{
 const isInterchange = interchangeSet.has(s[0]);
@@ -668,6 +655,8 @@ document.getElementById('zoomReset').onclick=()=>map.setView([43.715,-79.40],11)
 /* Legend */
 const legendList = document.getElementById('legendList');
 let activeFilter=null;
+
+// 1. Zoning Land Use Legend Items
 ZONE_TYPES.forEach(zt=>{
 const count = allZoneLayers.filter(r=>r.zoneProps.cat===zt.id).length;
 const div = document.createElement('div');
@@ -680,6 +669,44 @@ allZoneLayers.forEach(r=>{
 const match = !activeFilter || r.zoneProps.cat===activeFilter;
 r.setStyle({fillOpacity: match?0.5:0.06});
 });
+});
+legendList.appendChild(div);
+});
+
+// 2. Transit Network Lines Legend Section
+const transitHeader = document.createElement('div');
+transitHeader.className = 'legend-section-label';
+transitHeader.textContent = 'Subway & Transit Lines';
+legendList.appendChild(transitHeader);
+
+ALL_LINES.forEach(line=>{
+const div = document.createElement('div');
+div.className='legend-item';
+div.innerHTML = `<span class="swatch-line" style="background:${line.color}; ${line.dashed?'border-bottom:1px dashed #fff;':''}"></span><span>${line.name}</span>`;
+div.addEventListener('click', ()=>{
+if(linePolylines[line.id]){
+const poly = linePolylines[line.id];
+map.fitBounds(poly.getBounds().pad(0.2));
+}
+});
+legendList.appendChild(div);
+});
+
+// 3. Highways Legend Section
+const hwyHeader = document.createElement('div');
+hwyHeader.className = 'legend-section-label';
+hwyHeader.textContent = 'Highways';
+legendList.appendChild(hwyHeader);
+
+HIGHWAYS.forEach(h=>{
+const div = document.createElement('div');
+div.className='legend-item';
+div.innerHTML = `<span class="swatch-line" style="background:${h.color}; border-bottom:1px dashed #fff;"></span><span>${h.name}</span>`;
+div.addEventListener('click', ()=>{
+if(highwayPolylines[h.id]){
+const poly = highwayPolylines[h.id];
+map.fitBounds(poly.getBounds().pad(0.2));
+}
 });
 legendList.appendChild(div);
 });
