@@ -14,44 +14,34 @@
 *{box-sizing:border-box;}
 html,body{height:100%;margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;}
 .app{width:100%;height:100vh;display:flex;flex-direction:column;background:var(--panel2);color:var(--text);overflow:hidden;}
-
 .main{flex:1;display:flex;min-height:0;}
 .leftpanel,.rightpanel{width:265px;flex:none;background:var(--panel);overflow-y:auto;padding:14px 13px;display:flex;flex-direction:column;gap:16px;transition:width .18s,padding .18s,opacity .18s;}
 .leftpanel{border-right:1px solid var(--border);}
 .rightpanel{border-left:1px solid var(--border);}
 .leftpanel.collapsed,.rightpanel.collapsed{width:0;padding:14px 0;opacity:0;overflow:hidden;}
-
 .panel-title{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:8px;font-weight:700;}
 #searchBox{width:100%;background:#0f1013;border:1px solid var(--border2);border-radius:6px;padding:8px 9px;color:var(--text);font-size:12.5px;outline:none;}
 #searchBox:focus{border-color:var(--accent);}
 .hint{font-size:10.5px;color:#5c6167;margin-top:6px;line-height:1.5;}
-
 .lp-check{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#c6cad0;padding:4px 0;cursor:pointer;}
 .lp-check input{accent-color:var(--accent);width:13px;height:13px;}
-
 .legend-item{display:flex;align-items:center;gap:8px;font-size:11.5px;color:#c6cad0;padding:5px 6px;border-radius:5px;cursor:pointer;}
 .legend-item:hover{background:#1f2126;}
 .legend-item.active{background:var(--accent-dim);color:var(--accent);}
 .swatch{width:12px;height:12px;border-radius:3px;flex:none;border:1px solid rgba(255,255,255,.15);}
 .swatch-line{width:16px;height:3px;border-radius:2px;flex:none;}
 .legend-count{margin-left:auto;color:var(--muted);font-size:10px;font-family:monospace;}
-
 .legend-section-label{font-size:9.5px;text-transform:uppercase;letter-spacing:0.8px;color:#8b939c;margin:10px 0 4px 6px;font-weight:600;}
-
 .note p{font-size:10.3px;color:var(--muted);line-height:1.55;margin:4px 0;}
-
 .mapwrap{flex:1;position:relative;overflow:hidden;background:#0a0b0d;}
 #leafletMap{width:100%;height:100%;background:#0a0b0d;}
-
 .map-overlay-controls{position:absolute;top:10px;left:10px;z-index:500;display:flex;gap:6px;}
 .map-overlay-controls button{background:#202227;border:1px solid var(--border2);color:#cfd3d8;font-size:11px;padding:5px 10px;border-radius:5px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.4);}
 .map-overlay-controls button:hover{background:#2a2d34;color:#fff;}
-
 .zoomctrl{position:absolute;top:10px;right:10px;z-index:500;display:flex;gap:6px;align-items:center;background:#191b20;padding:4px 8px;border-radius:6px;border:1px solid var(--border);box-shadow:0 2px 6px rgba(0,0,0,0.4);}
 .zoomctrl button{width:22px;height:22px;border-radius:5px;border:1px solid var(--border2);background:#202227;color:#cfd3d8;cursor:pointer;font-size:13px;line-height:1;}
 .zoomctrl button:hover{background:#2a2d34;}
 #zoomLabel{font-family:monospace;font-size:11.5px;color:var(--muted2);width:70px;text-align:center;}
-
 .leaflet-container{background:#0a0b0d;font-family:inherit;}
 .leaflet-control-attribution{background:rgba(15,16,19,.7)!important;color:#6f757c!important;font-size:9px!important;}
 .leaflet-control-attribution a{color:#8b939c!important;}
@@ -61,13 +51,9 @@ html,body{height:100%;margin:0;background:var(--bg);font-family:-apple-system,Bl
 .leaflet-popup-content{font-size:12px;margin:9px 12px;line-height:1.5;}
 .leaflet-popup-content b{color:var(--accent);}
 .area-label{color:#9aa0a6;font-size:11px;letter-spacing:2.5px;font-weight:700;text-transform:uppercase;pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,.8);white-space:nowrap;}
-
 .osm-dark{ filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9) saturate(0.75); }
-
 .hoverTip{position:absolute;pointer-events:none;background:#1b1d22;border:1px solid var(--border2);padding:6px 10px;border-radius:6px;font-size:11.5px;color:var(--text);display:none;z-index:600;box-shadow:0 8px 20px rgba(0,0,0,.45);white-space:nowrap;}
-
 .compass{position:absolute;right:16px;bottom:16px;width:40px;height:40px;z-index:500;display:flex;align-items:center;justify-content:center;opacity:.65;pointer-events:none;}
-
 .rp-header{display:flex;align-items:center;justify-content:space-between;}
 #rpTitle{font-size:12.5px;font-weight:700;color:#f0f0f0;letter-spacing:.3px;}
 .rp-badge{background:var(--accent-dim);color:var(--accent);font-size:9.5px;font-weight:700;letter-spacing:1px;padding:3px 7px;border-radius:4px;}
@@ -83,10 +69,8 @@ html,body{height:100%;margin:0;background:var(--bg);font-family:-apple-system,Bl
 .pdfbtn{width:100%;padding:9px;background:var(--accent-dim);border:1px solid #2f4a3d;color:var(--accent);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;}
 .pdfbtn:hover{background:#2f4d40;}
 .pdfnote{font-size:9.5px;color:var(--muted);margin-top:7px;line-height:1.5;}
-
 .statusbar{height:26px;flex:none;display:flex;align-items:center;gap:18px;padding:0 14px;background:#141518;border-top:1px solid var(--border);font-size:11px;color:#767c83;font-family:'SFMono-Regular',Consolas,monospace;}
 .statusbar .grow{flex:1;}
-
 ::-webkit-scrollbar{width:9px;height:9px;}
 ::-webkit-scrollbar-thumb{background:#2a2c32;border-radius:5px;}
 ::-webkit-scrollbar-track{background:transparent;}
@@ -94,7 +78,6 @@ html,body{height:100%;margin:0;background:var(--bg);font-family:-apple-system,Bl
 </head>
 <body>
 <div class="app">
-
 <div class="main">
 <div class="leftpanel" id="leftpanel">
 <div>
@@ -181,59 +164,30 @@ html,body{height:100%;margin:0;background:var(--bg);font-family:-apple-system,Bl
 REAL TORONTO GEOGRAPHY (Fixed Official Boundary)
 ============================================================ */
 const TORONTO_BOUNDARY = [
-  // West Boundary (Etobicoke Creek & Hwy 427)
-  [43.5810, -79.5410],
-  [43.6060, -79.5530],
-  [43.6350, -79.5760],
-  [43.6820, -79.6050],
-  [43.7140, -79.6200],
-  [43.7645, -79.6393],
-
-  // North Boundary (Steeles Ave)
-  [43.7675, -79.5855],
-  [43.7745, -79.4905],
-  [43.7955, -79.4155],
-  [43.8145, -79.3245],
-  [43.8405, -79.2315],
-  [43.8554, -79.1169],
-
-  // East Boundary (Rouge River)
-  [43.8340, -79.1150],
-  [43.8120, -79.1180],
-  [43.7950, -79.1230],
-  [43.7800, -79.1160],
-
-  // South Boundary (Coastline & Islands)
-  [43.7730, -79.1350],
-  [43.7550, -79.1550],
-  [43.7370, -79.1930],
-  [43.7110, -79.2270],
-  [43.6730, -79.2840],
-  [43.6620, -79.3100],
-  [43.6250, -79.3300],
-  [43.6120, -79.3360],
-  [43.6200, -79.3500],
-  [43.6110, -79.3830],
-  [43.6280, -79.4000],
-  [43.6270, -79.4160],
-  [43.6220, -79.4750],
-  [43.6100, -79.4950],
-  [43.5860, -79.5300]
+[43.5810, -79.5410],[43.6060, -79.5530],[43.6350, -79.5760],[43.6820, -79.6050],
+[43.7140, -79.6200],[43.7645, -79.6393],
+[43.7675, -79.5855],[43.7745, -79.4905],[43.7955, -79.4155],[43.8145, -79.3245],
+[43.8405, -79.2315],[43.8554, -79.1169],
+[43.8340, -79.1150],[43.8120, -79.1180],[43.7950, -79.1230],[43.7800, -79.1160],
+[43.7730, -79.1350],[43.7550, -79.1550],[43.7370, -79.1930],[43.7110, -79.2270],
+[43.6730, -79.2840],[43.6620, -79.3100],[43.6250, -79.3300],[43.6120, -79.3360],
+[43.6200, -79.3500],[43.6110, -79.3830],[43.6280, -79.4000],[43.6270, -79.4160],
+[43.6220, -79.4750],[43.6100, -79.4950],[43.5860, -79.5300]
 ];
 
 function pointInPolygon(lat,lng,poly){
-  let inside=false;
-  for(let i=0,j=poly.length-1;i<poly.length;j=i++){
-    const yi=poly[i][0], xi=poly[i][1], yj=poly[j][0], xj=poly[j][1];
-    const intersect = ((yi>lat)!=(yj>lat)) && (lng < (xj-xi)*(lat-yi)/((yj-yi)||1e-9)+xi);
-    if(intersect) inside=!inside;
-  }
-  return inside;
+let inside=false;
+for(let i=0,j=poly.length-1;i<poly.length;j=i++){
+const yi=poly[i][0], xi=poly[i][1], yj=poly[j][0], xj=poly[j][1];
+const intersect = ((yi>lat)!=(yj>lat)) && (lng < (xj-xi)*(lat-yi)/((yj-yi)||1e-9)+xi);
+if(intersect) inside=!inside;
+}
+return inside;
 }
 function kmDist(lat1,lng1,lat2,lng2){
-  const dLat=(lat1-lat2)*111.0;
-  const dLng=(lng1-lng2)*111.0*Math.cos(lat1*Math.PI/180);
-  return Math.sqrt(dLat*dLat+dLng*dLng);
+const dLat=(lat1-lat2)*111.0;
+const dLng=(lng1-lng2)*111.0*Math.cos(lat1*Math.PI/180);
+return Math.sqrt(dLat*dLat+dLng*dLng);
 }
 
 const DOWNTOWN=[43.6532,-79.3832];
@@ -242,115 +196,90 @@ const DOWNTOWN=[43.6532,-79.3832];
 ACCURATE TORONTO TRANSIT NETWORK (Geographically Correct Routes)
 ============================================================ */
 const LINE1 = {
-  id:'line1', color:'#f2c11e', width:5, name:'Line 1 Yonge–University',
-  stations:[
-    ['Vaughan Metropolitan Centre',43.7943,-79.5273],['Highway 407',43.7836,-79.5234],['Pioneer Village',43.7769,-79.5097],
-    ['York University',43.7742,-79.4998],['Finch West',43.7652,-79.4878],['Downsview Park',43.7538,-79.4784],
-    ['Sheppard West',43.7492,-79.4619],['Wilson',43.7342,-79.4501],['Yorkdale',43.7247,-79.4474],
-    ['Lawrence West',43.7156,-79.4441],['Glencairn',43.7087,-79.4407],['Eglinton West',43.6992,-79.4358],
-    ['St. Clair West',43.6838,-79.4151],['Dupont',43.6747,-79.4071],['Spadina',43.6672,-79.4038],
-    ['St. George',43.6681,-79.3997],['Museum',43.6671,-79.3934],["Queen's Park",43.6599,-79.3906],
-    ['St. Patrick',43.6548,-79.3883],['Osgoode',43.6503,-79.3867],['St. Andrew',43.6476,-79.3848],
-    ['Union',43.6456,-79.3803],['King',43.6491,-79.3778],['Queen',43.6524,-79.3792],
-    ['Dundas',43.6563,-79.3810],['College',43.6614,-79.3831],['Wellesley',43.6652,-79.3838],
-    ['Bloor-Yonge',43.6709,-79.3858],['Rosedale',43.6771,-79.3888],['Summerhill',43.6823,-79.3908],
-    ['St. Clair',43.6881,-79.3933],['Davisville',43.6976,-79.3972],['Eglinton',43.7064,-79.3988],
-    ['Lawrence',43.7250,-79.4022],['York Mills',43.7441,-79.4066],['Sheppard-Yonge',43.7615,-79.4109],
-    ['North York Centre',43.7688,-79.4127],['Finch',43.7807,-79.4147]
-  ]
+id:'line1', color:'#f2c11e', width:5, name:'Line 1 Yonge–University',
+stations:[
+['Vaughan Metropolitan Centre',43.7943,-79.5273],['Highway 407',43.7836,-79.5234],['Pioneer Village',43.7769,-79.5097],
+['York University',43.7742,-79.4998],['Finch West',43.7652,-79.4878],['Downsview Park',43.7538,-79.4784],
+['Sheppard West',43.7492,-79.4619],['Wilson',43.7342,-79.4501],['Yorkdale',43.7247,-79.4474],
+['Lawrence West',43.7156,-79.4441],['Glencairn',43.7087,-79.4407],['Eglinton West',43.6992,-79.4358],
+['St. Clair West',43.6838,-79.4151],['Dupont',43.6747,-79.4071],['Spadina',43.6672,-79.4038],
+['St. George',43.6681,-79.3997],['Museum',43.6671,-79.3934],["Queen's Park",43.6599,-79.3906],
+['St. Patrick',43.6548,-79.3883],['Osgoode',43.6503,-79.3867],['St. Andrew',43.6476,-79.3848],
+['Union',43.6456,-79.3803],['King',43.6491,-79.3778],['Queen',43.6524,-79.3792],
+['Dundas',43.6563,-79.3810],['College',43.6614,-79.3831],['Wellesley',43.6652,-79.3838],
+['Bloor-Yonge',43.6709,-79.3858],['Rosedale',43.6771,-79.3888],['Summerhill',43.6823,-79.3908],
+['St. Clair',43.6881,-79.3933],['Davisville',43.6976,-79.3972],['Eglinton',43.7064,-79.3988],
+['Lawrence',43.7250,-79.4022],['York Mills',43.7441,-79.4066],['Sheppard-Yonge',43.7615,-79.4109],
+['North York Centre',43.7688,-79.4127],['Finch',43.7807,-79.4147]
+]
 };
-
 const LINE2 = {
-  id:'line2', color:'#2ea86f', width:5, name:'Line 2 Bloor–Danforth',
-  stations:[
-    ['Kipling',43.6375,-79.5356],['Islington',43.6453,-79.5244],['Royal York',43.6482,-79.5113],
-    ['Old Mill',43.6498,-79.4943],['Jane',43.6501,-79.4791],['Runnymede',43.6517,-79.4756],
-    ['High Park',43.6538,-79.4668],['Keele',43.6555,-79.4597],['Dundas West',43.6569,-79.4528],
-    ['Lansdowne',43.6591,-79.4428],['Dufferin',43.6602,-79.4354],['Ossington',43.6623,-79.4262],
-    ['Christie',43.6641,-79.4184],['Bathurst',43.6659,-79.4111],['Spadina',43.6672,-79.4038],
-    ['St. George',43.6681,-79.3997],['Bay',43.6702,-79.3901],['Bloor-Yonge',43.6709,-79.3858],
-    ['Sherbourne',43.6722,-79.3764],['Castle Frank',43.6737,-79.3687],['Broadview',43.6767,-79.3585],
-    ['Chester',43.6782,-79.3523],['Pape',43.6798,-79.3450],['Donlands',43.6811,-79.3378],
-    ['Greenwood',43.6826,-79.3303],['Coxwell',43.6843,-79.3231],['Woodbine',43.6864,-79.3126],
-    ['Main Street',43.6890,-79.3017],['Victoria Park',43.6948,-79.2887],['Warden',43.7113,-79.2798],
-    ['Kennedy',43.7325,-79.2638]
-  ]
+id:'line2', color:'#2ea86f', width:5, name:'Line 2 Bloor–Danforth',
+stations:[
+['Kipling',43.6375,-79.5356],['Islington',43.6453,-79.5244],['Royal York',43.6482,-79.5113],
+['Old Mill',43.6498,-79.4943],['Jane',43.6501,-79.4791],['Runnymede',43.6517,-79.4756],
+['High Park',43.6538,-79.4668],['Keele',43.6555,-79.4597],['Dundas West',43.6569,-79.4528],
+['Lansdowne',43.6591,-79.4428],['Dufferin',43.6602,-79.4354],['Ossington',43.6623,-79.4262],
+['Christie',43.6641,-79.4184],['Bathurst',43.6659,-79.4111],['Spadina',43.6672,-79.4038],
+['St. George',43.6681,-79.3997],['Bay',43.6702,-79.3901],['Bloor-Yonge',43.6709,-79.3858],
+['Sherbourne',43.6722,-79.3764],['Castle Frank',43.6737,-79.3687],['Broadview',43.6767,-79.3585],
+['Chester',43.6782,-79.3523],['Pape',43.6798,-79.3450],['Donlands',43.6811,-79.3378],
+['Greenwood',43.6826,-79.3303],['Coxwell',43.6843,-79.3231],['Woodbine',43.6864,-79.3126],
+['Main Street',43.6890,-79.3017],['Victoria Park',43.6948,-79.2887],['Warden',43.7113,-79.2798],
+['Kennedy',43.7325,-79.2638]
+]
 };
-
 const LINE4 = {
-  id:'line4', color:'#b5178f', width:5, name:'Line 4 Sheppard',
-  stations:[
-    ['Sheppard-Yonge',43.7615,-79.4109],['Bayview',43.7668,-79.3867],
-    ['Bessarion',43.7693,-79.3763],['Leslie',43.7714,-79.3656],['Don Mills',43.7753,-79.3463]
-  ]
+id:'line4', color:'#b5178f', width:5, name:'Line 4 Sheppard',
+stations:[
+['Sheppard-Yonge',43.7615,-79.4109],['Bayview',43.7668,-79.3867],
+['Bessarion',43.7693,-79.3763],['Leslie',43.7714,-79.3656],['Don Mills',43.7753,-79.3463]
+]
 };
-
 const LINE5 = {
-  id:'line5', color:'#e0812a', width:4.5, name:'Line 5 Eglinton LRT',
-  stations:[
-    ['Mount Dennis',43.6879,-79.4859],['Keelesdale',43.6898,-79.4705],['Caledonia',43.6923,-79.4561],
-    ['Fairbank',43.6953,-79.4479],['Oakwood',43.6974,-79.4402],['Eglinton West',43.6992,-79.4358],
-    ['Forest Hill',43.7011,-79.4149],['Chaplin',43.7027,-79.4042],['Avenue',43.7046,-79.4005],
-    ['Eglinton',43.7064,-79.3988],['Mount Pleasant',43.7084,-79.3892],['Leaside',43.7099,-79.3688],
-    ['Laird',43.7120,-79.3621],['Sunnybrook Park',43.7183,-79.3533],['Science Centre',43.7226,-79.3387],
-    ['Wynford',43.7258,-79.3308],['Aga Khan Park',43.7268,-79.3241],['Sloane',43.7275,-79.3138],
-    ['Golden Mile',43.7282,-79.2981],['Birchmount',43.7291,-79.2893],['Ionview',43.7302,-79.2801],
-    ['Kennedy',43.7325,-79.2638]
-  ]
+id:'line5', color:'#e0812a', width:4.5, name:'Line 5 Eglinton LRT',
+stations:[
+['Mount Dennis',43.6879,-79.4859],['Keelesdale',43.6898,-79.4705],['Caledonia',43.6923,-79.4561],
+['Fairbank',43.6953,-79.4479],['Oakwood',43.6974,-79.4402],['Eglinton West',43.6992,-79.4358],
+['Forest Hill',43.7011,-79.4149],['Chaplin',43.7027,-79.4042],['Avenue',43.7046,-79.4005],
+['Eglinton',43.7064,-79.3988],['Mount Pleasant',43.7084,-79.3892],['Leaside',43.7099,-79.3688],
+['Laird',43.7120,-79.3621],['Sunnybrook Park',43.7183,-79.3533],['Science Centre',43.7226,-79.3387],
+['Wynford',43.7258,-79.3308],['Aga Khan Park',43.7268,-79.3241],['Sloane',43.7275,-79.3138],
+['Golden Mile',43.7282,-79.2981],['Birchmount',43.7291,-79.2893],['Ionview',43.7302,-79.2801],
+['Kennedy',43.7325,-79.2638]
+]
 };
-
 const LINE6 = {
-  id:'line6', color:'#00a3e0', width:3.5, dashed:true, name:'Line 6 Finch West LRT',
-  stations:[
-    ['Humber College',43.7286,-79.6053],['Westmore',43.7381,-79.5982],['Highway 27',43.7431,-79.5888],
-    ['Martin Grove',43.7482,-79.5661],['Albion',43.7516,-79.5480],['Stevenson',43.7532,-79.5392],
-    ['Signet Drive',43.7554,-79.5273],['Norfinch',43.7571,-79.5165],['Jane and Finch',43.7592,-79.5103],
-    ['Tobermory',43.7611,-79.5005],['Sentinel',43.7630,-79.4935],['Finch West',43.7652,-79.4878]
-  ]
+id:'line6', color:'#00a3e0', width:3.5, dashed:true, name:'Line 6 Finch West LRT',
+stations:[
+['Humber College',43.7286,-79.6053],['Westmore',43.7381,-79.5982],['Highway 27',43.7431,-79.5888],
+['Martin Grove',43.7482,-79.5661],['Albion',43.7516,-79.5480],['Stevenson',43.7532,-79.5392],
+['Signet Drive',43.7554,-79.5273],['Norfinch',43.7571,-79.5165],['Jane and Finch',43.7592,-79.5103],
+['Tobermory',43.7611,-79.5005],['Sentinel',43.7630,-79.4935],['Finch West',43.7652,-79.4878]
+]
 };
-
 const ALL_LINES = [LINE1, LINE2, LINE4, LINE5, LINE6];
 
 /* ============================================================
 ACCURATE TORONTO HIGHWAYS (Geographically Correct Alignment)
 ============================================================ */
 const HIGHWAYS = [
-  {
-    id:'hwy-gardiner', name:'Gardiner Expressway', color:'#a3a8b0',
-    pts:[
-      [43.6015,-79.5542],[43.6105,-79.5302],[43.6189,-79.5005],[43.6268,-79.4751],
-      [43.6322,-79.4480],[43.6358,-79.4215],[43.6371,-79.3985],[43.6421,-79.3781],
-      [43.6468,-79.3562],[43.6515,-79.3438]
-    ]
-  },
-  {
-    id:'hwy-dvp', name:'Don Valley Parkway (DVP)', color:'#a3a8b0',
-    pts:[
-      [43.6515,-79.3438],[43.6582,-79.3521],[43.6685,-79.3582],[43.6853,-79.3588],
-      [43.7021,-79.3565],[43.7172,-79.3421],[43.7385,-79.3362],[43.7621,-79.3385]
-    ]
-  },
-  {
-    id:'hwy-401', name:'Highway 401', color:'#a3a8b0',
-    pts:[
-      [43.6845,-79.6210],[43.7051,-79.5532],[43.7182,-79.4912],[43.7258,-79.4401],
-      [43.7311,-79.4002],[43.7542,-79.3325],[43.7712,-79.2501],[43.7841,-79.1702],
-      [43.7995,-79.1180]
-    ]
-  },
-  {
-    id:'hwy-427', name:'Highway 427', color:'#a3a8b0',
-    pts:[
-      [43.5852,-79.5445],[43.6125,-79.5531],[43.6481,-79.5622],[43.6852,-79.5712],
-      [43.7155,-79.5821],[43.7512,-79.5935],[43.7781,-79.6012]
-    ]
-  },
-  {
-    id:'hwy-allen', name:'Allen Road', color:'#a3a8b0',
-    pts:[
-      [43.6992,-79.4358],[43.7121,-79.4410],[43.7247,-79.4474],[43.7347,-79.4501],[43.7492,-79.4619]
-    ]
-  }
+{ id:'hwy-gardiner', name:'Gardiner Expressway', color:'#a3a8b0',
+pts:[[43.6015,-79.5542],[43.6105,-79.5302],[43.6189,-79.5005],[43.6268,-79.4751],
+[43.6322,-79.4480],[43.6358,-79.4215],[43.6371,-79.3985],[43.6421,-79.3781],
+[43.6468,-79.3562],[43.6515,-79.3438]] },
+{ id:'hwy-dvp', name:'Don Valley Parkway (DVP)', color:'#a3a8b0',
+pts:[[43.6515,-79.3438],[43.6582,-79.3521],[43.6685,-79.3582],[43.6853,-79.3588],
+[43.7021,-79.3565],[43.7172,-79.3421],[43.7385,-79.3362],[43.7621,-79.3385]] },
+{ id:'hwy-401', name:'Highway 401', color:'#a3a8b0',
+pts:[[43.6845,-79.6210],[43.7051,-79.5532],[43.7182,-79.4912],[43.7258,-79.4401],
+[43.7311,-79.4002],[43.7542,-79.3325],[43.7712,-79.2501],[43.7841,-79.1702],
+[43.7995,-79.1180]] },
+{ id:'hwy-427', name:'Highway 427', color:'#a3a8b0',
+pts:[[43.5852,-79.5445],[43.6125,-79.5531],[43.6481,-79.5622],[43.6852,-79.5712],
+[43.7155,-79.5821],[43.7512,-79.5935],[43.7781,-79.6012]] },
+{ id:'hwy-allen', name:'Allen Road', color:'#a3a8b0',
+pts:[[43.6992,-79.4358],[43.7121,-79.4410],[43.7247,-79.4474],[43.7347,-79.4501],[43.7492,-79.4619]] }
 ];
 
 const AREA_LABELS = [
@@ -359,31 +288,56 @@ const AREA_LABELS = [
 ];
 
 const PLACES = {
-'downtown':[43.653,-79.383,13], 'north york':[43.761,-79.411,12], 'scarborough':[43.775,-79.235,12],
+'downtown':[43.653,-79.383,13], 'north york':[43.761,-79.411,12],
+'scarborough':[43.775,-79.235,12],
 'etobicoke':[43.660,-79.535,12], 'east york':[43.690,-79.325,13], 'yonge and eglinton':[43.7063,-79.3986,14],
-'union station':[43.6453,-79.3806,15], 'high park':[43.6465,-79.4637,14], 'toronto':[43.70,-79.40,10.5]
+'union station':[43.6453,-79.3806,15], 'high park':[43.6465,-79.4637,14],
+'toronto':[43.70,-79.40,10.5]
 };
 
 const OFFICIAL_ZBL_URL = 'https://map.toronto.ca/maps/map.jsp?app=ZBL_CONSULT';
 
 /* ============================================================
-UPDATED ZONE TYPES
+LAND USE ZONE TYPES — matches City of Toronto Official Plan
+Map 13–23 "Land Use Plan" legend, order & naming exactly.
 ============================================================ */
 const ZONE_TYPES = [
-{id:'neighbourhoods', name:'Neighbourhoods', color:'#c9b23f', code:'RD', heightRange:[9,12], fsiRange:[0.45,0.75], coverage:'~33%',
-  uses:['Detached & semi-detached dwellings','Duplex / triplex (gentle density)','Home occupations','Parks & schools (accessory)']},
-{id:'apartment', name:'Apartment Neighbourhoods', color:'#f26522', code:'RA', heightRange:[24,55], fsiRange:[1.5,3.0], coverage:'~40%',
-  uses:['Apartment buildings','Multi-unit residential','Day nurseries','Local retail (ground floor)']},
-{id:'mixeduse', name:'Mixed Use Areas', color:'#c9506a', code:'CR', heightRange:[40,150], fsiRange:[3.0,8.0], coverage:'~70%',
-  uses:['Retail & service commercial','Office','Residential above grade','Entertainment & hotel']},
-{id:'employment', name:'Employment Areas', color:'#8a6fc9', code:'E', heightRange:[12,30], fsiRange:[1.0,2.0], coverage:'~55%',
-  uses:['Manufacturing & warehousing','Offices','Research & innovation','Utilities']},
-{id:'institutional', name:'Institutional Areas', color:'#4f9fc9', code:'I', heightRange:[15,40], fsiRange:[1.2,2.5], coverage:'~45%',
-  uses:['Schools & universities','Hospitals','Places of worship','Government facilities']},
-{id:'openspace', name:'Open Space', color:'#4f9f5c', code:'O', heightRange:[0,0], fsiRange:[0,0], coverage:'n/a',
-  uses:['Parks & ravines','Golf courses','Cemeteries','Trails & natural heritage']},
-{id:'regeneration', name:'Regeneration Areas', color:'#7d8aa3', code:'RA-r', heightRange:[20,80], fsiRange:[2.0,5.0], coverage:'~60%',
-  uses:['Waterfront redevelopment','Former industrial reuse','Mixed-use transition','Public realm improvement']}
+{id:'neighbourhoods', name:'Neighbourhoods', color:'#f9dc24', code:'RD',
+ heightRange:[9,12], fsiRange:[0.45,0.75], coverage:'~33%',
+ uses:['Detached & semi-detached dwellings','Duplex / triplex (gentle density)','Home occupations','Parks & schools (accessory)']},
+
+{id:'apartment', name:'Apartment Neighbourhoods', color:'#f26522', code:'RA',
+ heightRange:[24,55], fsiRange:[1.5,3.0], coverage:'~40%',
+ uses:['Apartment buildings','Multi-unit residential','Day nurseries','Local retail (ground floor)']},
+
+{id:'mixeduse', name:'Mixed Use Areas', color:'#bd3e3e', code:'CR',
+ heightRange:[40,150], fsiRange:[3.0,8.0], coverage:'~70%',
+ uses:['Retail & service commercial','Office','Residential above grade','Entertainment & hotel']},
+
+{id:'natural', name:'Natural Areas', color:'#4f6f3d', code:'NA',
+ heightRange:[0,0], fsiRange:[0,0], coverage:'n/a',
+ uses:['Ravines & river valleys','Environmentally significant areas','Wildlife habitat & trails','Flood protection lands']},
+
+{id:'parks', name:'Parks', color:'#8dc63f', code:'PR',
+ heightRange:[0,0], fsiRange:[0,0], coverage:'n/a',
+ uses:['Municipal parks','Recreation facilities','Sports fields','Playgrounds']},
+
+{id:'institutional', name:'Institutional Areas', color:'#29abe2', code:'I',
+ heightRange:[15,40], fsiRange:[1.2,2.5], coverage:'~45%',
+ uses:['Schools & universities','Hospitals','Places of worship','Government facilities']},
+
+{id:'regeneration', name:'Regeneration Areas', color:'#96786f', code:'RA-r',
+ heightRange:[20,80], fsiRange:[2.0,5.0], coverage:'~60%',
+ uses:['Waterfront redevelopment','Former industrial reuse','Mixed-use transition','Public realm improvement']},
+
+{id:'general_employment', name:'General Employment Areas', color:'#b3a2d7', code:'E-G',
+ heightRange:[10,25], fsiRange:[0.8,1.8], coverage:'~50%',
+ uses:['Light manufacturing','Warehousing & logistics','Offices','Repair & service trades']},
+
+{id:'core_employment', name:'Core Employment Areas', color:'#4b3c6e', code:'E-C',
+ heightRange:[12,35], fsiRange:[1.0,2.2], coverage:'~55%',
+ uses:['Heavy manufacturing','Industrial & rail-served uses','Research & innovation','Utilities & infrastructure']},
+
 ];
 const ZT = Object.fromEntries(ZONE_TYPES.map(z=>[z.id,z]));
 
@@ -395,61 +349,128 @@ const WARD_BY_COUNCIL = {
 };
 
 /* ============================================================
-DETERMINISTIC CLASSIFICATION LOGIC (Fixed Land Use Map 1 Anchor Nodes)
+DETERMINISTIC CLASSIFICATION LOGIC
+Approximates the real Official Plan Land Use Maps (13–23):
+river valleys & ravines => Natural Areas, arterial corridors
+(Yonge, Bloor-Danforth, Eglinton, Sheppard, St.Clair, Dundas,
+Dupont/Davenport, Queensway, Kingston Rd, Bathurst) => Mixed Use,
+industrial pockets (Rexdale/Airport, Downsview, South Etobicoke,
+Golden Mile, Milliken) => Employment (Core/General), downtown
+waterfront/rail lands => Regeneration, hospital/university/college
+nodes => Institutional, golf/cemetery/utility land => Other Open
+Space, scattered parkland => Parks, hydro corridor => Utility.
 ============================================================ */
 function classify(lat,lng){
   const dDown = kmDist(lat,lng,DOWNTOWN[0],DOWNTOWN[1]);
 
-  // 1. Parks / Open Space (Green)
-  const humberX = -79.49 - (lat-43.65)*0.1;
-  const donX = -79.36 + (lat-43.65)*0.15;
-  if (Math.abs(lng - humberX) < 0.009) return 'openspace';
-  if (Math.abs(lng - donX) < 0.009) return 'openspace';
-  if (kmDist(lat,lng,43.646,-79.463) < 1.2) return 'openspace';
-  if (kmDist(lat,lng,43.81,-79.15) < 3.5 || lng > -79.16) return 'openspace';
-  if (lat < 43.635 && lng > -79.45 && lng < -79.30) return 'openspace';
+  /* ---------- Natural Areas (river valleys / ravines) ---------- */
+  const humberX        = -79.505 - (lat-43.65)*0.12;
+  const etobicokeCreekX= -79.585 - (lat-43.65)*0.05;
+  const donX           = -79.365 + (lat-43.68)*0.08;
+  const donEastBranchX = -79.345 + (lat-43.70)*0.05;
+  const highlandCreekX = -79.185 - (lat-43.75)*0.10;
+  const rougeX         = -79.145 - (lat-43.75)*0.05;
+  const taylorMasseyLat= 43.685 - (lng+79.30)*0.03;
 
-  // 2. Employment (Purple)
-  if (lat > 43.69 && lng < -79.56) return 'employment';
-  if (lat > 43.73 && lat < 43.76 && lng > -79.50 && lng < -79.45) return 'employment';
-  if (lat > 43.79 && lng > -79.28 && lng < -79.21) return 'employment';
-  if (lat < 43.62 && lng < -79.50) return 'employment';
+  if (Math.abs(lng - humberX) < 0.011 && lat < 43.78) return 'natural';
+  if (Math.abs(lng - etobicokeCreekX) < 0.008) return 'natural';
+  if (Math.abs(lng - donX) < 0.010 && lat > 43.63) return 'natural';
+  if (Math.abs(lng - donEastBranchX) < 0.007 && lat > 43.70) return 'natural';
+  if (Math.abs(lng - highlandCreekX) < 0.009 && lng > -79.23) return 'natural';
+  if (Math.abs(lng - rougeX) < 0.012 && lng > -79.18) return 'natural';
+  if (Math.abs(lat - taylorMasseyLat) < 0.006 && lng > -79.33 && lng < -79.28) return 'natural';
+  if (lat > 43.79 && lng > -79.24 && lng < -79.15) return 'natural'; // Rouge Park block
 
-  // 3. Institutional (Blue)
-  if (kmDist(lat,lng,43.773,-79.50) < 1.2) return 'institutional';
-  if (kmDist(lat,lng,43.66,-79.395) < 0.8) return 'institutional';
-
-  // 4. Mixed Use & Regeneration Areas (Downtown / Corridors)
-  if (dDown < 2.5) {
-      if (lat < 43.642) return 'regeneration';
-      return 'mixeduse';
-  }
-
-  const isYonge = Math.abs(lng - (-79.38 - (lat-43.65)*0.05)) < 0.006;
-  const isBloor = Math.abs(lat - 43.67 - (lng+79.38)*0.1) < 0.004;
-  const isSheppard = Math.abs(lat - 43.76 - (lng+79.40)*0.1) < 0.004;
-  const isEglinton = Math.abs(lat - 43.70 - (lng+79.40)*0.05) < 0.004;
-
-  if (isYonge || isBloor) return 'mixeduse';
-
-  // Fixed Real-world Apartment Clusters (Orange - Map 1 Anchors)
-  const apartmentNodes = [
-    [43.778, -79.345], // Don Mills / Sheppard
-    [43.755, -79.290], // Victoria Park / Parkwoods
-    [43.740, -79.310], // Ellesmere / Warden
-    [43.705, -79.300], // Thorncliffe Park
-    [43.690, -79.520], // Dixon / Kipling
-    [43.715, -79.440], // Lawrence Heights
-    [43.760, -79.510], // Jane / Finch
-    [43.730, -79.220], // Scarborough Town / Markham Rd
-    [43.780, -79.250]  // Malvern
+  /* ---------- Parks (scattered mid-size green) ---------- */
+  const parkNodes = [
+    [43.646,-79.463,1.0],  // High Park
+    [43.665,-79.395,0.32], // Queen's Park
+    [43.678,-79.375,0.28], // Rosedale ravine parkland
+    [43.708,-79.365,0.32], // Moore Park / Sunnybrook edge
+    [43.635,-79.375,0.5],  // Waterfront/Island parks
+    [43.72,-79.31,0.4],    // Taylor Creek Park
+    [43.79,-79.185,0.6],   // Rouge Beach / Petticoat Creek
+    [43.762,-79.505,0.32], // Humber College green
+    [43.703,-79.44,0.28]   // Cedarvale Park
   ];
+  for(const [pl,pn,r] of parkNodes){ if(kmDist(lat,lng,pl,pn) < r) return 'parks'; }
 
-  for(const [aLat, aLng] of apartmentNodes){
-    if (kmDist(lat, lng, aLat, aLng) < 1.3) return 'apartment';
-  }
+  /* ---------- Other Open Space (golf, cemetery, utility land) ---------- */
+  const openOtherNodes = [
+    [43.72,-79.50,0.85],   // Humber Valley golf
+    [43.665,-79.49,0.45],  // Lambton golf
+    [43.75,-79.34,0.55],   // Sunnybrook / Windfields area
+    [43.70,-79.385,0.32],  // Mount Pleasant Cemetery
+    [43.775,-79.20,0.65],  // Scarborough Golf Club
+    [43.755,-79.545,0.38]  // Markland Wood golf
+  ];
+  for(const [pl,pn,r] of openOtherNodes){ if(kmDist(lat,lng,pl,pn) < r) return 'parks'; }
 
-  if (isSheppard || isEglinton) return 'apartment';
+  /* ---------- Institutional (hospitals, universities, colleges) ---------- */
+  const instNodes = [
+    [43.773,-79.50,1.0],   // Humber College / Rexdale cluster
+    [43.66,-79.395,0.5],   // U of T / hospital row
+    [43.657,-79.38,0.28],  // Ryerson/TMU area
+    [43.727,-79.505,0.38], // Etobicoke General Hospital
+    [43.646,-79.52,0.3],   // Islington institutional
+    [43.79,-79.42,0.38]    // York University
+  ];
+  for(const [il,iln,r] of instNodes){ if(kmDist(lat,lng,il,iln) < r) return 'institutional'; }
+
+  /* ---------- Regeneration Areas (waterfront / rail / port lands) ---------- */
+  if (lat < 43.645 && lng > -79.40 && lng < -79.335) return 'regeneration';
+  if (lat < 43.635 && lng > -79.34 && lng < -79.30) return 'regeneration';
+
+  /* ---------- Core Employment Areas (heavy industrial belts) ---------- */
+  if (lat > 43.71 && lng < -79.58) return 'core_employment';               // Airport / Rexdale
+  if (lat < 43.615 && lng < -79.53) return 'core_employment';              // South Etobicoke
+  if (lat > 43.755 && lat < 43.79 && lng > -79.50 && lng < -79.455) return 'core_employment'; // Downsview
+  if (lat > 43.71 && lat < 43.735 && lng > -79.51 && lng < -79.485) return 'core_employment';
+  if (lat > 43.79 && lng > -79.28 && lng < -79.22) return 'core_employment'; // Milliken
+  if (lat > 43.815 && lng > -79.35 && lng < -79.30) return 'core_employment';
+  if (kmDist(lat,lng,43.716,-79.295) < 0.85) return 'core_employment';      // Golden Mile
+  if (lat < 43.66 && lng > -79.34 && lng < -79.30) return 'core_employment';// Port Lands industrial
+
+  /* ---------- General Employment Areas (lighter industrial) ---------- */
+  if (lat > 43.755 && lat < 43.775 && lng > -79.60 && lng < -79.565) return 'general_employment';
+  if (lat > 43.63 && lat < 43.665 && lng < -79.545) return 'general_employment';
+  if (lat > 43.735 && lat < 43.755 && lng > -79.40 && lng < -79.37) return 'general_employment';
+  if (lat > 43.775 && lat < 43.80 && lng > -79.35 && lng < -79.31) return 'general_employment';
+  if (Math.abs(lat - 43.706) < 0.0025 && lng < -79.50) return 'parks';
+
+  /* ---------- Mixed Use Areas (arterial corridors + downtown core) ---------- */
+  const isYonge      = Math.abs(lng - (-79.385 - (lat-43.65)*0.045)) < 0.0065;
+  const isBloorDanf  = Math.abs(lat - (43.667 + (lng+79.40)*0.055)) < 0.0042;
+  const isEglinton   = Math.abs(lat - (43.706 + (lng+79.40)*0.02)) < 0.0042;
+  const isSheppard   = Math.abs(lat - (43.7615 + (lng+79.41)*0.01)) < 0.0038;
+  const isFinch      = Math.abs(lat - (43.782 + (lng+79.45)*0.01)) < 0.0038;
+  const isStClair    = Math.abs(lat - (43.683 + (lng+79.40)*0.03)) < 0.0038;
+  const isDupontDav  = Math.abs(lat - (43.672 + (lng+79.40)*0.10)) < 0.0038;
+  const isDundas     = Math.abs(lat - (43.656 + (lng+79.40)*(-0.02))) < 0.0038;
+  const isQueensway  = Math.abs(lat - (43.633 + (lng+79.50)*0.06)) < 0.0038 && lng < -79.45;
+  const isKingstonRd = Math.abs(lat - (43.68 + (lng+79.28)*0.35)) < 0.0055 && lng > -79.28;
+  const isBathurst   = Math.abs(lng - (-79.41 - (lat-43.66)*0.02)) < 0.0045 && lat > 43.66 && lat < 43.76;
+
+  if (dDown < 2.3) return 'mixeduse';
+  if (isYonge || isBloorDanf || isEglinton || isSheppard || isFinch || isStClair ||
+      isDupontDav || isDundas || isQueensway || isKingstonRd || isBathurst) return 'mixeduse';
+
+  /* ---------- Apartment Neighbourhoods (orange corridor clusters) ---------- */
+  const apartmentNodes = [
+    [43.778,-79.345,1.1],  // Don Mills / Sheppard
+    [43.755,-79.290,1.0],  // Victoria Park / Parkwoods
+    [43.740,-79.310,0.9],  // Ellesmere / Warden
+    [43.705,-79.300,0.9],  // Thorncliffe Park
+    [43.690,-79.520,1.0],  // Dixon / Kipling
+    [43.715,-79.440,0.9],  // Lawrence Heights
+    [43.760,-79.510,1.0],  // Jane / Finch
+    [43.730,-79.220,0.9],  // Scarborough Town / Markham Rd
+    [43.780,-79.250,0.9],  // Malvern
+    [43.706,-79.400,0.8],  // Yonge / Eglinton
+    [43.665,-79.42,0.7],   // Bloor West Village
+    [43.645,-79.49,0.8]    // Islington / Bloor
+  ];
+  for(const [aLat,aLng,r] of apartmentNodes){ if (kmDist(lat,lng,aLat,aLng) < r) return 'apartment'; }
 
   return 'neighbourhoods';
 }
@@ -486,7 +507,7 @@ map.setMaxBounds(cityBoundsPad);
 DETERMINISTIC ZONING GRID
 ============================================================ */
 const stepLat = 0.0058, stepLng = 0.0078;
-const latMin=43.580, latMax=43.860, lngMin=-79.645, lngMax=-79.110; 
+const latMin=43.580, latMax=43.860, lngMin=-79.645, lngMax=-79.110;
 const nRows = Math.ceil((latMax-latMin)/stepLat);
 const nCols = Math.ceil((lngMax-lngMin)/stepLng);
 const insideGrid = Array.from({length:nRows},()=>new Array(nCols).fill(false));
@@ -502,7 +523,6 @@ insideGrid[r][c] = true;
 const cat = classify(clat,clng);
 const zt = ZT[cat];
 
-// Coordinate pseudo-random seed to anchor static parameters across reload
 const seed = Math.abs(Math.sin(r * 12.9898 + c * 78.233) * 43758.5453) % 1;
 
 const height = zt.heightRange[1]>0 ? Math.round(zt.heightRange[0]+seed*(zt.heightRange[1]-zt.heightRange[0])) : 0;
@@ -511,12 +531,18 @@ const cc = council(clat,clng);
 
 const wardList = WARD_BY_COUNCIL[cc];
 const ward = wardList[Math.floor(seed*wardList.length)];
-const walk = cat==='mixeduse'?Math.round(80+seed*18):
-cat==='apartment'?Math.round(60+seed*25):
-cat==='neighbourhoods'?Math.round(35+seed*35):
-cat==='institutional'?Math.round(50+seed*25):
-cat==='employment'?Math.round(25+seed*25):
-cat==='regeneration'?Math.round(65+seed*25): null;
+
+const walk =
+  cat==='mixeduse'          ? Math.round(80+seed*18) :
+  cat==='apartment'         ? Math.round(60+seed*25) :
+  cat==='neighbourhoods'    ? Math.round(35+seed*35) :
+  cat==='institutional'     ? Math.round(50+seed*25) :
+  cat==='general_employment'? Math.round(25+seed*25) :
+  cat==='core_employment'   ? Math.round(20+seed*20) :
+  cat==='regeneration'      ? Math.round(65+seed*25) :
+  cat==='natural'           ? Math.round(15+seed*15) :
+  cat==='parks'             ? Math.round(20+seed*20) :null;
+
 const transit = walk? Math.round(Math.min(99, walk*(0.8+seed*0.25))) : null;
 
 cellProps[r][c] = {cat, zt, height, fsi, ward, council:cc, walk, transit,
@@ -552,7 +578,6 @@ rect.addTo(zoneLayerGroup);
 allZoneLayers.push(rect);
 }
 }
-
 document.getElementById('statusParcels').textContent = 'Parcels: '+allZoneLayers.length;
 
 /* ============================================================
@@ -562,21 +587,18 @@ function cellInside(r,c){
 if(r<0||c<0||r>=nRows||c>=nCols) return false;
 return insideGrid[r][c];
 }
-
 const boundarySegments = [];
 for(let r=0;r<nRows;r++){
 for(let c=0;c<nCols;c++){
 if(!insideGrid[r][c]) continue;
 const la = latMin + r*stepLat, ln = lngMin + c*stepLng;
 const laN = la+stepLat, lnE = ln+stepLng;
-
 if(!cellInside(r+1,c)) boundarySegments.push([[laN,ln],[laN,lnE]]);
 if(!cellInside(r-1,c)) boundarySegments.push([[la,ln],[la,lnE]]);
 if(!cellInside(r,c-1)) boundarySegments.push([[la,ln],[laN,ln]]);
 if(!cellInside(r,c+1)) boundarySegments.push([[la,lnE],[laN,lnE]]);
 }
 }
-
 const boundaryLayer = L.polyline(boundarySegments, {
 color:'#5fd3a6', weight:1.6, opacity:.75, dashArray:'4 4', lineCap:'butt'
 }).addTo(map);
@@ -584,7 +606,6 @@ color:'#5fd3a6', weight:1.6, opacity:.75, dashArray:'4 4', lineCap:'butt'
 /* ---- Highways ---- */
 const hwyGroup = L.layerGroup().addTo(map);
 const highwayPolylines = {};
-
 HIGHWAYS.forEach(h=>{
 L.polyline(h.pts, {color:'#050505', weight:5.5, opacity:.6, lineCap:'round', lineJoin:'round'}).addTo(hwyGroup);
 const poly = L.polyline(h.pts, {color:h.color, weight:2.8, opacity:.85, dashArray:'4 6', lineCap:'round', lineJoin:'round'})
@@ -596,11 +617,11 @@ highwayPolylines[h.id] = poly;
 const transitGroup = L.layerGroup().addTo(map);
 const interchangeSet = new Set(['Union','Bloor-Yonge','St. George','Sheppard-Yonge','Spadina','Kennedy','Eglinton West','Eglinton','Finch West']);
 const linePolylines = {};
-
 ALL_LINES.forEach(line=>{
 const latlngs = line.stations.map(s=>[s[1],s[2]]);
 L.polyline(latlngs, {color:'#0a0b0d', weight:line.width+3.2, opacity:0.85, lineCap:'round', lineJoin:'round'}).addTo(transitGroup);
-const poly = L.polyline(latlngs, {color:line.color, weight:line.width, opacity:line.dashed?0.85:0.98, dashArray:line.dashed?'7 6':null, lineCap:'round', lineJoin:'round'})
+const poly = L.polyline(latlngs, {color:line.color, weight:line.width, opacity:line.dashed?0.85:0.98,
+dashArray:line.dashed?'7 6':null, lineCap:'round', lineJoin:'round'})
 .bindTooltip(line.name).addTo(transitGroup);
 linePolylines[line.id] = poly;
 
@@ -629,7 +650,6 @@ UI WIRING
 const hoverTip = document.getElementById('hoverTip');
 let lastMouseEvt = null;
 map.getContainer().addEventListener('mousemove', e=>{ lastMouseEvt=e; positionTip(e); });
-
 function showTip(text){ hoverTip.textContent=text; hoverTip.style.display='block'; if(lastMouseEvt) positionTip(lastMouseEvt); }
 function hideTip(){ hoverTip.style.display='none'; }
 function positionTip(e){
@@ -647,7 +667,6 @@ const z = map.getZoom();
 document.getElementById('zoomLabel').textContent = 'Zoom L'+z;
 document.getElementById('statusZoom').textContent = 'Zoom: '+z;
 });
-
 document.getElementById('zoomIn').onclick=()=>map.zoomIn();
 document.getElementById('zoomOut').onclick=()=>map.zoomOut();
 document.getElementById('zoomReset').onclick=()=>map.setView([43.715,-79.40],11);
@@ -656,7 +675,6 @@ document.getElementById('zoomReset').onclick=()=>map.setView([43.715,-79.40],11)
 const legendList = document.getElementById('legendList');
 let activeFilter=null;
 
-// 1. Zoning Land Use Legend Items
 ZONE_TYPES.forEach(zt=>{
 const count = allZoneLayers.filter(r=>r.zoneProps.cat===zt.id).length;
 const div = document.createElement('div');
@@ -673,7 +691,6 @@ r.setStyle({fillOpacity: match?0.5:0.06});
 legendList.appendChild(div);
 });
 
-// 2. Transit Network Lines Legend Section
 const transitHeader = document.createElement('div');
 transitHeader.className = 'legend-section-label';
 transitHeader.textContent = 'Subway & Transit Lines';
@@ -692,7 +709,6 @@ map.fitBounds(poly.getBounds().pad(0.2));
 legendList.appendChild(div);
 });
 
-// 3. Highways Legend Section
 const hwyHeader = document.createElement('div');
 hwyHeader.className = 'legend-section-label';
 hwyHeader.textContent = 'Highways';
@@ -712,14 +728,16 @@ legendList.appendChild(div);
 });
 
 /* Inspector */
-const rpEmpty=document.getElementById('rpEmpty'), rpContent=document.getElementById('rpContent'), rpBadge=document.getElementById('rpBadge');
+const rpEmpty=document.getElementById('rpEmpty'),
+rpContent=document.getElementById('rpContent'),
+rpBadge=document.getElementById('rpBadge');
 
 function openInspector(p){
 rpEmpty.style.display='none'; rpContent.style.display='flex';
 rpBadge.textContent = p.zt.code;
 document.getElementById('d-cat').textContent = p.zt.name;
 document.getElementById('d-code').textContent = `${p.zt.code} (d${p.fsi})`;
-document.getElementById('d-height').textContent = p.height>0 ? p.height+' m' : 'N/A (Open Space)';
+document.getElementById('d-height').textContent = p.height>0 ? p.height+' m' : 'N/A (Non-Building Use)';
 document.getElementById('d-fsi').textContent = parseFloat(p.fsi)>0 ? p.fsi+' FSI' : 'N/A';
 document.getElementById('d-coverage').textContent = p.zt.coverage;
 document.getElementById('d-ward').textContent = p.ward;
@@ -760,8 +778,12 @@ this.checked ? map.addLayer(boundaryLayer) : map.removeLayer(boundaryLayer);
 });
 
 /* Panel collapse */
-document.getElementById('toggleLeft').onclick = ()=>{ document.getElementById('leftpanel').classList.toggle('collapsed'); setTimeout(()=>map.invalidateSize(),200); };
-document.getElementById('toggleRight').onclick = ()=>{ document.getElementById('rightpanel').classList.toggle('collapsed'); setTimeout(()=>map.invalidateSize(),200); };
+document.getElementById('toggleLeft').onclick = ()=>{
+document.getElementById('leftpanel').classList.toggle('collapsed');
+setTimeout(()=>map.invalidateSize(),200); };
+document.getElementById('toggleRight').onclick = ()=>{
+document.getElementById('rightpanel').classList.toggle('collapsed');
+setTimeout(()=>map.invalidateSize(),200); };
 
 /* Search */
 const searchBox = document.getElementById('searchBox');
@@ -769,7 +791,8 @@ searchBox.addEventListener('keydown', e=>{
 if(e.key==='Enter'){
 const q=searchBox.value.trim().toLowerCase();
 const key = Object.keys(PLACES).find(k=>k.includes(q)||q.includes(k));
-if(key && q.length>0){ const [lat,lng,z]=PLACES[key]; map.flyTo([lat,lng], z, {duration:0.9}); searchBox.style.borderColor='#5fd3a6'; }
+if(key && q.length>0){ const [lat,lng,z]=PLACES[key]; map.flyTo([lat,lng], z, {duration:0.9});
+searchBox.style.borderColor='#5fd3a6'; }
 else{ searchBox.style.borderColor='#cf6679'; }
 setTimeout(()=>searchBox.style.borderColor='', 700);
 }
