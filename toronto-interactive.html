@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Vivek Khanna — Toronto Interactive Land Use & Zoning Explorer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+--bg:#0b0c0f; --panel:#17181c; --panel2:#1b1d22; --border:#24262c; --border2:#2c2f36;
+--text:#e8e8ea; --muted:#6f757c; --muted2:#8b939c; --accent:#5fd3a6; --accent-dim:#294238;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;}
+.app{width:100%;height:100vh;display:flex;flex-direction:column;background:var(--panel2);color:var(--text);overflow:hidden;}
+
+.tabbar{height:32px;flex:none;display:flex;align-items:flex-end;background:#141518;border-bottom:1px solid var(--border);padding-left:10px;}
+.tab{display:flex;align-items:center;gap:8px;padding:7px 14px;background:#1b1d22;border:1px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;font-size:12px;color:#c8ccd0;position:relative;top:1px;}
+.tab.active{background:#202329;color:#fff;}
+.tabdot{width:6px;height:6px;border-radius:50%;background:var(--accent);}
+.tabclose{color:#565a61;font-size:9px;margin-left:6px;}
+
+.main{flex:1;display:flex;min-height:0;}
+.leftpanel,.rightpanel{width:255px;flex:none;background:var(--panel);overflow-y:auto;padding:14px 13px;display:flex;flex-direction:column;gap:16px;transition:width .18s,padding .18s,opacity .18s;}
+.leftpanel{border-right:1px solid var(--border);}
+.rightpanel{border-left:1px solid var(--border);}
+.leftpanel.collapsed,.rightpanel.collapsed{width:0;padding:14px 0;opacity:0;overflow:hidden;}
+
+.panel-title{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:8px;font-weight:700;}
+#searchBox{width:100%;background:#0f1013;border:1px solid var(--border2);border-radius:6px;padding:8px 9px;color:var(--text);font-size:12.5px;outline:none;}
+#searchBox:focus{border-color:var(--accent);}
+.hint{font-size:10.5px;color:#5c6167;margin-top:6px;line-height:1.5;}
+
+.lp-check{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#c6cad0;padding:4px 0;cursor:pointer;}
+.lp-check input{accent-color:var(--accent);width:13px;height:13px;}
+
+.legend-item{display:flex;align-items:center;gap:8px;font-size:11.5px;color:#c6cad0;padding:5px 6px;border-radius:5px;cursor:pointer;}
+.legend-item:hover{background:#1f2126;}
+.legend-item.active{background:var(--accent-dim);color:var(--accent);}
+.swatch{width:12px;height:12px;border-radius:3px;flex:none;border:1px solid rgba(255,255,255,.15);}
+.legend-count{margin-left:auto;color:var(--muted);font-size:10px;font-family:monospace;}
+
+.note p{font-size:10.3px;color:var(--muted);line-height:1.55;margin:4px 0;}
+
+.mapwrap{flex:1;position:relative;overflow:hidden;background:#0a0b0d;}
+#leafletMap{width:100%;height:100%;background:#0a0b0d;}
+
+.map-overlay-controls{position:absolute;top:10px;left:10px;z-index:500;display:flex;gap:6px;}
+.map-overlay-controls button{background:#202227;border:1px solid var(--border2);color:#cfd3d8;font-size:11px;padding:5px 10px;border-radius:5px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.4);}
+.map-overlay-controls button:hover{background:#2a2d34;color:#fff;}
+
+.zoomctrl{position:absolute;top:10px;right:10px;z-index:500;display:flex;gap:6px;align-items:center;background:#191b20;padding:4px 8px;border-radius:6px;border:1px solid var(--border);box-shadow:0 2px 6px rgba(0,0,0,0.4);}
+.zoomctrl button{width:22px;height:22px;border-radius:5px;border:1px solid var(--border2);background:#202227;color:#cfd3d8;cursor:pointer;font-size:13px;line-height:1;}
+.zoomctrl button:hover{background:#2a2d34;}
+#zoomLabel{font-family:monospace;font-size:11.5px;color:var(--muted2);width:70px;text-align:center;}
+
+.leaflet-container{background:#0a0b0d;font-family:inherit;}
+.leaflet-control-attribution{background:rgba(15,16,19,.7)!important;color:#6f757c!important;font-size:9px!important;}
+.leaflet-control-attribution a{color:#8b939c!important;}
+.leaflet-control-scale-line{background:rgba(20,21,25,.85)!important;border:1px solid var(--border2)!important;color:var(--muted2)!important;font-size:10.5px!important;border-top:none!important;}
+.leaflet-popup-content-wrapper{background:#1b1d22;color:#e8e8ea;border:1px solid var(--border2);border-radius:8px;box-shadow:0 10px 26px rgba(0,0,0,.5);}
+.leaflet-popup-tip{background:#1b1d22;}
+.leaflet-popup-content{font-size:12px;margin:9px 12px;line-height:1.5;}
+.leaflet-popup-content b{color:var(--accent);}
+.area-label{color:#9aa0a6;font-size:11px;letter-spacing:2.5px;font-weight:700;text-transform:uppercase;pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,.8);white-space:nowrap;}
+
+.osm-dark{ filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9) saturate(0.75); }
+
+.hoverTip{position:absolute;pointer-events:none;background:#1b1d22;border:1px solid var(--border2);padding:6px 10px;border-radius:6px;font-size:11.5px;color:var(--text);display:none;z-index:600;box-shadow:0 8px 20px rgba(0,0,0,.45);white-space:nowrap;}
+
+.compass{position:absolute;right:16px;bottom:16px;width:40px;height:40px;z-index:500;display:flex;align-items:center;justify-content:center;opacity:.65;pointer-events:none;}
+
+.rp-header{display:flex;align-items:center;justify-content:space-between;}
+#rpTitle{font-size:12.5px;font-weight:700;color:#f0f0f0;letter-spacing:.3px;}
+.rp-badge{background:var(--accent-dim);color:var(--accent);font-size:9.5px;font-weight:700;letter-spacing:1px;padding:3px 7px;border-radius:4px;}
+#rpEmpty{font-size:11.5px;color:var(--muted);line-height:1.65;padding:6px 2px;}
+#rpContent{display:none;flex-direction:column;gap:14px;}
+.rp-block{border-top:1px solid var(--border);padding-top:10px;}
+.rp-blocktitle{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;font-weight:700;}
+.kv{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:4px 0;color:#c6cad0;}
+.kv b{color:#f0f0f0;font-weight:600;text-align:right;}
+#d-uses{list-style:none;margin:0;padding:0;}
+#d-uses li{font-size:11.5px;color:#c6cad0;margin-bottom:5px;padding-left:14px;position:relative;}
+#d-uses li:before{content:'▹';position:absolute;left:0;color:var(--accent);}
+.pdfbtn{width:100%;padding:9px;background:var(--accent-dim);border:1px solid #2f4a3d;color:var(--accent);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;}
+.pdfbtn:hover{background:#2f4d40;}
+.pdfnote{font-size:9.5px;color:var(--muted);margin-top:7px;line-height:1.5;}
+
+.statusbar{height:26px;flex:none;display:flex;align-items:center;gap:18px;padding:0 14px;background:#141518;border-top:1px solid var(--border);font-size:11px;color:#767c83;font-family:'SFMono-Regular',Consolas,monospace;}
+.statusbar .grow{flex:1;}
+
+::-webkit-scrollbar{width:9px;height:9px;}
+::-webkit-scrollbar-thumb{background:#2a2c32;border-radius:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="tabbar">
+<div class="tab active"><span class="tabdot"></span>Toronto.map<span class="tabclose">●</span></div>
+</div>
+
+<div class="main">
+<div class="leftpanel" id="leftpanel">
+<div>
+<div class="panel-title">Search</div>
+<input id="searchBox" placeholder="Search neighbourhood or place…">
+<div class="hint">Try: Downtown, North York, Scarborough, Etobicoke, Yonge and Eglinton, Union Station, High Park</div>
+</div>
+<div>
+<div class="panel-title">Base Layers</div>
+<label class="lp-check"><input type="checkbox" id="layerStreets" checked> OpenStreetMap (dark)</label>
+<label class="lp-check"><input type="checkbox" id="aerialMode"> Aerial Imagery (Esri)</label>
+<label class="lp-check"><input type="checkbox" id="layerZoning" checked> Zoning Fill</label>
+<label class="lp-check"><input type="checkbox" id="layerTransit" checked> Transit Network</label>
+<label class="lp-check"><input type="checkbox" id="layerHighways" checked> Highways</label>
+<label class="lp-check"><input type="checkbox" id="layerLabels" checked> Area Labels</label>
+<label class="lp-check"><input type="checkbox" id="layerBoundary" checked> City Boundary</label>
+</div>
+<div>
+<div class="panel-title">Land Use Legend <span style="font-weight:400;color:#4a4e54;">(click to isolate)</span></div>
+<div id="legendList"></div>
+</div>
+</div>
+
+<div class="mapwrap">
+<div class="map-overlay-controls">
+<button id="toggleLeft">☰ Layers</button>
+<button id="toggleRight">▤ Inspector</button>
+</div>
+<div class="zoomctrl">
+<button id="zoomOut" title="Zoom out">−</button>
+<span id="zoomLabel">Zoom L11</span>
+<button id="zoomIn" title="Zoom in">+</button>
+<button id="zoomReset" title="Reset view">⟲</button>
+</div>
+<div id="leafletMap"></div>
+<div class="hoverTip" id="hoverTip"></div>
+<svg class="compass" viewBox="0 0 40 40"><path d="M20 3 L26 22 L20 18 L14 22 Z" fill="#8b939c"/><text x="20" y="36" text-anchor="middle" font-size="8" fill="#8b939c" font-weight="700">N</text></svg>
+</div>
+
+<div class="rightpanel" id="rightpanel">
+<div class="rp-header"><span id="rpTitle">Parcel Inspector</span><span class="rp-badge" id="rpBadge">—</span></div>
+<div id="rpEmpty">Click any zoned parcel on the map to inspect its land use category, permitted uses, and planning metrics — modeled after the City of Toronto Official Plan.</div>
+<div id="rpContent">
+<div class="rp-block">
+<div class="rp-blocktitle">Zoning Details</div>
+<div class="kv"><span>Land Use Category</span><b id="d-cat"></b></div>
+<div class="kv"><span>Zoning Code</span><b id="d-code"></b></div>
+<div class="kv"><span>Max Height</span><b id="d-height"></b></div>
+<div class="kv"><span>Density (FSI)</span><b id="d-fsi"></b></div>
+<div class="kv"><span>Lot Coverage</span><b id="d-coverage"></b></div>
+</div>
+<div class="rp-block">
+<div class="rp-blocktitle">Permitted Uses</div>
+<ul id="d-uses"></ul>
+</div>
+<div class="rp-block">
+<div class="rp-blocktitle">Context &amp; Site Dynamics</div>
+<div class="kv"><span>Ward</span><b id="d-ward"></b></div>
+<div class="kv"><span>Community Council</span><b id="d-council"></b></div>
+<div class="kv"><span>Coordinates</span><b id="d-coords"></b></div>
+<div class="kv"><span>Walk Score (est.)</span><b id="d-walk"></b></div>
+<div class="kv"><span>Transit Score (est.)</span><b id="d-transit"></b></div>
+</div>
+<div class="rp-block">
+<div class="rp-blocktitle">Deliverables</div>
+<button class="pdfbtn" id="pdfBtn">View Official Zoning By-law ↗</button>
+<div class="pdfnote">Opens the City of Toronto ZBL Consultation Map. Search the address or coordinates shown above to find the official zoning for this location.</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="statusbar">
+<span id="statusParcels">Parcels: 0</span>
+<span id="statusZoom">Zoom: 11</span>
+<span id="statusHover">Zone: —</span>
+<span class="grow"></span>
+<span id="coordsReadout">43.6532° N 79.3832° W, Toronto, ON</span>
+</div>
+</div>
+
+<script>
+/* ============================================================
+REAL TORONTO GEOGRAPHY (Fixed Official Boundary)
+============================================================ */
+const TORONTO_BOUNDARY = [
+  // West Boundary (Etobicoke Creek & Hwy 427)
+  [43.5810, -79.5410], // South-west corner (Lake Ontario)
+  [43.6060, -79.5530],
+  [43.6350, -79.5760],
+  [43.6820, -79.6050],
+  [43.7140, -79.6200],
+  [43.7645, -79.6393], // North-west corner (Steeles & Hwy 50)
+
+  // North Boundary (Steeles Ave)
+  [43.7675, -79.5855],
+  [43.7745, -79.4905],
+  [43.7955, -79.4155],
+  [43.8145, -79.3245],
+  [43.8405, -79.2315],
+  [43.8554, -79.1169], // North-east corner (Pickering Border)
+
+  // East Boundary (Rouge River)
+  [43.8340, -79.1150],
+  [43.8120, -79.1180],
+  [43.7950, -79.1230],
+  [43.7800, -79.1160], // South-east corner (Mouth of Rouge River)
+
+  // South Boundary (Coastline & Islands - Hugs shore to remove "Red Area")
+  [43.7730, -79.1350],
+  [43.7550, -79.1550],
+  [43.7370, -79.1930],
+  [43.7110, -79.2270],
+  [43.6730, -79.2840],
+  [43.6620, -79.3100],
+  [43.6250, -79.3300], // Start of Leslie Spit
+  [43.6120, -79.3360], // Tip of Leslie Spit
+  [43.6200, -79.3500],
+  [43.6110, -79.3830], // Island South Tip (Gibraltar Point)
+  [43.6280, -79.4000],
+  [43.6270, -79.4160],
+  [43.6220, -79.4750],
+  [43.6100, -79.4950],
+  [43.5860, -79.5300]
+];
+
+function pointInPolygon(lat,lng,poly){
+  let inside=false;
+  for(let i=0,j=poly.length-1;i<poly.length;j=i++){
+    const yi=poly[i][0], xi=poly[i][1], yj=poly[j][0], xj=poly[j][1];
+    const intersect = ((yi>lat)!=(yj>lat)) && (lng < (xj-xi)*(lat-yi)/((yj-yi)||1e-9)+xi);
+    if(intersect) inside=!inside;
+  }
+  return inside;
+}
+function kmDist(lat1,lng1,lat2,lng2){
+  const dLat=(lat1-lat2)*111.0;
+  const dLng=(lng1-lng2)*111.0*Math.cos(lat1*Math.PI/180);
+  return Math.sqrt(dLat*dLat+dLng*dLng);
+}
+
+const DOWNTOWN=[43.6532,-79.3832];
+
+// Transit lines
+const LINE1 = {color:'#f2c11e',width:5,name:'Line 1 Yonge–University',stations:[['Vaughan Metropolitan Centre',43.7947,-79.5271],['Highway 407',43.7817,-79.5225],['Pioneer Village',43.7735,-79.5108],['York University',43.7735,-79.4993],['Finch West',43.7645,-79.4899],['Downsview Park',43.7530,-79.4788],['Sheppard West',43.7500,-79.4467],['Wilson',43.7339,-79.4487],['Yorkdale',43.7254,-79.4487],['Lawrence West',43.7161,-79.4456],['Glencairn',43.7086,-79.4436],['Eglinton West',43.6995,-79.4392],['St. Clair West',43.6838,-79.4144],['Dupont',43.6748,-79.4067],['Spadina',43.6679,-79.4041],['St. George',43.6678,-79.3996],['Museum',43.6672,-79.3936],["Queen's Park",43.6636,-79.3915],['St. Patrick',43.6555,-79.3877],['Osgoode',43.6507,-79.3862],['St. Andrew',43.6478,-79.3835],['Union',43.6453,-79.3806],['King',43.6489,-79.3781],['Queen',43.6526,-79.3794],['Dundas',43.6563,-79.3805],['College',43.6614,-79.3835],['Wellesley',43.6653,-79.3835],['Bloor-Yonge',43.6706,-79.3866],['Rosedale',43.6773,-79.3891],['Summerhill',43.6825,-79.3919],['St. Clair',43.6879,-79.3934],['Davisville',43.6979,-79.3971],['Eglinton',43.7063,-79.3986],['Lawrence',43.7245,-79.4023],['York Mills',43.7415,-79.4059],['Sheppard-Yonge',43.7615,-79.4108],['North York Centre',43.7686,-79.4132],['Finch',43.7803,-79.4155]]};
+const LINE2 = {color:'#2ea86f',width:5,name:'Line 2 Bloor–Danforth',stations:[['Kipling',43.6369,-79.5352],['Islington',43.6455,-79.5237],['Royal York',43.6489,-79.5093],['Old Mill',43.6501,-79.4945],['Jane',43.6497,-79.4844],['Runnymede',43.6514,-79.4759],['High Park',43.6538,-79.4664],['Keele',43.6554,-79.4589],['Dundas West',43.6567,-79.4526],['Lansdowne',43.6598,-79.4437],['Dufferin',43.6603,-79.4356],['Ossington',43.6622,-79.4265],['Christie',43.6641,-79.4194],['Bathurst',43.6662,-79.4113],['Spadina',43.6669,-79.4041],['St. George',43.6678,-79.3996],['Bay',43.6706,-79.3903],['Bloor-Yonge',43.6706,-79.3866],['Sherbourne',43.6720,-79.3760],['Castle Frank',43.6737,-79.3684],['Broadview',43.6768,-79.3583],['Chester',43.6784,-79.3524],['Pape',43.6798,-79.3453],['Donlands',43.6811,-79.3384],['Greenwood',43.6825,-79.3316],['Coxwell',43.6838,-79.3248],['Woodbine',43.6851,-79.3125],['Main Street',43.6893,-79.3016],['Victoria Park',43.6960,-79.2884],['Warden',43.7113,-79.2797],['Kennedy',43.7327,-79.2634]]};
+const LINE4 = {color:'#b5178f',width:5,name:'Line 4 Sheppard',stations:[['Sheppard-Yonge',43.7615,-79.4108],['Bayview',43.7669,-79.3862],['Bessarion',43.7692,-79.3762],['Leslie',43.7716,-79.3660],['Don Mills',43.7754,-79.3459]]};
+const LINE5 = {color:'#e0812a',width:4.5,name:'Line 5 Eglinton',stations:[['Mount Dennis',43.6890,-79.4835],['Keelesdale',43.6883,-79.4693],['Caledonia',43.6889,-79.4562],['Fairbank',43.6959,-79.4489],['Oakwood',43.6970,-79.4406],['Eglinton West',43.6995,-79.4392],['Cedarvale',43.6987,-79.4275],['Forest Hill',43.7005,-79.4130],['Chaplin',43.7016,-79.4041],['Avenue',43.7040,-79.4004],['Eglinton',43.7063,-79.3986],['Mount Pleasant',43.7078,-79.3890],['Leaside',43.7059,-79.3660],['Laird',43.7059,-79.3596],['Sunnybrook Park',43.7169,-79.3535],['Science Centre',43.7161,-79.3396],['Wynford',43.7217,-79.3320],['Aga Khan Park',43.7256,-79.3250],['Sloane',43.7256,-79.3140],['Golden Mile',43.7275,-79.2990],['Birchmount',43.7296,-79.2900],['Ionview',43.7296,-79.2820],['Kennedy',43.7327,-79.2634]]};
+const LINE6 = {color:'#9aa0a6',width:3.5,dashed:true,name:'Line 6 Finch West LRT',stations:[['Humber College',43.7367,-79.6086],['Highway 27',43.7442,-79.5890],['Martin Grove',43.7480,-79.5650],['Albion',43.7520,-79.5450],['Signet Drive',43.7540,-79.5250],['Norfinch',43.7580,-79.5050],['Finch West',43.7645,-79.4899]]};
+const ALL_LINES=[LINE1,LINE2,LINE4,LINE5,LINE6];
+
+const HIGHWAYS = [
+{name:'Gardiner Expressway',pts:[[43.6386,-79.4298],[43.6350,-79.4600],[43.6280,-79.5000],[43.6180,-79.5350],[43.6050,-79.5500]]},
+{name:'Don Valley Parkway',pts:[[43.6470,-79.3608],[43.6650,-79.3520],[43.6900,-79.3450],[43.7150,-79.3400],[43.7350,-79.3400]]},
+{name:'Highway 401',pts:[[43.688,-79.63],[43.70,-79.55],[43.715,-79.47],[43.725,-79.40],[43.735,-79.34],[43.75,-79.27],[43.765,-79.20],[43.784,-79.14]]},
+{name:'Highway 427', pts:[[43.601,-79.555],[43.650,-79.556],[43.706,-79.556],[43.75,-79.555]]}
+];
+
+const AREA_LABELS = [
+['DOWNTOWN',43.653,-79.383],['NORTH YORK',43.755,-79.410],['SCARBOROUGH',43.775,-79.235],
+['ETOBICOKE',43.660,-79.535],['EAST YORK',43.690,-79.325],['YORK',43.690,-79.470]
+];
+
+const PLACES = {
+'downtown':[43.653,-79.383,13], 'north york':[43.761,-79.411,12], 'scarborough':[43.775,-79.235,12],
+'etobicoke':[43.660,-79.535,12], 'east york':[43.690,-79.325,13], 'yonge and eglinton':[43.7063,-79.3986,14],
+'union station':[43.6453,-79.3806,15], 'high park':[43.6465,-79.4637,14], 'toronto':[43.70,-79.40,10.5]
+};
+
+const OFFICIAL_ZBL_URL = 'https://map.toronto.ca/maps/map.jsp?app=ZBL_CONSULT';
+
+/* ============================================================
+UPDATED ZONE TYPES (Matched Exactly to Official Plan Colors)
+============================================================ */
+const ZONE_TYPES = [
+{id:'neighbourhoods', name:'Neighbourhoods', color:'#c9b23f', code:'RD', heightRange:[9,12], fsiRange:[0.45,0.75], coverage:'~33%',
+  uses:['Detached & semi-detached dwellings','Duplex / triplex (gentle density)','Home occupations','Parks & schools (accessory)']},
+ {id:'apartment', name:'Apartment Neighbourhoods', color:'#f26522', code:'RA', heightRange:[24,55], fsiRange:[1.5,3.0], coverage:'~40%',
+uses:['Apartment buildings','Multi-unit residential','Day nurseries','Local retail (ground floor)']},
+{id:'mixeduse', name:'Mixed Use Areas', color:'#c9506a', code:'CR', heightRange:[40,150], fsiRange:[3.0,8.0], coverage:'~70%',
+  uses:['Retail & service commercial','Office','Residential above grade','Entertainment & hotel']},
+ {id:'employment', name:'Employment Areas', color:'#8a6fc9', code:'E', heightRange:[12,30], fsiRange:[1.0,2.0], coverage:'~55%',
+  uses:['Manufacturing & warehousing','Offices','Research & innovation','Utilities']},
+ {id:'institutional', name:'Institutional Areas', color:'#4f9fc9', code:'I', heightRange:[15,40], fsiRange:[1.2,2.5], coverage:'~45%',
+  uses:['Schools & universities','Hospitals','Places of worship','Government facilities']},
+ {id:'openspace', name:'Open Space', color:'#4f9f5c', code:'O', heightRange:[0,0], fsiRange:[0,0], coverage:'n/a',
+  uses:['Parks & ravines','Golf courses','Cemeteries','Trails & natural heritage']},
+ {id:'regeneration', name:'Regeneration Areas', color:'#7d8aa3', code:'RA-r', heightRange:[20,80], fsiRange:[2.0,5.0], coverage:'~60%',
+  uses:['Waterfront redevelopment','Former industrial reuse','Mixed-use transition','Public realm improvement']}
+];
+const ZT = Object.fromEntries(ZONE_TYPES.map(z=>[z.id,z]));
+
+const WARD_BY_COUNCIL = {
+'Etobicoke York': ['Etobicoke North','Etobicoke Centre','Etobicoke—Lakeshore','Parkdale—High Park','York South—Weston','Humber River—Black Creek'],
+'North York': ['Eglinton—Lawrence','Don Valley West','Don Valley East','Don Valley North','Willowdale','York Centre'],
+'Toronto and East York': ['Davenport','Spadina—Fort York','University—Rosedale','Toronto Centre','Toronto—Danforth','Beaches—East York',"Toronto—St. Paul's"],
+'Scarborough': ['Scarborough Southwest','Scarborough Centre','Scarborough North','Scarborough—Agincourt','Scarborough—Rouge Park','Scarborough—Guildwood']
+};
+
+// Procedural logic to generate a map that accurately resembles Map 1
+function classify(lat,lng){
+  const dDown = kmDist(lat,lng,DOWNTOWN[0],DOWNTOWN[1]);
+
+  // 1. Parks / Open Space (Green) - Major Ravines and Islands
+  const humberX = -79.49 - (lat-43.65)*0.1;
+  const donX = -79.36 + (lat-43.65)*0.15;
+  if (Math.abs(lng - humberX) < 0.009) return 'openspace'; // Humber River
+  if (Math.abs(lng - donX) < 0.009) return 'openspace'; // Don River
+  if (kmDist(lat,lng,43.646,-79.463) < 1.2) return 'openspace'; // High Park
+  if (kmDist(lat,lng,43.81,-79.15) < 3.5 || lng > -79.16) return 'openspace'; // Rouge Park
+  if (lat < 43.635 && lng > -79.45 && lng < -79.30) return 'openspace'; // Islands & Spit
+
+  // 2. Employment (Purple) - Industrial Corridors
+  if (lat > 43.69 && lng < -79.56) return Math.random()<0.85?'employment':'mixeduse'; // Rexdale/Airport
+  if (lat > 43.73 && lat < 43.76 && lng > -79.50 && lng < -79.45) return 'employment'; // Downsview
+  if (lat > 43.79 && lng > -79.28 && lng < -79.21) return 'employment'; // Scarborough North
+  if (lat < 43.62 && lng < -79.50) return 'employment'; // South Etobicoke
+
+  // 3. Institutional (Blue)
+  if (kmDist(lat,lng,43.773,-79.50) < 1.2) return 'institutional'; // York U
+  if (kmDist(lat,lng,43.66,-79.395) < 0.8) return 'institutional'; // U of T
+
+  // 4. Mixed Use (Red) & Apartments (Orange)
+  if (dDown < 2.5) {
+      const r = Math.random();
+      if(r<0.6) return 'mixeduse';
+      if(r<0.8) return 'apartment';
+      if(r<0.9) return 'institutional';
+      return 'regeneration'; // Downtown / Waterfront
+  }
+  // Major Roads (Yonge, Bloor, Eglinton, Sheppard)
+  if (Math.abs(lng - (-79.38 - (lat-43.65)*0.05)) < 0.006) return 'mixeduse'; // Yonge
+  if (Math.abs(lat - 43.67 - (lng+79.38)*0.1) < 0.004) return 'mixeduse'; // Bloor/Danforth
+  if (Math.abs(lat - 43.76 - (lng+79.40)*0.1) < 0.004) return Math.random()<0.7?'mixeduse':'apartment'; // Sheppard
+  
+  if (Math.random() < 0.06) return 'apartment'; // Random Apartment clusters
+
+  return 'neighbourhoods'; // Default (Yellow)
+}
+
+function council(lat,lng){
+if(lng < -79.47) return 'Etobicoke York';
+if(lng > -79.23) return 'Scarborough';
+if(lat > 43.71) return 'North York';
+return 'Toronto and East York';
+}
+
+/* ============================================================
+MAP INIT
+============================================================ */
+const map = L.map('leafletMap', {zoomControl:false, attributionControl:true, preferCanvas:true, minZoom:10, maxZoom:19})
+.setView([43.715,-79.40], 11);
+
+const osmTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+subdomains:'abc', maxZoom:19,
+attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
+className:'osm-dark'
+}).addTo(map);
+
+const aerialTiles = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+maxZoom:19, attribution:'Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics'
+});
+
+L.control.scale({metric:true, imperial:false, position:'bottomleft'}).addTo(map);
+
+const cityBoundsPad = L.latLngBounds(TORONTO_BOUNDARY).pad(0.15);
+map.setMaxBounds(cityBoundsPad);
+
+/* ============================================================
+ZONING GRID (Preserved exactly to original sizes provided)
+============================================================ */
+const stepLat = 0.0058, stepLng = 0.0078;
+const latMin=43.580, latMax=43.860, lngMin=-79.645, lngMax=-79.110; 
+const nRows = Math.ceil((latMax-latMin)/stepLat);
+const nCols = Math.ceil((lngMax-lngMin)/stepLng);
+const insideGrid = Array.from({length:nRows},()=>new Array(nCols).fill(false));
+const cellProps = Array.from({length:nRows},()=>new Array(nCols).fill(null));
+
+for(let r=0;r<nRows;r++){
+for(let c=0;c<nCols;c++){
+const la = latMin + r*stepLat, ln = lngMin + c*stepLng;
+const clat = la+stepLat/2, clng = ln+stepLng/2;
+
+if(pointInPolygon(clat,clng,TORONTO_BOUNDARY)){
+insideGrid[r][c] = true;
+const cat = classify(clat,clng);
+const zt = ZT[cat];
+const height = zt.heightRange[1]>0 ? Math.round(zt.heightRange[0]+Math.random()*(zt.heightRange[1]-zt.heightRange[0])) : 0;
+const fsi = zt.fsiRange[1]>0 ? (zt.fsiRange[0]+Math.random()*(zt.fsiRange[1]-zt.fsiRange[0])).toFixed(2) : '0.00';
+const cc = council(clat,clng);
+
+const wardList = WARD_BY_COUNCIL[cc];
+const ward = wardList[Math.floor(Math.random()*wardList.length)];
+const walk = cat==='mixeduse'?Math.round(80+Math.random()*18):
+cat==='apartment'?Math.round(60+Math.random()*25):
+cat==='neighbourhoods'?Math.round(35+Math.random()*35):
+cat==='institutional'?Math.round(50+Math.random()*25):
+cat==='employment'?Math.round(25+Math.random()*25):
+cat==='regeneration'?Math.round(65+Math.random()*25): null;
+const transit = walk? Math.round(Math.min(99, walk*(0.8+Math.random()*0.25))) : null;
+
+cellProps[r][c] = {cat, zt, height, fsi, ward, council:cc, walk, transit,
+lat:clat.toFixed(4), lng:clng.toFixed(4), bounds:[[la,ln],[la+stepLat,ln+stepLng]]};
+}
+}
+}
+
+const zoneLayerGroup = L.layerGroup().addTo(map);
+const allZoneLayers = [];
+
+for(let r=0;r<nRows;r++){
+for(let c=0;c<nCols;c++){
+if(!insideGrid[r][c]) continue;
+const p = cellProps[r][c];
+const rect = L.rectangle(p.bounds, {
+stroke:true, color:'rgba(0,0,0,0.35)', weight:0.4,
+fillColor:p.zt.color, fillOpacity:0.5
+});
+rect.zoneProps = p;
+rect.on('mouseover', function(){
+this.setStyle({weight:1.6, color:'#ffffff', fillOpacity:0.72});
+showTip(p.zt.name+' · '+p.zt.code);
+document.getElementById('statusHover').textContent='Zone: '+p.zt.name;
+});
+rect.on('mouseout', function(){
+this.setStyle({weight:0.4, color:'rgba(0,0,0,0.35)', fillOpacity: activeFilter && activeFilter!==p.cat ? 0.06 : 0.5});
+hideTip();
+document.getElementById('statusHover').textContent='Zone: —';
+});
+rect.on('click', ()=> openInspector(p));
+rect.addTo(zoneLayerGroup);
+allZoneLayers.push(rect);
+}
+}
+
+document.getElementById('statusParcels').textContent = 'Parcels: '+allZoneLayers.length;
+
+/* ============================================================
+Boundary Line Outline
+============================================================ */
+function cellInside(r,c){
+if(r<0||c<0||r>=nRows||c>=nCols) return false;
+return insideGrid[r][c];
+}
+
+const boundarySegments = [];
+for(let r=0;r<nRows;r++){
+for(let c=0;c<nCols;c++){
+if(!insideGrid[r][c]) continue;
+const la = latMin + r*stepLat, ln = lngMin + c*stepLng;
+const laN = la+stepLat, lnE = ln+stepLng;
+
+if(!cellInside(r+1,c)) boundarySegments.push([[laN,ln],[laN,lnE]]);
+if(!cellInside(r-1,c)) boundarySegments.push([[la,ln],[la,lnE]]);
+if(!cellInside(r,c-1)) boundarySegments.push([[la,ln],[laN,ln]]);
+if(!cellInside(r,c+1)) boundarySegments.push([[la,lnE],[laN,lnE]]);
+}
+}
+
+const boundaryLayer = L.polyline(boundarySegments, {
+color:'#5fd3a6', weight:1.6, opacity:.75, dashArray:'4 4', lineCap:'butt'
+}).addTo(map);
+
+/* ---- Highways ---- */
+const hwyGroup = L.layerGroup().addTo(map);
+HIGHWAYS.forEach(h=>{
+L.polyline(h.pts, {color:'#050505', weight:5.5, opacity:.5, lineCap:'round'}).addTo(hwyGroup);
+L.polyline(h.pts, {color:'#8d8f94', weight:3, opacity:.75, dashArray:'2 7', lineCap:'round'})
+.bindTooltip(h.name, {sticky:true}).addTo(hwyGroup);
+});
+
+/* ---- Transit ---- */
+const transitGroup = L.layerGroup().addTo(map);
+const interchangeSet = new Set(['Union','Bloor-Yonge','St. George','Sheppard-Yonge','Spadina','Kennedy','Eglinton West','Eglinton','Finch West']);
+
+ALL_LINES.forEach(line=>{
+const latlngs = line.stations.map(s=>[s[1],s[2]]);
+L.polyline(latlngs, {color:'#0a0b0d', weight:line.width+3.2, opacity:0.85, lineCap:'round', lineJoin:'round'}).addTo(transitGroup);
+L.polyline(latlngs, {color:line.color, weight:line.width, opacity:line.dashed?0.85:0.98, dashArray:line.dashed?'7 6':null, lineCap:'round', lineJoin:'round'})
+.bindTooltip(line.name).addTo(transitGroup);
+
+line.stations.forEach(s=>{
+const isInterchange = interchangeSet.has(s[0]);
+const marker = L.circleMarker([s[1],s[2]], {
+radius:isInterchange?6:3.6, color:line.color, weight:isInterchange?2.6:1.8, fillColor:'#0d0f12', fillOpacity:1
+});
+marker.bindPopup(`<b>${s[0]}</b><br>${line.name}<br><span style="color:#8b939c">${s[1].toFixed(4)}, ${s[2].toFixed(4)}</span>`);
+marker.on('mouseover', ()=> showTip(s[0]+' Station'));
+marker.on('mouseout', hideTip);
+marker.addTo(transitGroup);
+});
+});
+
+/* ---- Area labels ---- */
+const labelsGroup = L.layerGroup().addTo(map);
+AREA_LABELS.forEach(([t,lat,lng])=>{
+L.marker([lat,lng], {icon:L.divIcon({className:'area-label', html:t, iconSize:[160,16], iconAnchor:[80,8]}), interactive:false})
+.addTo(labelsGroup);
+});
+
+/* ============================================================
+UI WIRING
+============================================================ */
+const hoverTip = document.getElementById('hoverTip');
+let lastMouseEvt = null;
+map.getContainer().addEventListener('mousemove', e=>{ lastMouseEvt=e; positionTip(e); });
+
+function showTip(text){ hoverTip.textContent=text; hoverTip.style.display='block'; if(lastMouseEvt) positionTip(lastMouseEvt); }
+function hideTip(){ hoverTip.style.display='none'; }
+function positionTip(e){
+const wrap = document.querySelector('.mapwrap').getBoundingClientRect();
+hoverTip.style.left=(e.clientX-wrap.left+14)+'px';
+hoverTip.style.top=(e.clientY-wrap.top+14)+'px';
+}
+
+map.on('mousemove', e=>{
+document.getElementById('coordsReadout').textContent = `${e.latlng.lat.toFixed(4)}° N ${Math.abs(e.latlng.lng).toFixed(4)}° W, Toronto, ON`;
+});
+
+map.on('zoomend', ()=>{
+const z = map.getZoom();
+document.getElementById('zoomLabel').textContent = 'Zoom L'+z;
+document.getElementById('statusZoom').textContent = 'Zoom: '+z;
+});
+
+document.getElementById('zoomIn').onclick=()=>map.zoomIn();
+document.getElementById('zoomOut').onclick=()=>map.zoomOut();
+document.getElementById('zoomReset').onclick=()=>map.setView([43.715,-79.40],11);
+
+/* Legend */
+const legendList = document.getElementById('legendList');
+let activeFilter=null;
+ZONE_TYPES.forEach(zt=>{
+const count = allZoneLayers.filter(r=>r.zoneProps.cat===zt.id).length;
+const div = document.createElement('div');
+div.className='legend-item'; div.dataset.id=zt.id;
+div.innerHTML = `<span class="swatch" style="background:${zt.color}"></span><span>${zt.name}</span><span class="legend-count">${count}</span>`;
+div.addEventListener('click', ()=>{
+activeFilter = (activeFilter===zt.id) ? null : zt.id;
+document.querySelectorAll('.legend-item').forEach(d=>d.classList.toggle('active', d.dataset.id===activeFilter));
+allZoneLayers.forEach(r=>{
+const match = !activeFilter || r.zoneProps.cat===activeFilter;
+r.setStyle({fillOpacity: match?0.5:0.06});
+});
+});
+legendList.appendChild(div);
+});
+
+/* Inspector */
+const rpEmpty=document.getElementById('rpEmpty'), rpContent=document.getElementById('rpContent'), rpBadge=document.getElementById('rpBadge');
+
+function openInspector(p){
+rpEmpty.style.display='none'; rpContent.style.display='flex';
+rpBadge.textContent = p.zt.code;
+document.getElementById('d-cat').textContent = p.zt.name;
+document.getElementById('d-code').textContent = `${p.zt.code} (d${p.fsi})`;
+document.getElementById('d-height').textContent = p.height>0 ? p.height+' m' : 'N/A (Open Space)';
+document.getElementById('d-fsi').textContent = parseFloat(p.fsi)>0 ? p.fsi+' FSI' : 'N/A';
+document.getElementById('d-coverage').textContent = p.zt.coverage;
+document.getElementById('d-ward').textContent = p.ward;
+document.getElementById('d-council').textContent = p.council;
+document.getElementById('d-coords').textContent = p.lat+', '+p.lng;
+document.getElementById('d-walk').textContent = p.walk? p.walk+' / 100' : '—';
+document.getElementById('d-transit').textContent = p.transit? p.transit+' / 100' : '—';
+
+const ul = document.getElementById('d-uses'); ul.innerHTML='';
+p.zt.uses.forEach(u=>{ const li=document.createElement('li'); li.textContent=u; ul.appendChild(li); });
+}
+
+document.getElementById('pdfBtn').onclick = ()=> window.open(OFFICIAL_ZBL_URL,'_blank','noopener');
+
+/* Layer toggles */
+document.getElementById('layerStreets').addEventListener('change', function(){
+if(this.checked){ if(!map.hasLayer(osmTiles) && !document.getElementById('aerialMode').checked) map.addLayer(osmTiles); }
+else { map.removeLayer(osmTiles); }
+});
+document.getElementById('aerialMode').addEventListener('change', function(){
+if(this.checked){ map.removeLayer(osmTiles); map.addLayer(aerialTiles); }
+else { map.removeLayer(aerialTiles); if(document.getElementById('layerStreets').checked) map.addLayer(osmTiles); }
+});
+document.getElementById('layerZoning').addEventListener('change', function(){
+this.checked ? map.addLayer(zoneLayerGroup) : map.removeLayer(zoneLayerGroup);
+});
+document.getElementById('layerTransit').addEventListener('change', function(){
+this.checked ? map.addLayer(transitGroup) : map.removeLayer(transitGroup);
+});
+document.getElementById('layerHighways').addEventListener('change', function(){
+this.checked ? map.addLayer(hwyGroup) : map.removeLayer(hwyGroup);
+});
+document.getElementById('layerLabels').addEventListener('change', function(){
+this.checked ? map.addLayer(labelsGroup) : map.removeLayer(labelsGroup);
+});
+document.getElementById('layerBoundary').addEventListener('change', function(){
+this.checked ? map.addLayer(boundaryLayer) : map.removeLayer(boundaryLayer);
+});
+
+/* Panel collapse */
+document.getElementById('toggleLeft').onclick = ()=>{ document.getElementById('leftpanel').classList.toggle('collapsed'); setTimeout(()=>map.invalidateSize(),200); };
+document.getElementById('toggleRight').onclick = ()=>{ document.getElementById('rightpanel').classList.toggle('collapsed'); setTimeout(()=>map.invalidateSize(),200); };
+
+/* Search */
+const searchBox = document.getElementById('searchBox');
+searchBox.addEventListener('keydown', e=>{
+if(e.key==='Enter'){
+const q=searchBox.value.trim().toLowerCase();
+const key = Object.keys(PLACES).find(k=>k.includes(q)||q.includes(k));
+if(key && q.length>0){ const [lat,lng,z]=PLACES[key]; map.flyTo([lat,lng], z, {duration:0.9}); searchBox.style.borderColor='#5fd3a6'; }
+else{ searchBox.style.borderColor='#cf6679'; }
+setTimeout(()=>searchBox.style.borderColor='', 700);
+}
+});
+
+document.getElementById('zoomLabel').textContent = 'Zoom L'+map.getZoom();
+document.getElementById('statusZoom').textContent = 'Zoom: '+map.getZoom();
+setTimeout(()=>map.invalidateSize(), 100);
+</script>
+</body>
+</html>
+```
