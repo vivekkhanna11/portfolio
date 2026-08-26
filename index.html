@@ -302,6 +302,7 @@
         <button data-action="open-tab" data-tab="approach">Open Approach</button>
         <button data-action="open-tab" data-tab="about">Open About</button>
         <button data-action="open-tab" data-tab="house">Open HouseViewer</button>
+        <button data-action="open-tab" data-tab="toronto">Open Toronto Interactive</button>
         <button data-action="open-tab" data-tab="construction">Open Construction</button>
         <div class="app-menu-sep"></div>
         <button data-action="print">Print Window</button>
@@ -333,6 +334,7 @@
         <button data-action="focus" data-node="contact">Focus, Contact</button>
         <div class="app-menu-sep"></div>
         <button data-action="open-tab" data-tab="house">Open House Viewer</button>
+        <button data-action="open-tab" data-tab="toronto">Open Toronto Interactive</button>
         <button data-action="mailto">Email Vivek</button>
       </div>
     </div>
@@ -397,8 +399,8 @@
   </div>
 
   <div class="app-statusbar">
-    <span id="statusNodes">Nodes: 14</span>
-    <span id="statusWires">Wires: 13</span>
+    <span id="statusNodes">Nodes: 15</span>
+    <span id="statusWires">Wires: 14</span>
     <span class="r" id="statusTab">Portfolio.gh</span>
   </div>
 
@@ -408,10 +410,6 @@
 <script src="assets/js/main.js"></script>
 <script>
 (function(){
-  /* Node hover/interaction state (drag highlighting, wire lighting, etc.)
-     lives further down. Cursor behavior now comes entirely from the
-     shared assets/js/main.js, so every page behaves identically. */
-
   const NODE_W = 210, NODE_H = 96;
 
   /* ---- Expanded Data Model for Node Panels ---- */
@@ -437,6 +435,12 @@
         methodology: "Evaluating physical legibility alongside micro-mobility friction points and vehicle collision frequency records.",
         outputs: ['5-Element Imageability Maps', 'Crossing Exposure Index', 'Conflict Heatmaps'],
         tools:['Lynch: paths, edges, nodes','SWOT','Safety exposure metrics', 'Speed & Volume Audits'] } },
+
+    { id:'toronto', x:620, y:560, tag:'TOOL', title:'Toronto Interactive', sub:'Zoning & Land Use Explorer',
+      panel:{ type:'viewer',
+        body:'An interactive spatial map exploring Toronto land use, transit networks, and zoning categories in real-time, modeled after the official City of Toronto ZBL consultation tool.',
+        features: ['Interactive Leaflet Map & Layer Controls', 'Parcel Land Use & Permitted Uses Inspector', 'Transit & Highway Network Overlay', 'Search Neighborhoods & Places'],
+        openTab:'toronto', linkLabel:'Open interactive explorer' } },
 
     { id:'p3', x:900, y:420, tag:'03', title:'Align to Policy', sub:'Vision Zero, Official Plan',
       panel:{ type:'process',
@@ -487,8 +491,7 @@
         deliverables:[
           'Full Lynch mapping: paths, edges &amp; nodes, districts, landmarks',
           'Street and landscape audit comparing centre-line-out and outside-in sections',
-          'Four-quadrant SWOT across mobility, architecture, and land constraint',
-          
+          'Four-quadrant SWOT across mobility, architecture, and land constraint'
         ],
         pdf:'pdfs/seneca-newnham-urban-design.pdf' } },
 
@@ -506,9 +509,9 @@
         ],
         pdf:'pdfs/perth-cycling-network.pdf' } },
 
-    { id:'out5', x:1510, y:740, tag:'OUTPUT', title:'Kitchen Optimiser', sub:'Interactive Layout and Estimator ',
+    { id:'out5', x:1510, y:740, tag:'OUTPUT', title:'Kitchen Optimiser', sub:'Interactive Layout and Estimator',
       panel:{ type:'viewer',
-        body:'Allows dynamic adjustment of room dimensions (width, depth, height, wall thickness), upper cabinet mounting rules, and wall configurations (One-wall, Galley, L-shape, U-shape, L/U with island, and Studio).Features an automated estimating engine that dynamically updates material and component cost totals based on standard unit base prices, material factors, and countertop square footage',
+        body:'Allows dynamic adjustment of room dimensions (width, depth, height, wall thickness), upper cabinet mounting rules, and wall configurations (One-wall, Galley, L-shape, U-shape, L/U with island, and Studio). Features an automated estimating engine that dynamically updates material and component cost totals based on standard unit base prices, material factors, and countertop square footage.',
         features: ['Parametric Room & Layout Controls', 'Revit-Style Properties & Instance Editing', 'Collision Detection & Snapping System', 'Generative Layout Solver', 'Real-time Cost Estimator'],
         openTab:'house', linkLabel:'Open interactive viewer' } },
 
@@ -559,7 +562,7 @@
   ];
 
   const CONNECTIONS = [
-    ['source','p1'], ['p1','p2'], ['p2','p3'], ['p3','p4'],
+    ['source','p1'], ['p1','p2'], ['source','toronto'], ['p2','p3'], ['p3','p4'],
     ['p4','out1'], ['p4','out2'], ['p4','out3'], ['p4','out4'], ['p4','out5'],
     ['source','out6'], ['out6','out7'],
     ['source','about'], ['source','contact']
@@ -675,25 +678,25 @@
     updateWiresFor(node.id);
   }
 
-/* ---- Rich Information Rendering in Detail Panel ---- */
-function renderPanel(node){
-  const p = node.panel;
-  panelTag.textContent = node.tag;
-  panelTitle.textContent = node.title;
+  /* ---- Rich Information Rendering in Detail Panel ---- */
+  function renderPanel(node){
+    const p = node.panel;
+    panelTag.textContent = node.tag;
+    panelTitle.textContent = node.title;
 
-  if (p.type === 'project') {
-    panelBody.innerHTML =
-      '<span class="flow-panel-loc">' + p.location + '</span>' +
-      '<p class="flow-panel-scope">' + p.scope + '</p>' +
-      '<div class="flow-panel-section-title">Context &amp; Site Dynamics</div>' +
-      '<p style="font-size:13px; color:#525866; line-height:1.5;">' + p.context + '</p>' +
-      '<div class="flow-panel-section-title">Key Parameters</div>' +
-      '<div class="plate-meta">' + p.meta.map(m => '<div class="m"><span>'+m[0]+'</span><b>'+m[1]+'</b></div>').join('') + '</div>' +
-      '<div class="flow-panel-section-title">Deliverables</div>' +
-      '<div class="plate-deliverables"><ul>' + p.deliverables.map(d => '<li>'+d+'</li>').join('') + '</ul></div>' +
-      (p.course ? '<span class="flow-panel-course">' + p.course + '</span>' : '') +
-      '<div class="flow-panel-actions"><button class="btn" type="button" data-view-pdf="' + p.pdf + '" data-view-title="' + node.title + '">View full PDF</button></div>';
-  } 
+    if (p.type === 'project') {
+      panelBody.innerHTML =
+        '<span class="flow-panel-loc">' + p.location + '</span>' +
+        '<p class="flow-panel-scope">' + p.scope + '</p>' +
+        '<div class="flow-panel-section-title">Context &amp; Site Dynamics</div>' +
+        '<p style="font-size:13px; color:#525866; line-height:1.5;">' + p.context + '</p>' +
+        '<div class="flow-panel-section-title">Key Parameters</div>' +
+        '<div class="plate-meta">' + p.meta.map(m => '<div class="m"><span>'+m[0]+'</span><b>'+m[1]+'</b></div>').join('') + '</div>' +
+        '<div class="flow-panel-section-title">Deliverables</div>' +
+        '<div class="plate-deliverables"><ul>' + p.deliverables.map(d => '<li>'+d+'</li>').join('') + '</ul></div>' +
+        (p.course ? '<span class="flow-panel-course">' + p.course + '</span>' : '') +
+        '<div class="flow-panel-actions"><button class="btn" type="button" data-view-pdf="' + p.pdf + '" data-view-title="' + node.title + '">View full PDF</button></div>';
+    } 
     else if (p.type === 'process') {
       panelBody.innerHTML =
         '<p class="flow-panel-scope">' + p.body + '</p>' +
@@ -855,6 +858,7 @@ function renderPanel(node){
       else if (p.type === 'contact') { href = 'mailto:' + p.email; }
       else if (p.openTab === 'about') { href = 'about.html'; }
       else if (p.openTab === 'house') { href = 'house-viewer.html'; }
+      else if (p.openTab === 'toronto') { href = 'toronto-interactive.html'; }
       else if (p.openTab === 'construction') { href = 'construction.html'; }
       else { href = 'approach.html'; }
       return '<a href="'+href+'"'+targetAttrs+'>' + n.tag + '<b>' + n.title + '</b></a>';
@@ -866,117 +870,133 @@ function renderPanel(node){
     approach: { label:'Approach.gh', src:'approach.html' },
     about:    { label:'About.gh',    src:'about.html' },
     house:    { label:'HouseViewer.gh', src:'house-viewer.html' },
+    toronto:  { label:'TorontoInteractive.gh', src:'toronto-interactive.html' },
     construction: { label:'Construction.gh', src:'construction.html' }
   };
-  const tabbar = document.getElementById('appTabbar');
-  const content = document.getElementById('appContent');
+
+  const openTabs = ['portfolio'];
   let activeTab = 'portfolio';
 
-  function activateTab(id){
-    activeTab = id;
-    tabbar.querySelectorAll('.app-tab').forEach(t => t.classList.toggle('is-active', t.dataset.tab === id));
-    content.querySelectorAll('.app-pane').forEach(p => p.classList.toggle('is-active', p.dataset.pane === id));
-    statusTab.textContent = id === 'portfolio' ? 'Portfolio.gh' : TAB_DEFS[id].label;
-  }
+  const tabbar = document.getElementById('appTabbar');
+  const content = document.getElementById('appContent');
 
-  function openTab(id){
-    if (id === 'portfolio') {
-      window.location.href = 'portfolio.html';
+  function openTab(tabId){
+    if (tabId === 'portfolio') {
+      switchTab('portfolio');
       return;
     }
-    if (!TAB_DEFS[id]) return;
-    let tabBtn = tabbar.querySelector('[data-tab="'+id+'"]');
-    if (!tabBtn) {
-      tabBtn = document.createElement('div');
-      tabBtn.className = 'app-tab';
-      tabBtn.dataset.tab = id;
-      tabBtn.innerHTML = '<span class="dot"></span>' + TAB_DEFS[id].label + '<span class="x" data-close="'+id+'">&times;</span>';
-      tabBtn.addEventListener('click', (e) => {
-        if (e.target.closest('[data-close]')) return;
-        activateTab(id);
-      });
-      tabBtn.querySelector('[data-close]').addEventListener('click', (e) => {
-        e.stopPropagation();
-        closeTab(id);
-      });
-      tabbar.appendChild(tabBtn);
+    if (!TAB_DEFS[tabId]) return;
 
-      const pane = document.createElement('div');
-      pane.className = 'app-pane';
-      pane.dataset.pane = id;
-      pane.innerHTML = '<iframe src="' + TAB_DEFS[id].src + '" title="' + TAB_DEFS[id].label + '"></iframe>';
-      content.appendChild(pane);
+    if (!openTabs.includes(tabId)) {
+      openTabs.push(tabId);
+      createPane(tabId);
     }
-    activateTab(id);
-    closeAllMenus();
+    renderTabs();
+    switchTab(tabId);
   }
 
-  function closeTab(id){
-    const tabBtn = tabbar.querySelector('[data-tab="'+id+'"]');
-    const pane = content.querySelector('[data-pane="'+id+'"]');
-    if (tabBtn) tabBtn.remove();
+  function closeTab(tabId, e){
+    if (e) e.stopPropagation();
+    if (tabId === 'portfolio') return;
+
+    const idx = openTabs.indexOf(tabId);
+    if (idx !== -1) openTabs.splice(idx, 1);
+
+    const pane = content.querySelector('[data-pane="'+tabId+'"]');
     if (pane) pane.remove();
-    if (activeTab === id) activateTab('portfolio');
+
+    renderTabs();
+
+    if (activeTab === tabId) {
+      const nextTab = openTabs[Math.max(0, idx - 1)] || 'portfolio';
+      switchTab(nextTab);
+    }
   }
 
-  tabbar.querySelector('[data-tab="portfolio"]').addEventListener('click', () => activateTab('portfolio'));
+  function switchTab(tabId){
+    activeTab = tabId;
 
-  /* ---- Menu Bar Controls ---- */
-  const menubar = document.getElementById('appMenubar');
-  function closeAllMenus(){
-    menubar.querySelectorAll('.app-menu.is-open').forEach(m => m.classList.remove('is-open'));
+    tabbar.querySelectorAll('.app-tab').forEach(t => {
+      t.classList.toggle('is-active', t.dataset.tab === tabId);
+    });
+
+    content.querySelectorAll('.app-pane').forEach(p => {
+      p.classList.toggle('is-active', p.dataset.pane === tabId);
+    });
+
+    statusTab.textContent = tabId === 'portfolio' ? 'Portfolio.gh' : TAB_DEFS[tabId].label;
   }
-  menubar.querySelectorAll('.app-menu > button').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+
+  function createPane(tabId){
+    const def = TAB_DEFS[tabId];
+    const pane = document.createElement('div');
+    pane.className = 'app-pane';
+    pane.dataset.pane = tabId;
+    pane.innerHTML = '<iframe src="' + def.src + '" title="' + def.label + '"></iframe>';
+    content.appendChild(pane);
+  }
+
+  function renderTabs(){
+    tabbar.innerHTML = openTabs.map(id => {
+      if (id === 'portfolio') {
+        return '<div class="app-tab' + (activeTab === 'portfolio' ? ' is-active' : '') + '" data-tab="portfolio"><span class="dot"></span>Portfolio.gh</div>';
+      }
+      const def = TAB_DEFS[id];
+      return '<div class="app-tab' + (activeTab === id ? ' is-active' : '') + '" data-tab="' + id + '"><span class="dot"></span>' + def.label + '<span class="x" data-close="' + id + '">&times;</span></div>';
+    }).join('');
+
+    tabbar.querySelectorAll('.app-tab').forEach(t => {
+      t.addEventListener('click', () => switchTab(t.dataset.tab));
+    });
+    tabbar.querySelectorAll('[data-close]').forEach(x => {
+      x.addEventListener('click', (e) => closeTab(x.dataset.close, e));
+    });
+  }
+
+  /* ---- Menu & Toolbar Events ---- */
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    const action = btn.dataset.action;
+
+    if (action === 'open-tab') openTab(btn.dataset.tab);
+    else if (action === 'zoom-in') setZoom(state.zoom + 0.15);
+    else if (action === 'zoom-out') setZoom(state.zoom - 0.15);
+    else if (action === 'zoom-reset') resetView();
+    else if (action === 'toggle-grid') canvas.classList.toggle('no-grid');
+    else if (action === 'reset-positions') resetPositions();
+    else if (action === 'deselect') closePanel();
+    else if (action === 'focus') focusNode(btn.dataset.node);
+    else if (action === 'fullscreen') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    else if (action === 'compact') appWindow.classList.toggle('is-compact');
+    else if (action === 'print') window.print();
+    else if (action === 'mailto') window.location.href = 'mailto:vivekkhanna.canada@gmail.com';
+  });
+
+  // Dropdown menu toggle
+  document.querySelectorAll('.app-menu > button').forEach(b => {
+    b.addEventListener('click', (e) => {
       e.stopPropagation();
-      const menu = btn.parentElement;
-      const wasOpen = menu.classList.contains('is-open');
-      closeAllMenus();
-      if (!wasOpen) menu.classList.add('is-open');
+      const parent = b.parentElement;
+      const isOpen = parent.classList.contains('is-open');
+      document.querySelectorAll('.app-menu').forEach(m => m.classList.remove('is-open'));
+      if (!isOpen) parent.classList.add('is-open');
     });
   });
-  document.addEventListener('click', closeAllMenus);
-
-  function runAction(el){
-    const action = el.getAttribute('data-action');
-    switch(action){
-      case 'open-tab': openTab(el.getAttribute('data-tab')); break;
-      case 'print': window.print(); break;
-      case 'reset-positions': resetPositions(); break;
-      case 'deselect': closePanel(); break;
-      case 'zoom-in': setZoom(state.zoom + 0.15); break;
-      case 'zoom-out': setZoom(state.zoom - 0.15); break;
-      case 'zoom-reset': resetView(); break;
-      case 'toggle-grid': canvas.classList.toggle('no-grid'); break;
-      case 'fullscreen':
-        if (document.fullscreenElement) document.exitFullscreen();
-        else appWindow.requestFullscreen && appWindow.requestFullscreen();
-        break;
-      case 'compact': appWindow.classList.toggle('is-compact'); break;
-      case 'focus': focusNode(el.getAttribute('data-node')); break;
-      case 'mailto': window.location.href = 'mailto:vivekkhanna.canada@gmail.com'; break;
-      case 'new-tab-menu':
-        closeAllMenus();
-        menubar.querySelector('.app-menu').classList.add('is-open');
-        return;
-    }
-    closeAllMenus();
-  }
-  menubar.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-action]');
-    if (btn) runAction(btn);
-  });
-  document.querySelector('.app-toolbar').addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-action]');
-    if (!btn) return;
-    e.stopPropagation();
-    runAction(btn);
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.app-menu').forEach(m => m.classList.remove('is-open'));
   });
 
+  /* ---- Init ---- */
   renderNodes();
   renderWires();
-  applyTransform();
   renderFallback();
+  renderTabs();
+  applyTransform();
+
 })();
 </script>
 </body>
