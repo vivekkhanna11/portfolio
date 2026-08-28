@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-6KK98K4TVE"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-6KK98K4TVE');
-</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vivek Khanna, Urban Planning Portfolio</title>
@@ -346,6 +337,7 @@
         <button data-action="open-tab" data-tab="about">Open About</button>
         <button data-action="open-tab" data-tab="house">Open HouseViewer</button>
         <button data-action="open-tab" data-tab="toronto">Open Toronto Interactive</button>
+        <button data-action="open-tab" data-tab="toronto-traffic-tool">Open Toronto Traffic</button>
         <button data-action="open-tab" data-tab="construction">Open Construction</button>
         <div class="app-menu-sep"></div>
         <button data-action="print">Print Window</button>
@@ -378,6 +370,7 @@
         <div class="app-menu-sep"></div>
         <button data-action="open-tab" data-tab="house">Open House Viewer</button>
         <button data-action="open-tab" data-tab="toronto">Open Toronto Interactive</button>
+        <button data-action="open-tab" data-tab="toronto-traffic-tool">Open Toronto Traffic</button>
         <button data-action="mailto">Email Vivek</button>
       </div>
     </div>
@@ -456,8 +449,8 @@
   </div>
 
   <div class="app-statusbar">
-    <span id="statusNodes">Nodes: 15</span>
-    <span id="statusWires">Wires: 14</span>
+    <span id="statusNodes">Nodes: 16</span>
+    <span id="statusWires">Wires: 15</span>
     <span class="r" id="statusTab">Portfolio.gh</span>
   </div>
 
@@ -498,6 +491,12 @@
         body:'An interactive spatial map exploring Toronto land use, transit networks, and zoning categories in real-time, modeled after the official City of Toronto ZBL consultation tool.',
         features: ['Interactive Leaflet Map & Layer Controls', 'Parcel Land Use & Permitted Uses Inspector', 'Transit & Highway Network Overlay', 'Search Neighborhoods & Places'],
         openTab:'toronto', linkLabel:'Open interactive explorer' } },
+
+    { id:'toronto-traffic', x:900, y:560, tag:'TOOL', title:'Toronto Traffic', sub:'Road Network',
+      panel:{ type:'viewer',
+        body:'Real-time and historic road network traffic patterns, volume analysis, and congestion mapping across Toronto arterial corridors.',
+        features: ['Arterial Volume & Speed Heatmaps', 'Signal Timing & Intersection Delays', 'Congestion Bottleneck Detection', 'Active Infrastructure Overlays'],
+        openTab:'toronto-traffic-tool', linkLabel:'Open road network' } },
 
     { id:'p3', x:900, y:420, tag:'03', title:'Align to Policy', sub:'Vision Zero, Official Plan',
       panel:{ type:'process',
@@ -619,7 +618,7 @@
   ];
 
   const CONNECTIONS = [
-    ['source','p1'], ['p1','p2'], ['source','toronto'], ['p2','p3'], ['p3','p4'],
+    ['source','p1'], ['p1','p2'], ['source','toronto'], ['toronto','toronto-traffic'], ['p2','p3'], ['p3','p4'],
     ['p4','out1'], ['p4','out2'], ['p4','out3'], ['p4','out4'], ['p4','out5'],
     ['source','out6'], ['out6','out7'],
     ['source','about'], ['source','contact']
@@ -916,6 +915,7 @@
       else if (p.openTab === 'about') { href = 'about.html'; }
       else if (p.openTab === 'house') { href = 'house-viewer.html'; }
       else if (p.openTab === 'toronto') { href = 'toronto-interactive.html'; }
+      else if (p.openTab === 'toronto-traffic-tool') { href = 'toronto-traffic-tool.html'; }
       else if (p.openTab === 'construction') { href = 'construction.html'; }
       else { href = 'approach.html'; }
       return '<a href="'+href+'"'+targetAttrs+'>' + n.tag + '<b>' + n.title + '</b></a>';
@@ -928,6 +928,7 @@
     about:    { label:'About.gh',    src:'about.html' },
     house:    { label:'HouseViewer.gh', src:'house-viewer.html' },
     toronto:  { label:'TorontoInteractive.gh', src:'toronto-interactive.html' },
+    'toronto-traffic-tool': { label:'TorontoTraffic.gh', src:'toronto-traffic-tool.html' },
     construction: { label:'Construction.gh', src:'construction.html' }
   };
 
