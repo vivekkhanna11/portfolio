@@ -6,6 +6,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"/>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.20/leaflet-maplibre-gl.js"></script>
 <style>
 :root{
 --bg:#0b0c0f; --panel:#17181c; --panel2:#1b1d22; --border:#24262c; --border2:#2c2f36;
@@ -51,7 +54,6 @@ html,body{height:100%;margin:0;background:var(--bg);font-family:-apple-system,Bl
 .leaflet-popup-content{font-size:12px;margin:9px 12px;line-height:1.5;}
 .leaflet-popup-content b{color:var(--accent);}
 .area-label{color:#9aa0a6;font-size:11px;letter-spacing:2.5px;font-weight:700;text-transform:uppercase;pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,.8);white-space:nowrap;}
-.osm-dark{ filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9) saturate(0.75); }
 .hoverTip{position:absolute;pointer-events:none;background:#1b1d22;border:1px solid var(--border2);padding:6px 10px;border-radius:6px;font-size:11.5px;color:var(--text);display:none;z-index:600;box-shadow:0 8px 20px rgba(0,0,0,.45);white-space:nowrap;}
 .compass{position:absolute;right:16px;bottom:16px;width:40px;height:40px;z-index:500;display:flex;align-items:center;justify-content:center;opacity:.65;pointer-events:none;}
 .rp-header{display:flex;align-items:center;justify-content:space-between;}
@@ -87,8 +89,7 @@ html,body{height:100%;margin:0;background:var(--bg);font-family:-apple-system,Bl
 </div>
 <div>
 <div class="panel-title">Base Layers</div>
-<label class="lp-check"><input type="checkbox" id="layerStreets" checked> OpenStreetMap (dark)</label>
-<label class="lp-check"><input type="checkbox" id="aerialMode"> Aerial Imagery (Esri)</label>
+<label class="lp-check"><input type="checkbox" id="layerStreets" checked> Basemap (Dark Matter)</label>
 <label class="lp-check"><input type="checkbox" id="layerZoning" checked> Zoning Fill</label>
 <label class="lp-check"><input type="checkbox" id="layerTransit" checked> Transit Network</label>
 <label class="lp-check"><input type="checkbox" id="layerHighways" checked> Highways</label>
@@ -564,18 +565,13 @@ const NEIGHBOURHOOD_CAT = {"1":"core_employment","2":"apartment","3":"neighbourh
 /* ============================================================
 MAP INIT
 ============================================================ */
-const map = L.map('leafletMap', {zoomControl:false, attributionControl:true, preferCanvas:true, minZoom:10, maxZoom:19})
+const map = L.map('leafletMap', {zoomControl:false, attributionControl:true, preferCanvas:true, minZoom:10.5, maxZoom:19})
 .setView([43.715,-79.40], 11);
 
-const osmTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-subdomains:'abc', maxZoom:19,
-attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
-className:'osm-dark'
+const osmTiles = L.maplibreGL({
+style:'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank">CARTO</a>'
 }).addTo(map);
-
-const aerialTiles = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-maxZoom:19, attribution:'Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics'
-});
 
 L.control.scale({metric:true, imperial:false, position:'bottomleft'}).addTo(map);
 
@@ -830,12 +826,8 @@ document.getElementById('pdfBtn').onclick = ()=> window.open(OFFICIAL_ZBL_URL,'_
 
 /* Layer toggles */
 document.getElementById('layerStreets').addEventListener('change', function(){
-if(this.checked){ if(!map.hasLayer(osmTiles) && !document.getElementById('aerialMode').checked) map.addLayer(osmTiles); }
+if(this.checked){ if(!map.hasLayer(osmTiles)) map.addLayer(osmTiles); }
 else { map.removeLayer(osmTiles); }
-});
-document.getElementById('aerialMode').addEventListener('change', function(){
-if(this.checked){ map.removeLayer(osmTiles); map.addLayer(aerialTiles); }
-else { map.removeLayer(aerialTiles); if(document.getElementById('layerStreets').checked) map.addLayer(osmTiles); }
 });
 document.getElementById('layerZoning').addEventListener('change', function(){
 this.checked ? map.addLayer(zoneLayerGroup) : map.removeLayer(zoneLayerGroup);
