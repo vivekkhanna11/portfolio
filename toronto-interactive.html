@@ -61,6 +61,8 @@ html,body{height:100%;margin:0;background:var(--bg);font-family:-apple-system,Bl
 .rp-badge{background:var(--accent-dim);color:var(--accent);font-size:9.5px;font-weight:700;letter-spacing:1px;padding:3px 7px;border-radius:4px;}
 #rpEmpty{font-size:11.5px;color:var(--muted);line-height:1.65;padding:6px 2px;}
 #rpContent{display:none;flex-direction:column;gap:14px;}
+#rpLineContent{display:none;flex-direction:column;gap:14px;}
+.leaflet-interactive:focus{outline:none;}
 .rp-block{border-top:1px solid var(--border);padding-top:10px;}
 .rp-blocktitle{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;font-weight:700;}
 .kv{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:4px 0;color:#c6cad0;}
@@ -146,6 +148,18 @@ html,body{height:100%;margin:0;background:var(--bg);font-family:-apple-system,Bl
 <div class="rp-blocktitle">Deliverables</div>
 <button class="pdfbtn" id="pdfBtn">View Official Zoning By-law ↗</button>
 <div class="pdfnote">Opens the City of Toronto ZBL Consultation Map. Search the address or coordinates shown above to find the official zoning for this location.</div>
+</div>
+</div>
+<div id="rpLineContent">
+<div class="rp-block">
+<div class="rp-blocktitle">Route Details</div>
+<div class="kv"><span>Type</span><b id="ld-type"></b></div>
+<div class="kv"><span>Stations</span><b id="ld-stations"></b></div>
+<div class="kv"><span>Length (approx.)</span><b id="ld-length"></b></div>
+</div>
+<div class="rp-block">
+<div class="rp-blocktitle" id="ld-listtitle">Stations</div>
+<ul id="ld-list"></ul>
 </div>
 </div>
 </div>
@@ -566,7 +580,7 @@ const NEIGHBOURHOOD_CAT = {"1":"core_employment","2":"apartment","3":"neighbourh
 MAP INIT
 ============================================================ */
 const map = L.map('leafletMap', {zoomControl:false, attributionControl:true, preferCanvas:true, minZoom:11, maxZoom:19})
-.setView([43.715,-79.40], 11);
+.setView([43.740,-79.60], 11.1);
 
 const osmTiles = L.maplibreGL({
 style:'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
@@ -590,6 +604,7 @@ map.createPane('zoningPane').style.zIndex = 410;
 map.createPane('boundaryPane').style.zIndex = 420;
 map.createPane('hwyPane').style.zIndex = 430;
 map.createPane('transitPane').style.zIndex = 440;
+map.createPane('stationPane').style.zIndex = 450;
 
 /* zoningPane keeps the map's default Canvas renderer (fast fills for
 140 parcels, and its canvas sits lowest so nothing needs to punch
@@ -601,6 +616,7 @@ to the zoning parcels below except when you click an actual line. */
 const boundaryRenderer = L.svg({pane:'boundaryPane'});
 const hwyRenderer = L.svg({pane:'hwyPane'});
 const transitRenderer = L.svg({pane:'transitPane'});
+const stationRenderer = L.svg({pane:'stationPane'});
 
 /* ============================================================
 NEIGHBOURHOOD LAND USE POLYGONS
@@ -680,6 +696,8 @@ HIGHWAYS.forEach(h=>{
 L.polyline(h.pts, {renderer:hwyRenderer, interactive:false, color:'#050505', weight:5.5, opacity:.6, lineCap:'round', lineJoin:'round'}).addTo(hwyGroup);
 const poly = L.polyline(h.pts, {renderer:hwyRenderer, color:h.color, weight:2.8, opacity:.85, dashArray:'4 6', lineCap:'round', lineJoin:'round'})
 .bindTooltip(h.name, {sticky:true}).addTo(hwyGroup);
+poly._baseWeight = 2.8; poly._baseOpacity = .85;
+poly.on('click', (e)=>{ L.DomEvent.stopPropagation(e); selectLine(poly); openLineInspector('highway', h); });
 highwayPolylines[h.id] = poly;
 });
 
@@ -693,12 +711,14 @@ L.polyline(latlngs, {renderer:transitRenderer, interactive:false, color:'#0a0b0d
 const poly = L.polyline(latlngs, {renderer:transitRenderer, color:line.color, weight:line.width, opacity:line.dashed?0.85:0.98,
 dashArray:line.dashed?'7 6':null, lineCap:'round', lineJoin:'round'})
 .bindTooltip(line.name).addTo(transitGroup);
+poly._baseWeight = line.width; poly._baseOpacity = line.dashed?0.85:0.98;
+poly.on('click', (e)=>{ L.DomEvent.stopPropagation(e); selectLine(poly); openLineInspector('transit', line); });
 linePolylines[line.id] = poly;
 
 line.stations.forEach(s=>{
 const isInterchange = interchangeSet.has(s[0]);
 const marker = L.circleMarker([s[1],s[2]], {
-renderer:transitRenderer,
+renderer:stationRenderer,
 radius:isInterchange?5.5:3.5, color:line.color, weight:isInterchange?2.5:1.6, fillColor:'#0d0f12', fillOpacity:1
 });
 marker.bindPopup(`<b>${s[0]}</b><br>${line.name}<br><span style="color:#8b939c">${s[1].toFixed(4)}, ${s[2].toFixed(4)}</span>`);
@@ -801,10 +821,55 @@ legendList.appendChild(div);
 /* Inspector */
 const rpEmpty=document.getElementById('rpEmpty'),
 rpContent=document.getElementById('rpContent'),
+rpLineContent=document.getElementById('rpLineContent'),
 rpBadge=document.getElementById('rpBadge');
 
+/* Line/highway selection highlight (no selection box — just a brighter, thicker line) */
+let selectedLine = null;
+function clearLineSelection(){
+if(selectedLine){
+selectedLine.setStyle({weight:selectedLine._baseWeight, opacity:selectedLine._baseOpacity});
+selectedLine = null;
+}
+}
+function selectLine(poly){
+if(selectedLine === poly) return;
+clearLineSelection();
+poly.setStyle({weight:poly._baseWeight+2.5, opacity:1});
+poly.bringToFront();
+selectedLine = poly;
+}
+
+function openLineInspector(type, obj){
+rpEmpty.style.display='none'; rpContent.style.display='none'; rpLineContent.style.display='flex';
+document.getElementById('rpTitle').textContent = obj.name;
+rpBadge.textContent = type==='transit' ? 'TRANSIT' : 'HWY';
+document.getElementById('ld-type').textContent = type==='transit' ? 'Rapid Transit Line' : 'Provincial Highway';
+
+const pts = type==='transit' ? obj.stations.map(s=>[s[1],s[2]]) : obj.pts;
+let lenM = 0;
+for(let i=1;i<pts.length;i++){ lenM += L.latLng(pts[i-1][0],pts[i-1][1]).distanceTo(L.latLng(pts[i][0],pts[i][1])); }
+document.getElementById('ld-length').textContent = (lenM/1000).toFixed(1)+' km';
+
+const listTitle = document.getElementById('ld-listtitle');
+const ul = document.getElementById('ld-list'); ul.innerHTML='';
+if(type==='transit'){
+document.getElementById('ld-stations').textContent = obj.stations.length;
+listTitle.textContent = 'Stations';
+obj.stations.forEach(s=>{ const li=document.createElement('li'); li.textContent=s[0]; ul.appendChild(li); });
+} else {
+document.getElementById('ld-stations').textContent = '—';
+listTitle.style.display = 'none';
+}
+if(type==='transit') listTitle.style.display='';
+
+document.getElementById('rightpanel').classList.remove('collapsed');
+setTimeout(()=>map.invalidateSize(),200);
+}
+
 function openInspector(p){
-rpEmpty.style.display='none'; rpContent.style.display='flex';
+clearLineSelection();
+rpEmpty.style.display='none'; rpContent.style.display='flex'; rpLineContent.style.display='none';
 document.getElementById('rpTitle').textContent = p.name || 'Neighbourhood Inspector';
 rpBadge.textContent = p.zt.code;
 document.getElementById('d-cat').textContent = p.zt.name;
