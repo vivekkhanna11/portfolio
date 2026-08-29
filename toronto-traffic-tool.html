@@ -555,25 +555,22 @@ function selectFeatureProps(p, geometry){
   openInspector(p);
 }
 
-function selectByName(name, opts){
-  const fit = opts && opts.fit;
+function selectByName(name){
   const matches = ROADS_DATA.features.filter(f=>f.properties.name===name);
   if(!matches.length) return;
   highlightGeometries(matches.map(f=>f.geometry));
   // pick the longest match to represent the corridor's KPI card
   const primary = matches.reduce((a,b)=> (b.properties.length_km>a.properties.length_km ? b : a));
   openInspector(primary.properties);
-  if(fit){
-    // fit bounds to combined geometry
-    let minLo=Infinity,maxLo=-Infinity,minLa=Infinity,maxLa=-Infinity;
-    matches.forEach(f=>{
-      f.geometry.coordinates.forEach(part=>part.forEach(([lo,la])=>{
-        if(lo<minLo)minLo=lo; if(lo>maxLo)maxLo=lo;
-        if(la<minLa)minLa=la; if(la>maxLa)maxLa=la;
-      }));
-    });
-    if(isFinite(minLo)) map.fitBounds([[minLo,minLa],[maxLo,maxLa]], {padding:80, maxZoom:15.5, duration:600});
-  }
+  // fit bounds to combined geometry
+  let minLo=Infinity,maxLo=-Infinity,minLa=Infinity,maxLa=-Infinity;
+  matches.forEach(f=>{
+    f.geometry.coordinates.forEach(part=>part.forEach(([lo,la])=>{
+      if(lo<minLo)minLo=lo; if(lo>maxLo)maxLo=lo;
+      if(la<minLa)minLa=la; if(la>maxLa)maxLa=la;
+    }));
+  });
+  if(isFinite(minLo)) map.fitBounds([[minLo,minLa],[maxLo,maxLa]], {padding:180, maxZoom:15.5, duration:1200});
 }
 
 /* ============================================================
