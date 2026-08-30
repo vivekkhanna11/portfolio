@@ -1,4 +1,4 @@
-# Toronto Urban Mobility & Spatial Analytics Portfolio
+# Urban Mobility, Spatial Analytics and BIM Portfolio
 
 An interactive, browser-based portfolio built using a custom visual node engine (`Portfolio.gh`, inspired by Grasshopper and parametric workflows). This platform showcases urban planning case studies, 3D spatial tools, and data-driven research across the Greater Toronto Area (GTA).
 
