@@ -63,7 +63,8 @@
     --radius:3px;
     --header-h:52px;
     --toolbar-h:48px;
-    --drawer-h:34%;
+    --drawer-h:62%;
+    --drawer-h-max:88%;
     --drawer-h-collapsed:38px;
   }
 
@@ -468,6 +469,7 @@
     overflow:hidden;
   }
   .inspector-drawer.open{ height:var(--drawer-h); }
+  .inspector-drawer.open.maximized{ height:var(--drawer-h-max); }
 
   .drawer-handle{
     flex:0 0 auto;
@@ -486,6 +488,19 @@
   .drawer-handle .selected-name{ color:var(--pale-sage); font-family:var(--display); font-size:12.5px; }
   .drawer-handle .spacer{ flex:1 1 auto; }
   .drawer-handle .express-id{ font-size:10px; color:var(--steel-dim); }
+  .drawer-maximize-btn{
+    flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+    width:24px; height:24px;
+    background:var(--bg-2);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    color:var(--steel);
+    cursor:pointer;
+    transition:color .15s ease, border-color .15s ease;
+  }
+  .drawer-maximize-btn:hover{ color:var(--ink); border-color:var(--steel-dim); }
+  .drawer-maximize-btn.active{ color:var(--sage); border-color:var(--sage); }
 
   .drawer-body{
     flex:1 1 auto;
@@ -662,7 +677,7 @@
         <div class="progress-overlay" id="progress-overlay">
           <div class="progress-ring"></div>
           <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-bar-fill"></div></div>
-          <div class="progress-label">Parsing IFC geometry — <b id="progress-pct">0%</b></div>
+          <div class="progress-label"><span id="progress-label-text">Downloading model</span> — <b id="progress-pct">0%</b></div>
         </div>
       </div>
 
@@ -674,6 +689,9 @@
           <span class="selected-name" id="drawer-selected-name">No element selected</span>
           <div class="spacer"></div>
           <span class="express-id" id="drawer-express-id"></span>
+          <button class="drawer-maximize-btn" id="drawer-maximize-btn" title="Expand panel" aria-label="Expand panel">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+          </button>
         </div>
         <div class="drawer-body">
           <div class="drawer-tabs" id="drawer-tabs">
@@ -771,6 +789,7 @@ const state = {
   wireframe: false,
   sectionActive: false,
   drawerOpen: false,
+  drawerMaximized: false,
   activeTab: 'general',
   currentProps: null,
   sessionStart: Date.now()
@@ -791,8 +810,10 @@ const el = {
   progressOverlay: document.getElementById('progress-overlay'),
   progressFill: document.getElementById('progress-bar-fill'),
   progressPct: document.getElementById('progress-pct'),
+  progressLabelText: document.getElementById('progress-label-text'),
   drawer: document.getElementById('inspector-drawer'),
   drawerHandle: document.getElementById('drawer-handle'),
+  drawerMaximizeBtn: document.getElementById('drawer-maximize-btn'),
   drawerSelectedName: document.getElementById('drawer-selected-name'),
   drawerExpressId: document.getElementById('drawer-express-id'),
   drawerTabs: document.getElementById('drawer-tabs'),
@@ -1031,8 +1052,25 @@ el.drawerTabs.addEventListener('click', (e) => {
 function openDrawer(force) {
   state.drawerOpen = force !== undefined ? force : !state.drawerOpen;
   el.drawer.classList.toggle('open', state.drawerOpen);
+  if (!state.drawerOpen) {
+    // Collapsing always resets the expanded state so it reopens at the default size
+    state.drawerMaximized = false;
+    el.drawer.classList.remove('maximized');
+    el.drawerMaximizeBtn.classList.remove('active');
+  }
 }
-el.drawerHandle.addEventListener('click', () => openDrawer());
+el.drawerHandle.addEventListener('click', (e) => {
+  if (e.target.closest('#drawer-maximize-btn')) return;
+  openDrawer();
+});
+
+el.drawerMaximizeBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (!state.drawerOpen) openDrawer(true);
+  state.drawerMaximized = !state.drawerMaximized;
+  el.drawer.classList.toggle('maximized', state.drawerMaximized);
+  el.drawerMaximizeBtn.classList.toggle('active', state.drawerMaximized);
+});
 
 /* ------------------------------------------------------------------
    7. TOOLBAR ACTIONS
@@ -1095,16 +1133,87 @@ function setProgress(pct) {
 
 /* ------------------------------------------------------------------
    9. MODEL LOADING
+   ------------------------------------------------------------------
+   GitHub Releases asset URLs (github.com/.../releases/download/...)
+   redirect to release-assets.githubusercontent.com, and NEITHER hop
+   sends an Access-Control-Allow-Origin header. That means a plain
+   `fetch()` — which is what viewer.IFC.loadIfcUrl() does internally —
+   is blocked by the browser before a single byte arrives. This is a
+   platform limitation, not something fixable from client code alone.
+
+   Fix used here: fetch the bytes ourselves with a direct-first,
+   proxy-fallback chain, wrap them in a Blob, and hand web-ifc-viewer
+   a same-origin blob: URL instead of the raw GitHub link. That sidesteps
+   the CORS wall entirely for reading. For production, the durable fix
+   is to serve the .ifc from a host you control with CORS enabled
+   (S3 / Cloudflare R2 bucket policy, or a Worker/Lambda relay) — public
+   CORS proxies are fine for testing but are third-party infrastructure
+   you don't control and can rate-limit or go down.
 ------------------------------------------------------------------ */
+const CORS_PROXIES = [
+  (u) => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+  (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+];
+
+async function fetchWithProgress(url, onBytes) {
+  const res = await fetch(url, { mode: 'cors' });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const total = Number(res.headers.get('content-length')) || 0;
+  if (!res.body) return await res.arrayBuffer();
+
+  const reader = res.body.getReader();
+  const chunks = [];
+  let received = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    received += value.length;
+    onBytes(received, total);
+  }
+  const buf = new Uint8Array(received);
+  let offset = 0;
+  for (const chunk of chunks) { buf.set(chunk, offset); offset += chunk.length; }
+  return buf.buffer;
+}
+
+async function fetchIfcBytes(url, onBytes) {
+  const attempts = [url, ...CORS_PROXIES.map(fn => fn(url))];
+  let lastErr = null;
+
+  for (let i = 0; i < attempts.length; i++) {
+    const attemptUrl = attempts[i];
+    const viaProxy = i > 0;
+    try {
+      setDownloadLabel(viaProxy ? `Downloading via CORS proxy (attempt ${i + 1})` : 'Downloading model');
+      const buf = await fetchWithProgress(attemptUrl, onBytes);
+      if (viaProxy) {
+        console.warn(`Loaded "${url}" via CORS proxy — the source host does not send CORS headers. Configure CORS on the origin for production use.`);
+      }
+      return buf;
+    } catch (err) {
+      lastErr = err;
+      console.warn(`Fetch attempt ${i + 1} failed for ${attemptUrl}:`, err.message || err);
+    }
+  }
+  throw new Error(`All fetch attempts failed (direct + ${CORS_PROXIES.length} proxies). Last error: ${lastErr?.message || lastErr}`);
+}
+
+function setDownloadLabel(text) {
+  el.progressLabelText.textContent = text;
+}
+
 async function loadModel(model, cardEl) {
   if (!viewerReady) { await initViewer(); }
   if (!viewerReady) return;
 
   cardEl.classList.add('loading');
   el.progressOverlay.classList.add('visible');
-  setProgress(2);
+  setDownloadLabel('Downloading model');
+  setProgress(0);
   el.viewportEmpty.classList.add('hidden');
 
+  let blobUrl = null;
   try {
     // Clear previously loaded geometry
     await viewer.IFC.loader.ifcManager.dispose?.();
@@ -1112,7 +1221,18 @@ async function loadModel(model, cardEl) {
       .filter(c => c.name === 'IFC_MODEL')
       .forEach(c => viewer.context.getScene().remove(c));
 
-    const ifcModel = await viewer.IFC.loadIfcUrl(model.url, true);
+    // 1. Fetch bytes (direct, falling back to CORS proxy)
+    const arrayBuffer = await fetchIfcBytes(model.url, (loaded, total) => {
+      const pct = total ? Math.round((loaded / total) * 90) : Math.min(90, Math.round(loaded / 1e6));
+      setProgress(pct);
+    });
+
+    // 2. Hand web-ifc-viewer a same-origin blob URL — no CORS involved from here on
+    const blob = new Blob([arrayBuffer], { type: 'application/octet-stream' });
+    blobUrl = URL.createObjectURL(blob);
+
+    setDownloadLabel('Parsing IFC geometry');
+    const ifcModel = await viewer.IFC.loadIfcUrl(blobUrl, true);
     ifcModel.name = 'IFC_MODEL';
 
     viewer.shadowDropper?.renderShadow(ifcModel.modelID);
@@ -1126,9 +1246,10 @@ async function loadModel(model, cardEl) {
     el.viewportEmpty.classList.remove('hidden');
     el.viewportEmpty.querySelector('h3').textContent = 'Could not load model';
     el.viewportEmpty.querySelector('p').textContent =
-      `${model.title} failed to load. Confirm the URL is reachable and CORS-enabled: ${model.url}`;
+      `${model.title} failed to load — the source host is likely not sending CORS headers and the fallback proxies also failed. Host this .ifc on a bucket/CDN with Access-Control-Allow-Origin enabled (S3, R2, or your own server) rather than a GitHub Releases link. (${err.message || err})`;
   } finally {
     cardEl.classList.remove('loading');
+    if (blobUrl) URL.revokeObjectURL(blobUrl);
   }
 }
 
