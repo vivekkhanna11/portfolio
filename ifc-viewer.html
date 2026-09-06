@@ -656,6 +656,14 @@
           Fullscreen
         </button>
 
+        <div class="toolbar-sep"></div>
+
+        <button class="tool-btn" id="btn-upload" title="Load an .ifc file from your computer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Open Local File
+        </button>
+        <input type="file" id="ifc-file-input" accept=".ifc" class="hidden" />
+
         <div class="toolbar-spacer"></div>
 
         <div class="model-name" id="toolbar-model-name"><span class="dot" style="background:var(--steel-dim)"></span>No model loaded</div>
@@ -669,7 +677,7 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-6 9 6-9 6-9-6z"/><path d="M3 9v6l9 6 9-6V9"/></svg>
           </div>
           <h3>No geometry loaded</h3>
-          <p>Choose a model from the library on the left to stream its IFC geometry into the viewport.</p>
+          <p>Choose a model from the library on the left, or use "Open Local File" in the toolbar to load an .ifc from your computer.</p>
         </div>
 
         <div class="viewport-hint">Left-drag: orbit · Scroll: zoom · Click: select element</div>
@@ -730,7 +738,7 @@ const MODEL_LIBRARY = [
     discipline: 'Architectural',
     size: '48.2 MB',
     updated: '2026-08-14',
-    url: 'https://cdn.jsdelivr.net/gh/vivekkhanna11/portfolio@main/Ifc4_Revit_ARC.ifc'
+    url: 'https://github.com/vivekkhanna11/portfolio/releases/download/Test1/Ifc4_Revit_ARC.ifc'
   },
   {
     id: 'struct-tower-01',
@@ -739,7 +747,7 @@ const MODEL_LIBRARY = [
     discipline: 'Structural',
     size: '31.7 MB',
     updated: '2026-08-11',
-    url: 'https://cdn.jsdelivr.net/gh/vivekkhanna11/portfolio@main/Ifc4_Revit_ARC.ifc'
+    url: 'https://github.com/vivekkhanna11/portfolio/releases/download/Test1/Ifc4_Revit_ARC.ifc'
   },
   {
     id: 'mep-tower-01',
@@ -748,7 +756,7 @@ const MODEL_LIBRARY = [
     discipline: 'MEP',
     size: '22.4 MB',
     updated: '2026-08-09',
-    url: 'https://cdn.jsdelivr.net/gh/vivekkhanna11/portfolio@main/Ifc4_Revit_ARC.ifc'
+    url: 'https://github.com/vivekkhanna11/portfolio/releases/download/Test1/Ifc4_Revit_ARC.ifc'
   },
   {
     id: 'arch-pavilion',
@@ -757,7 +765,7 @@ const MODEL_LIBRARY = [
     discipline: 'Architectural',
     size: '9.6 MB',
     updated: '2026-07-28',
-    url: 'https://cdn.jsdelivr.net/gh/vivekkhanna11/portfolio@main/Ifc4_Revit_ARC.ifc'
+    url: 'https://github.com/vivekkhanna11/portfolio/releases/download/Test1/Ifc4_Revit_ARC.ifc'
   },
   {
     id: 'struct-bridge',
@@ -766,7 +774,7 @@ const MODEL_LIBRARY = [
     discipline: 'Structural',
     size: '14.1 MB',
     updated: '2026-07-19',
-    url: 'https://cdn.jsdelivr.net/gh/vivekkhanna11/portfolio@main/Ifc4_Revit_ARC.ifc'
+    url: 'https://github.com/vivekkhanna11/portfolio/releases/download/Test1/Ifc4_Revit_ARC.ifc'
   },
   {
     id: 'mep-lab',
@@ -775,7 +783,7 @@ const MODEL_LIBRARY = [
     discipline: 'MEP',
     size: '17.9 MB',
     updated: '2026-07-02',
-    url: 'https://cdn.jsdelivr.net/gh/vivekkhanna11/portfolio@main/Ifc4_Revit_ARC.ifc'
+    url: 'https://github.com/vivekkhanna11/portfolio/releases/download/Test1/Ifc4_Revit_ARC.ifc'
   }
 ];
 
@@ -823,6 +831,8 @@ const el = {
   btnReset: document.getElementById('btn-reset'),
   btnFit: document.getElementById('btn-fit'),
   btnFullscreen: document.getElementById('btn-fullscreen'),
+  btnUpload: document.getElementById('btn-upload'),
+  fileInput: document.getElementById('ifc-file-input'),
   viewportWrap: document.getElementById('viewport-wrap'),
 };
 
@@ -1155,9 +1165,22 @@ const CORS_PROXIES = [
   (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
 ];
 
+class HttpStatusError extends Error {
+  constructor(status, url) {
+    super(`HTTP ${status} for ${url}`);
+    this.status = status;
+  }
+}
+
 async function fetchWithProgress(url, onBytes) {
+  // A response object here means the request *reached* the server —
+  // any failure past this point (404, 403, ...) is a hosting/path
+  // problem, not a CORS problem, and retrying through a proxy won't
+  // fix it. A thrown TypeError before this line means the browser
+  // blocked the request outright (CORS / network) with no response.
   const res = await fetch(url, { mode: 'cors' });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  if (!res.ok) throw new HttpStatusError(res.status, url);
+
   const total = Number(res.headers.get('content-length')) || 0;
   if (!res.body) return await res.arrayBuffer();
 
@@ -1178,29 +1201,70 @@ async function fetchWithProgress(url, onBytes) {
 }
 
 async function fetchIfcBytes(url, onBytes) {
-  const attempts = [url, ...CORS_PROXIES.map(fn => fn(url))];
-  let lastErr = null;
-
-  for (let i = 0; i < attempts.length; i++) {
-    const attemptUrl = attempts[i];
-    const viaProxy = i > 0;
-    try {
-      setDownloadLabel(viaProxy ? `Downloading via CORS proxy (attempt ${i + 1})` : 'Downloading model');
-      const buf = await fetchWithProgress(attemptUrl, onBytes);
-      if (viaProxy) {
-        console.warn(`Loaded "${url}" via CORS proxy — the source host does not send CORS headers. Configure CORS on the origin for production use.`);
+  // First, try the URL directly.
+  setDownloadLabel('Downloading model');
+  try {
+    return await fetchWithProgress(url, onBytes);
+  } catch (err) {
+    if (err instanceof HttpStatusError) {
+      // The server responded — this is a 404/403/etc, not CORS.
+      // A proxy would hit the same wall, so fail fast with a clear reason.
+      if (err.status === 404) {
+        throw new Error(
+          `404 Not Found. The URL is reachable but no file exists at that exact path. Double-check: the file is committed to the repo (not just uploaded as a Release asset), the branch name is correct, the filename matches exactly (case-sensitive), and the repo is public.`
+        );
       }
+      throw new Error(`Server responded with HTTP ${err.status}. This is not a CORS issue — check the URL, repo visibility, and permissions.`);
+    }
+    // Otherwise: the browser likely blocked this before a response came back
+    // (CORS, mixed content, or a network-level block). Try CORS proxies.
+    console.warn(`Direct fetch blocked before any response (likely CORS): ${err.message || err}`);
+  }
+
+  let lastErr = null;
+  for (let i = 0; i < CORS_PROXIES.length; i++) {
+    const attemptUrl = CORS_PROXIES[i](url);
+    try {
+      setDownloadLabel(`Downloading via CORS proxy (attempt ${i + 1}/${CORS_PROXIES.length})`);
+      const buf = await fetchWithProgress(attemptUrl, onBytes);
+      console.warn(`Loaded "${url}" via CORS proxy — the source host does not send CORS headers. Configure CORS on the origin for production use.`);
       return buf;
     } catch (err) {
       lastErr = err;
-      console.warn(`Fetch attempt ${i + 1} failed for ${attemptUrl}:`, err.message || err);
+      console.warn(`Proxy attempt ${i + 1} failed for ${attemptUrl}:`, err.message || err);
     }
   }
-  throw new Error(`All fetch attempts failed (direct + ${CORS_PROXIES.length} proxies). Last error: ${lastErr?.message || lastErr}`);
+  throw new Error(`Blocked by the browser before any response arrived (CORS/network), and ${CORS_PROXIES.length} fallback proxies also failed or are unreachable on this network. Last error: ${lastErr?.message || lastErr}`);
 }
 
 function setDownloadLabel(text) {
   el.progressLabelText.textContent = text;
+}
+
+/**
+ * Loads a raw ArrayBuffer of IFC bytes into the viewer, clearing any
+ * previously loaded geometry first. Shared by the URL-based loader
+ * and the local-file loader below.
+ */
+async function loadArrayBufferIntoViewer(arrayBuffer, displayName) {
+  await viewer.IFC.loader.ifcManager.dispose?.();
+  viewer.context.getScene().children
+    .filter(c => c.name === 'IFC_MODEL')
+    .forEach(c => viewer.context.getScene().remove(c));
+
+  const blob = new Blob([arrayBuffer], { type: 'application/octet-stream' });
+  const blobUrl = URL.createObjectURL(blob);
+  try {
+    setDownloadLabel('Parsing IFC geometry');
+    const ifcModel = await viewer.IFC.loadIfcUrl(blobUrl, true);
+    ifcModel.name = 'IFC_MODEL';
+    viewer.shadowDropper?.renderShadow(ifcModel.modelID);
+    await viewer.context.fitToFrame();
+    el.toolbarModelName.innerHTML = `<span class="dot"></span>${escapeHTML(displayName)}`;
+    setProgress(100);
+  } finally {
+    URL.revokeObjectURL(blobUrl);
+  }
 }
 
 async function loadModel(model, cardEl) {
@@ -1213,45 +1277,66 @@ async function loadModel(model, cardEl) {
   setProgress(0);
   el.viewportEmpty.classList.add('hidden');
 
-  let blobUrl = null;
   try {
-    // Clear previously loaded geometry
-    await viewer.IFC.loader.ifcManager.dispose?.();
-    viewer.context.getScene().children
-      .filter(c => c.name === 'IFC_MODEL')
-      .forEach(c => viewer.context.getScene().remove(c));
-
     // 1. Fetch bytes (direct, falling back to CORS proxy)
     const arrayBuffer = await fetchIfcBytes(model.url, (loaded, total) => {
       const pct = total ? Math.round((loaded / total) * 90) : Math.min(90, Math.round(loaded / 1e6));
       setProgress(pct);
     });
 
-    // 2. Hand web-ifc-viewer a same-origin blob URL — no CORS involved from here on
-    const blob = new Blob([arrayBuffer], { type: 'application/octet-stream' });
-    blobUrl = URL.createObjectURL(blob);
-
-    setDownloadLabel('Parsing IFC geometry');
-    const ifcModel = await viewer.IFC.loadIfcUrl(blobUrl, true);
-    ifcModel.name = 'IFC_MODEL';
-
-    viewer.shadowDropper?.renderShadow(ifcModel.modelID);
-    await viewer.context.fitToFrame();
-
-    el.toolbarModelName.innerHTML = `<span class="dot"></span>${escapeHTML(model.title)}`;
-    setProgress(100);
+    // 2. Hand the bytes to the viewer via a same-origin blob URL
+    await loadArrayBufferIntoViewer(arrayBuffer, model.title);
   } catch (err) {
     console.error('IFC load failed', err);
     el.progressOverlay.classList.remove('visible');
     el.viewportEmpty.classList.remove('hidden');
     el.viewportEmpty.querySelector('h3').textContent = 'Could not load model';
     el.viewportEmpty.querySelector('p').textContent =
-      `${model.title} failed to load — the source host is likely not sending CORS headers and the fallback proxies also failed. Host this .ifc on a bucket/CDN with Access-Control-Allow-Origin enabled (S3, R2, or your own server) rather than a GitHub Releases link. (${err.message || err})`;
+      `${model.title} failed to load — the source host is likely not sending CORS headers and the fallback proxies also failed or are unreachable from this network. Use "Open local file" below to test with a file from your computer, or host this .ifc on a bucket/CDN with Access-Control-Allow-Origin enabled. (${err.message || err})`;
   } finally {
     cardEl.classList.remove('loading');
-    if (blobUrl) URL.revokeObjectURL(blobUrl);
   }
 }
+
+/**
+ * LOCAL FILE FALLBACK — always works, no network/CORS involved.
+ * Reads a file the user picks from their own machine and loads it
+ * straight into the viewer. Useful for testing while a CORS-enabled
+ * host is being set up, or for one-off / offline viewing.
+ */
+async function loadLocalFile(file) {
+  if (!viewerReady) { await initViewer(); }
+  if (!viewerReady) return;
+
+  // Loading a local file deselects any library card
+  state.selectedModelId = null;
+  renderList();
+
+  el.progressOverlay.classList.add('visible');
+  setDownloadLabel('Reading local file');
+  setProgress(15);
+  el.viewportEmpty.classList.add('hidden');
+
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    setProgress(50);
+    await loadArrayBufferIntoViewer(arrayBuffer, `${file.name} (local)`);
+  } catch (err) {
+    console.error('Local IFC load failed', err);
+    el.progressOverlay.classList.remove('visible');
+    el.viewportEmpty.classList.remove('hidden');
+    el.viewportEmpty.querySelector('h3').textContent = 'Could not load file';
+    el.viewportEmpty.querySelector('p').textContent =
+      `"${file.name}" could not be parsed. Confirm it's a valid .ifc export. (${err.message || err})`;
+  }
+}
+
+el.btnUpload.addEventListener('click', () => el.fileInput.click());
+el.fileInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (file) loadLocalFile(file);
+  e.target.value = ''; // allow re-selecting the same file later
+});
 
 /* ------------------------------------------------------------------
    10. LEFT PANEL — render & filter model cards
